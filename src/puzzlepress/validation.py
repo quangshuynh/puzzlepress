@@ -1,0 +1,179 @@
+"""Pure validation and normalization; expected failures have structured issues."""
+
+import re
+from dataclasses import dataclass
+from pathlib import PurePosixPath, PureWindowsPath
+from typing import cast
+
+from .models import Book, Build, Content, Output, Project
+
+SCHEMA_VERSION = 1
+MAX_SEED = 2**64 - 1
+
+
+@dataclass(frozen=True)
+class ValidationIssue:
+    path: str
+    code: str
+    message: str
+    line: int | None = None
+    column: int | None = None
+
+
+class ProjectError(Exception):
+    """An expected source, configuration, or filesystem failure."""
+
+    def __init__(self, issues: tuple[ValidationIssue, ...]) -> None:
+        self.issues = issues
+        super().__init__("; ".join(f"{issue.path}: {issue.message}" for issue in issues))
+
+
+@dataclass(frozen=True)
+class ValidationResult:
+    project: Project | None
+    issues: tuple[ValidationIssue, ...]
+
+    @property
+    def valid(self) -> bool:
+        return self.project is not None and not self.issues
+
+    def require_project(self) -> Project:
+        if self.issues:
+            raise ProjectError(self.issues)
+        if self.project is None:
+            raise RuntimeError("Validation result has neither a project nor issues")
+        return self.project
+
+
+def validate_project(data: object) -> ValidationResult:
+    """Validate a decoded source mapping, collecting independent schema errors.
+
+    Schema dispatch lives here: future versions can have separate validators.
+    Unknown versions are never interpreted using v1 rules.
+    """
+    issues: list[ValidationIssue] = []
+
+    def issue(path: str, code: str, message: str) -> None:
+        issues.append(ValidationIssue(path, code, message))
+
+    def mapping(value: object, path: str, allowed: set[str]) -> dict[str, object]:
+        if not isinstance(value, dict):
+            issue(path, "type", "Expected a mapping.")
+            return {}
+        if any(not isinstance(key, str) for key in value):
+            issue(path, "key_type", "Mapping keys must be strings.")
+        for key in sorted(key for key in value if isinstance(key, str)):
+            if key not in allowed:
+                issue(f"{path}.{key}" if path else key, "unknown_field", "Unknown field.")
+        return cast(dict[str, object], value)
+
+    def required(source: dict[str, object], key: str, path: str) -> object:
+        if key not in source:
+            issue(path, "required", "Required field is missing.")
+        return source.get(key)
+
+    def string(value: object, path: str, optional: bool = False) -> str | None:
+        if optional and value is None:
+            return None
+        if not isinstance(value, str) or not value.strip():
+            issue(path, "type", "Expected a nonempty string.")
+            return None
+        if any(0xD800 <= ord(char) <= 0xDFFF for char in value):
+            issue(path, "unicode", "Text must contain valid Unicode scalar values.")
+            return None
+        return value.strip()
+
+    root = mapping(data, "", {"schema_version", "book", "build", "content", "output"})
+    version = required(root, "schema_version", "schema_version")
+    if type(version) is not int or version != SCHEMA_VERSION:
+        if "schema_version" in root:
+            issue(
+                "schema_version",
+                "unsupported_version",
+                f"Unsupported PuzzlePress schema version: {version!r}. Supported versions: 1.",
+            )
+        return ValidationResult(None, tuple(issues))
+
+    book = mapping(
+        required(root, "book", "book"),
+        "book",
+        {"id", "title", "language", "subtitle", "description", "author", "imprint"},
+    )
+    book_values: dict[str, str | None] = {}
+    for key in ("id", "title", "language"):
+        if key not in book:
+            required(book, key, f"book.{key}")
+            book_values[key] = None
+        else:
+            book_values[key] = string(book[key], f"book.{key}")
+    for key in ("subtitle", "description", "author", "imprint"):
+        book_values[key] = string(book.get(key), f"book.{key}", optional=True)
+    book_id = book_values["id"]
+    if book_id and not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", book_id):
+        issue("book.id", "format", "Use lowercase ASCII letters/digits separated by hyphens.")
+    # These names cannot safely serve as output directories on Windows.
+    if book_id and re.fullmatch(r"(?:con|prn|aux|nul|com[1-9]|lpt[1-9])", book_id):
+        issue("book.id", "reserved", "This identifier is reserved on Windows.")
+    language = book_values["language"]
+    if language and not re.fullmatch(r"[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*", language):
+        issue("book.language", "format", "Expected a language tag such as en or en-US.")
+
+    build = mapping(required(root, "build", "build"), "build", {"seed"})
+    seed = required(build, "seed", "build.seed")
+    if isinstance(seed, str) and re.fullmatch(r"[0-9]+", seed.strip()):
+        digits = seed.strip().lstrip("0") or "0"
+        seed = int(digits) if len(digits) <= 20 else MAX_SEED + 1
+    if type(seed) is not int or not 0 <= seed <= MAX_SEED:
+        if "seed" in build:
+            issue("build.seed", "seed", f"Expected an integer or decimal string in 0..{MAX_SEED}.")
+
+    content = mapping(root.get("content", {}), "content", {"items"})
+    raw_items = content.get("items", [])
+    items: list[str] = []
+    if not isinstance(raw_items, list):
+        issue("content.items", "type", "Expected an ordered list of nonempty strings.")
+    else:
+        for index, item in enumerate(raw_items):
+            normalized = string(item, f"content.items.{index}")
+            if normalized is not None:
+                items.append(normalized)
+
+    output = mapping(root.get("output", {}), "output", {"directory"})
+    directory = string(output.get("directory", f"../build/{book_id}"), "output.directory")
+    if directory:
+        windows = PureWindowsPath(directory)
+        if (
+            windows.drive
+            or windows.root
+            or PurePosixPath(directory).is_absolute()
+            or "\\" in directory
+            or any(ord(char) < 32 for char in directory)
+            or any(char in directory for char in '<>:"|?*')
+            or any(
+                part.endswith((" ", "."))
+                for part in directory.split("/")
+                if part not in (".", "..")
+            )
+        ):
+            issue("output.directory", "path", "Use a relative path with forward slashes.")
+
+    if issues:
+        return ValidationResult(None, tuple(issues))
+    return ValidationResult(
+        Project(
+            schema_version=SCHEMA_VERSION,
+            book=Book(
+                id=cast(str, book_id),
+                title=cast(str, book_values["title"]),
+                language=cast(str, language),
+                subtitle=book_values["subtitle"],
+                description=book_values["description"],
+                author=book_values["author"],
+                imprint=book_values["imprint"],
+            ),
+            build=Build(cast(int, seed)),
+            content=Content(tuple(items)),
+            output=Output(cast(str, directory)),
+        ),
+        (),
+    )
