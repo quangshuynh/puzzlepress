@@ -95,3 +95,89 @@ def test_unexpected_programmer_error_is_not_misreported(monkeypatch):
     monkeypatch.setattr("puzzlepress.cli.load_project", broken_loader)
     with pytest.raises(RuntimeError, match="internal defect"):
         main(["validate", "anything"])
+
+
+def test_puzzle_cli_success_determinism_and_solution():
+    args = (
+        "puzzle",
+        "generate",
+        "--width",
+        "8",
+        "--height",
+        "6",
+        "--seed",
+        "2026",
+        "--word",
+        "FUEL PUMP",
+        "--word",
+        "AXLE",
+        "--solution",
+    )
+    result = run_cli(*args)
+    assert result.returncode == 0
+    assert not result.stderr
+    assert result.stdout == run_cli(*args).stdout
+    for expected in (
+        "Seed: 2026",
+        "Grid: 8 x 6",
+        "FUEL PUMP; AXLE",
+        "Verified:",
+        "zero-based",
+        "FUELPUMP",
+    ):
+        assert expected in result.stdout
+    assert len(result.stdout.splitlines()[2:8]) == 6
+    assert "Solution" not in run_cli(*args[:-1]).stdout
+
+
+@pytest.mark.parametrize(
+    "extra,code",
+    [
+        (("--word", "A!"), "characters"),
+        (("--word", "ABCD"), "cannot_fit"),
+        (("--word", "ABC", "--word", "DEF", "--max-restarts", "0"), "search_exhausted"),
+        (("--word", "A", "--seed", "-1"), "seed"),
+        (("--word", "A", "--width", "0"), "range"),
+        (("--word", "A", "--word", "a"), "duplicate_search"),
+    ],
+)
+def test_puzzle_cli_expected_failures(extra, code):
+    result = run_cli("puzzle", "generate", "--width", "3", "--height", "1", "--seed", "1", *extra)
+    assert result.returncode == 1
+    assert f"[{code}]" in result.stderr
+    assert "Traceback" not in result.stderr
+    assert not result.stdout
+
+
+@pytest.mark.parametrize(
+    "args",
+    [
+        ("puzzle",),
+        ("puzzle", "generate"),
+        ("puzzle", "generate", "--direction", "sideways"),
+        ("puzzle", "generate", "--width", "wide"),
+    ],
+)
+def test_puzzle_cli_usage(args):
+    assert run_cli(*args).returncode == 2
+
+
+def test_puzzle_cli_direction_subset():
+    result = run_cli(
+        "puzzle",
+        "generate",
+        "--width",
+        "3",
+        "--height",
+        "1",
+        "--seed",
+        "0",
+        "--word",
+        "ABC",
+        "--direction",
+        "left",
+        "--solution",
+    )
+    assert result.returncode == 0
+    assert "C B A" in result.stdout
+    assert "(2, 0) -> (0, 0) left" in result.stdout

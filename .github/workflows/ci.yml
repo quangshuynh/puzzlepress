@@ -18,5 +18,7 @@ jobs:
       - run: python -m ruff check .
       - run: python -m ruff format --check .
       - run: python -m mypy
+      - run: python -m pip check
       - run: puzzlepress validate books/automotive
       - run: puzzlepress inspect books/automotive
+      - run: puzzlepress puzzle generate --width 10 --height 8 --seed 2026 --word ENGINE --word CLUTCH --word PISTON --solution
