@@ -2,6 +2,8 @@
 
 from dataclasses import asdict, dataclass
 
+from .content import WordSearchContent
+
 
 @dataclass(frozen=True)
 class Book:
@@ -38,9 +40,14 @@ class Project:
     build: Build
     content: Content
     output: Output
+    word_search: WordSearchContent | None = None
 
     def to_dict(self) -> dict[str, object]:
         """Return an independent, JSON/YAML-compatible source representation."""
         data = asdict(self)
         data["content"]["items"] = list(self.content.items)
+        if self.word_search is None:
+            del data["word_search"]
+        else:
+            data["word_search"] = self.word_search.to_dict()
         return data

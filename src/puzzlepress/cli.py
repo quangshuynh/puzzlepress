@@ -49,6 +49,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             ("Language", project.book.language),
             ("Seed", project.build.seed),
             ("Content items", len(project.content.items)),
+            ("Puzzle definitions", len(project.word_search.puzzles) if project.word_search else 0),
             ("Build identity", build_identity(project)),
             ("Source", loaded.source_path),
             ("Output directory", loaded.output_directory),

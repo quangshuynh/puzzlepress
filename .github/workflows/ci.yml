@@ -22,3 +22,5 @@ jobs:
       - run: puzzlepress validate books/automotive
       - run: puzzlepress inspect books/automotive
       - run: puzzlepress puzzle generate --width 10 --height 8 --seed 2026 --word ENGINE --word CLUTCH --word PISTON --solution
+      - run: puzzlepress validate books/garden-demo
+      - run: puzzlepress puzzle batch books/garden-demo --json

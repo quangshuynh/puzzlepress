@@ -32,6 +32,7 @@ output:
 | `build.seed` | Required unsigned 64-bit integer (`0` through `18446744073709551615`) or decimal digit string. |
 | `content.items` | Ordered nonempty strings; omitted content/items defaults to an empty list. Duplicates and order are preserved. No puzzle-specific rules apply. |
 | `output.directory` | Relative path from the resolved YAML file's directory; defaults to `../build/<book.id>`. |
+| `word_search` | Optional banks, explicit difficulty profiles, themed puzzle definitions, and quality settings. See [batch schema](batch-quality.md). Omit for legacy projects; null is rejected. |
 
 Unknown fields are errors, including nested typos. Text is trimmed at its edges;
 internal whitespace, case, and Unicode normalization form are preserved. Omitted
@@ -70,7 +71,7 @@ test caches, and packaging artifacts are ignored by Git.
 
 `canonical_build_inputs` returns UTF-8 JSON with sorted keys, compact separators,
 and an envelope containing identity format version `1`, engine version `0.1.0`,
-and the normalized schema/book/build/content values. SHA-256 produces an identity
+and the normalized project values, excluding output. SHA-256 produces an identity
 formatted as `pp1-sha256-<64 hex characters>`.
 
 - Book metadata, seed, content order, and content values affect identity.
@@ -87,6 +88,15 @@ is a fingerprint of declared inputs, not a guarantee of reproducible PDF bytes
 or a complete release-environment manifest.
 
 This is a toolchain/build-input identity because it includes the engine version.
-It is not a source-only fingerprint. Standalone puzzle configuration is outside
-this contract. A later interval may separate source and build fingerprints;
-Interval 2 keeps the existing identity contract and regression value unchanged.
+Projects with `word_search` include the entire normalized section and an envelope
+field `word_search_pipeline_version: 1`. This covers banks, profiles, themes,
+selection order, generation limits, similarity/reuse thresholds, and screening
+words. Declared unused banks/profiles also affect identity. Sequence order is
+preserved, except direction sets use enum order and prohibited search forms are sorted.
+
+Absent `word_search` is omitted from canonical inputs, preserving all legacy
+identities. Present sections require valid nonempty banks, profiles, and puzzles.
+Schema v1 is extended additively; older engines reject the new section explicitly
+as unknown. The pipeline version covers seed derivation and quality/report
+semantics. Future changes must review this version and the engine version.
+Ad hoc `puzzle generate` inputs are still outside the project fingerprint.

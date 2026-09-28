@@ -13,6 +13,10 @@ and a future web studio share the same core. Read `CONTEXT.md` for current scope
   ordering deterministic. Bound generation work; never silently omit targets,
   resize grids, alter words, or enable extra directions.
 - Solutions come from authoritative placements. Verify them independently.
+- Keep quality findings separate from generation failures. Report incomplete
+  screening explicitly. Never silently regenerate or change authored policy.
+- Preserve per-puzzle seed derivation across batch reordering. Serialize 64-bit
+  report seeds as decimal strings so web clients retain exact values.
 - Keep authored source and disposable generated directories disjoint. Recheck
   filesystem boundaries before any future write or recursive cleanup.
 - Preserve versioned schema and identity contracts. Include output-affecting

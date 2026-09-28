@@ -4,7 +4,7 @@ import re
 from collections.abc import Sequence
 from dataclasses import replace
 
-from ..validation import MAX_SEED, ValidationIssue
+from ..errors import MAX_SEED, ValidationIssue
 from .models import Direction, GenerationConfig, Target, TargetEntry, WordSearchError
 
 

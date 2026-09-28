@@ -2,73 +2,86 @@
 
 ## Completed scope
 
-Interval 2: deterministic standalone word-search generation and independent
-verification. Interval 1 project behavior is preserved. No Interval 3 work started.
+Interval 3: project-defined word searches, reusable word banks, themed puzzle
+definitions, explicit difficulty profiles, deterministic batches, and quality
+reports. Intervals 1 and 2 remain covered by unchanged regression tests.
 
 Python 3.11+, package/engine version `0.1.0`, schema version `1`, identity version
-`1`, standalone word-search generation version `1`. No dependencies added:
-PyYAML remains the only runtime dependency. pytest, Ruff, strict mypy, and
-PyYAML stubs provide development checks.
+`1`, standalone generation version `1`, project word-search pipeline version `1`.
+No new dependencies. PyYAML is the sole runtime dependency; pytest, Ruff, strict
+mypy, and PyYAML stubs support development.
 
-## Architecture and contracts
+## Architecture and decisions
 
-- `src/puzzlepress/`: immutable project models, structured validation, restricted
-  YAML, read-only loading, canonical SHA-256 identity, thin CLI adapters.
-- `wordsearch/`: immutable targets/config/grid/placements/solution/results,
-  normalization, bounded greedy generation, and an independent verifier.
-  Public APIs: `generate_word_search`, `verify_word_search`, `normalize_targets`.
-- Targets have explicit unique IDs. Display retains case and internal spaces;
-  search uses uppercase ASCII letters with literal spaces removed. Other
-  characters and normalized duplicates are rejected.
-- Logical grids are rectangular, 1..50 per axis; 1..100 targets, 1..50 letters
-  each. All eight directions work; subsets are canonicalized in enum order.
-- Local `Random(seed)` drives longest-first tie ordering, candidate ordering,
-  and A-Z filler. Defaults: 20 restarts and 100,000 total candidate checks.
-  Hard caps: 100 restarts, 1,000,000 checks. No silent partial puzzles or resizing.
-- Solutions retain authoritative placements; coordinates/end are derived.
-  Verification computes geometry independently and checks the embedded requested
-  manifest. Search exhaustion is a structured failure, not proof of impossibility.
-- Core generation has no I/O or global random-state mutation. Source and
-  generated directories remain disjoint; generated directories are disposable.
-- Book identity includes engine version, so it describes build inputs rather
-  than source alone. Paths/timestamps/formatting are excluded. Schema and engine
-  version are unchanged; the Interval 1 identity regression still passes.
-  Standalone puzzle inputs are not included in that project fingerprint.
+- Existing project models/validation/YAML/loading/identity and `wordsearch/`
+  remain. Shared errors moved to `errors.py` to avoid model import cycles;
+  existing public error imports still work.
+- `content.py` defines immutable word banks, difficulty profiles, themed puzzle
+  definitions, quality settings, and their collection. `content_validation.py`
+  validates the optional schema-v1 `word_search` section and all references.
+- Profiles explicitly specify dimensions and directions; names are authored
+  labels, not calibrated difficulty scores. Each puzzle selects ordered IDs
+  from one bank. Unknown fields and normalized duplicates within a bank fail.
+- A project supports 1..20 banks/profiles/puzzles, 1..100 entries per bank and
+  targets per puzzle. Existing ASCII normalization and generation bounds remain:
+  dimensions 1..50, at most 50 letters per target, defaults 20 restarts/100,000
+  attempts, hard caps 100 restarts/1,000,000 attempts per puzzle.
+- `batch.generate_batch` revalidates source, derives each seed from SHA-256 of
+  project seed plus puzzle ID and pipeline version, then generates sequentially.
+  Reordering/inserting definitions preserves existing grids. Expected placement
+  failures remain in the report and do not prevent later definitions running.
+- `quality.py` scans all eight directions for accidental target paths and
+  optional prohibited words. Authoritative paths are excluded only from target
+  scans. Palindrome reverse traversals are deduplicated. Scans cap at 1,000 hits;
+  incomplete scans explicitly warn. Disabled screening is reported separately.
+- `batch.analyze_content` reports normalized word reuse, equal target sets,
+  Jaccard similarity and containment overlap. Batch reports add same-position
+  grid agreement. Thresholds are configurable; no hidden automatic repair.
+- Reports are immutable, with independent JSON-compatible dictionaries. JSON
+  seeds are decimal strings for lossless JavaScript use. Core seeds are integers.
+- Full normalized `word_search` content/settings and pipeline version enter
+  project build identity. Missing sections are omitted, retaining legacy hashes.
+  Engine version still participates; output paths and timestamps remain excluded.
+- Core APIs do not print/write or mutate global randomness. Source and generated
+  trees remain disjoint. No commands write generated artifacts.
 
 ## CLI and examples
 
-`puzzlepress --version`, `validate <project>`, `inspect <project>` and
-`puzzle generate --width N --height N --seed N --word TEXT [--word TEXT ...]`.
-Optional repeated `--direction`, `--max-attempts`, `--max-restarts`, `--solution`.
-Generation always verifies before printing. Exit codes: 0 success, 1 expected
-input/search failure, 2 usage error. No commands write artifacts.
+Existing `--version`, `validate`, `inspect`, and standalone `puzzle generate`
+remain. New: `puzzlepress puzzle batch <project> [--json] [--strict-quality]`.
+Exit 1 for validation or generation failure; quality findings warn unless strict
+mode requests exit 1. Usage errors exit 2. JSON partial-failure reports go to
+stdout; invalid-project errors go to stderr. `success` means all definitions
+were generated; `clean` also requires no quality findings.
 
-Book YAML and the small automotive fixture are unchanged. Puzzle CLI inputs are
-isolated because schema v1 has no puzzle configuration. Details live in
-`docs/project-format.md` and `docs/word-search.md`.
+`books/automotive` remains the original fixture. `books/garden-demo` contains two
+small themed puzzles and produces a clean batch with seed 2026. Detailed contracts
+and API examples are in `docs/batch-quality.md`, `docs/project-format.md`, and
+`docs/word-search.md`. README gives installation and usage.
 
-## Verified locally
+## Final local verification
 
-Windows, Python 3.13.15: **208 passed, 1 skipped** (209 collected; the skip requires
-symlink permission). Ruff lint passed; format check passed (22 files); strict mypy
-passed (14 source files); `pip check` passed; `git diff --check` passed.
-Installed CLI validation/inspection/generation passed. Same-seed outputs match;
-2026 and 2027 yield different valid puzzles. Impossible inputs exit 1 cleanly.
+Windows Python 3.13.15: **317 passed, 1 skipped** (318 collected). The skipped
+symlink test requires unavailable OS permission. Ruff lint/format, strict mypy
+(20 source files), `pip check`, installed CLI, and `git diff --check` passed.
+Documentation Python examples executed successfully. Same-seed batch JSON is
+identical across runs and process hash seeds; different project seeds change grids.
+Tests include schema failures, identity coverage, partial failures, exact retry
+bounds, policy/accidental scans, palindrome deduplication, truncation, threshold
+boundaries, reuse across banks, and five 25-target 20x20 puzzles.
 
-Tests include all directions, exhaustive small-grid bounds, matching/conflicting
-overlaps, bounded failure, successful restart, corruption, fixed generation-v1
-output, process hash-seed independence, and 25-target 20x20 puzzles across ten
-seeds. Hypothesis was not needed for the exhaustive coordinate domain and these
-seeded invariants. CI is configured for Windows/Linux, Python 3.11/3.13/3.14;
-remote CI was not run here. Nothing committed, pushed, or published.
+CI includes the new fixture/batch commands on Windows/Linux Python 3.11/3.13/3.14;
+remote jobs were not run here. Nothing committed, pushed, published, or deployed.
 
 ## Limits and next interval
 
-ASCII only; greedy search can exhaust on feasible puzzles. No accidental-word
-suppression, offensive filler filtering, difficulty scoring, batch books, real
-automotive content, PDFs/layout, publishing automation, or web application.
-Verifier checks internal consistency, not seed replay or external authenticity.
+ASCII A-Z word content; inline banks only; 20-puzzle batch cap. Greedy search can
+fail on feasible inputs. Similarity metrics flag review candidates, without
+rotation/translation comparison or an originality guarantee. Screening is literal
+matching against an explicit list, without contextual moderation or a built-in
+policy. There is no automatic suppression or repair.
 
-Next is Interval 3; its scope has not been supplied. Before book generation,
-define puzzle schema inputs and their identity coverage. Review normalization,
-search limits, and generation-version expectations before extending semantics.
+PDFs, covers, KDP layout, web UI, measured difficulty, external content files,
+and production book publishing remain deferred. Interval 4 has not started;
+its scope has not been supplied. Review schema and pipeline-version compatibility
+before changing generation, seed derivation, or quality semantics.

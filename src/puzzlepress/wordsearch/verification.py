@@ -1,6 +1,6 @@
 """Check authoritative solutions independently of the placement implementation."""
 
-from ..validation import ValidationIssue
+from ..errors import ValidationIssue
 from .models import (
     ALPHABET,
     GENERATION_VERSION,

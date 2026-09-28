@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 
+from .batch_cli import run_batch_command
 from .wordsearch import (
     Direction,
     GenerationConfig,
@@ -17,6 +18,14 @@ from .wordsearch import (
 def add_puzzle_command(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
     puzzle = commands.add_parser("puzzle", help="Standalone puzzle tools")
     actions = puzzle.add_subparsers(dest="puzzle_command", required=True)
+    batch = actions.add_parser("batch", help="Generate a project batch and report quality")
+    batch.add_argument("project", help="YAML file or directory containing book.yaml")
+    batch.add_argument(
+        "--json", action="store_true", help="Print a structured report with solutions"
+    )
+    batch.add_argument(
+        "--strict-quality", action="store_true", help="Exit 1 on any quality finding"
+    )
     generate = actions.add_parser("generate", help="Generate and verify a text word search")
     generate.add_argument("--word", action="append", required=True, help="Target (repeat for each)")
     generate.add_argument("--width", type=int, required=True)
@@ -34,6 +43,8 @@ def add_puzzle_command(commands: argparse._SubParsersAction[argparse.ArgumentPar
 
 
 def run_puzzle_command(args: argparse.Namespace) -> int:
+    if args.puzzle_command == "batch":
+        return run_batch_command(args)
     directions = (
         tuple(Direction[name.upper().replace("-", "_")] for name in args.direction)
         if args.direction

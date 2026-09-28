@@ -5,27 +5,13 @@ from dataclasses import dataclass
 from pathlib import PurePosixPath, PureWindowsPath
 from typing import cast
 
+from .content_validation import validate_word_search_content
+from .errors import MAX_SEED
+from .errors import ProjectError as ProjectError
+from .errors import ValidationIssue as ValidationIssue
 from .models import Book, Build, Content, Output, Project
 
 SCHEMA_VERSION = 1
-MAX_SEED = 2**64 - 1
-
-
-@dataclass(frozen=True)
-class ValidationIssue:
-    path: str
-    code: str
-    message: str
-    line: int | None = None
-    column: int | None = None
-
-
-class ProjectError(Exception):
-    """An expected source, configuration, or filesystem failure."""
-
-    def __init__(self, issues: tuple[ValidationIssue, ...]) -> None:
-        self.issues = issues
-        super().__init__("; ".join(f"{issue.path}: {issue.message}" for issue in issues))
 
 
 @dataclass(frozen=True)
@@ -83,7 +69,9 @@ def validate_project(data: object) -> ValidationResult:
             return None
         return value.strip()
 
-    root = mapping(data, "", {"schema_version", "book", "build", "content", "output"})
+    root = mapping(
+        data, "", {"schema_version", "book", "build", "content", "output", "word_search"}
+    )
     version = required(root, "schema_version", "schema_version")
     if type(version) is not int or version != SCHEMA_VERSION:
         if "schema_version" in root:
@@ -157,6 +145,10 @@ def validate_project(data: object) -> ValidationResult:
         ):
             issue("output.directory", "path", "Use a relative path with forward slashes.")
 
+    word_search = None
+    if "word_search" in root:
+        word_search, content_issues = validate_word_search_content(root["word_search"])
+        issues.extend(content_issues)
     if issues:
         return ValidationResult(None, tuple(issues))
     return ValidationResult(
@@ -174,6 +166,7 @@ def validate_project(data: object) -> ValidationResult:
             build=Build(cast(int, seed)),
             content=Content(tuple(items)),
             output=Output(cast(str, directory)),
+            word_search=word_search,
         ),
         (),
     )

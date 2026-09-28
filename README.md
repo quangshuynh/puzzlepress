@@ -4,8 +4,9 @@ PuzzlePress is a deterministic Python publishing engine for themed puzzle books.
 It provides project validation and a reusable word-search engine. A CLI exposes
 the same core APIs intended for a future web publishing studio.
 
-**Status: Interval 2 complete.** Word searches can be generated and independently
-verified. Print/PDF output, book builds, and the web studio are planned.
+**Status: Interval 3 complete.** Projects can define themed puzzles, reusable
+word banks, and explicit difficulty profiles. Batch generation produces verified
+grids and structured quality reports. Print/PDF output and the web studio are planned.
 
 ## Install
 
@@ -26,6 +27,8 @@ puzzlepress --version
 puzzlepress validate books/automotive
 puzzlepress inspect books/automotive/book.yaml
 puzzlepress puzzle generate --width 8 --height 6 --seed 2026 --word "FUEL PUMP" --word AXLE --solution
+puzzlepress puzzle batch books/garden-demo
+puzzlepress puzzle batch books/garden-demo --json --strict-quality
 ```
 
 Generation prints the seed, text grid, target list, and verification status.
@@ -35,7 +38,9 @@ coordinates. Repeat `--direction` to enable a subset of `right`, `left`, `down`,
 by default. `--max-attempts` and `--max-restarts` bound the search.
 
 Commands are read-only. Exit codes: **0** success, **1** expected configuration
-or generation failure, **2** CLI usage error. Errors go to stderr.
+or generation failure, **2** CLI usage error. Batch quality findings are warnings;
+`--strict-quality` makes them exit 1. JSON mode prints a complete report, including
+per-puzzle generation failures, to stdout. Invalid project errors go to stderr.
 `python -m puzzlepress` is also supported.
 
 ## Word-search API
@@ -82,8 +87,24 @@ The [project format](docs/project-format.md) documents these rules and the
 versioned SHA-256 build identity, which includes the engine version and excludes
 paths, timestamps, comments, and YAML key order.
 
-Puzzle generation is currently separate from project YAML because schema v1 has
-no puzzle settings. No book build or publish command exists.
+[`books/garden-demo/book.yaml`](books/garden-demo/book.yaml) demonstrates the
+optional schema-v1 `word_search` section with two themed puzzles. Its word banks,
+profiles, puzzle definitions, and quality settings all participate in identity.
+Older projects keep their existing identities.
+
+```python
+from puzzlepress import load_project
+from puzzlepress.batch import generate_batch
+
+report = generate_batch(load_project("books/garden-demo").project)
+assert report.success
+payload = report.to_dict()
+```
+
+Reports include accidental target occurrences, optional caller-supplied prohibited
+word matches, cross-puzzle reuse, duplicate target sets, and similarity metrics.
+Difficulty profiles are named settings, not measured difficulty scores. See
+[batch and quality contracts](docs/batch-quality.md) for schema, API, and report details.
 
 ## Development
 
@@ -110,7 +131,9 @@ and PyYAML type stubs.
 - `models`, `validation`, `yaml_io`: immutable project values and schema handling.
 - `project`, `identity`: read-only loading, filesystem boundaries, build fingerprints.
 - `wordsearch`: puzzle values, normalization, bounded generation, independent verification.
-- `cli`, `puzzle_cli`: argument parsing and terminal presentation.
+- `content`, `content_validation`: word banks, difficulty profiles, themed definitions.
+- `batch`, `quality`: deterministic batches, occurrence screening, reuse and similarity reports.
+- CLI modules: argument parsing and terminal/JSON presentation.
 
 Core generation has no terminal or filesystem side effects. See
 [AGENTS.md](AGENTS.md) for contribution rules and [CONTEXT.md](CONTEXT.md) for the
@@ -118,10 +141,11 @@ current engineering handoff.
 
 ## Limitations and roadmap
 
-Current puzzles use ASCII A-Z. Accidental extra word occurrences and offensive
-filler are not suppressed. Quality checks, difficulty, real book content,
-batch generation, print/PDF layout, publishing workflows, and the web studio
-remain future work.
+Current puzzles use ASCII A-Z. Batches are limited to 20 definitions. Quality
+checks flag findings without changing grids; there is no built-in prohibited-word
+list. Screening is literal and capped with an explicit incomplete-scan flag.
+Difficulty calibration, automatic quality repair, real book content, print/PDF
+layout, publishing workflows, and the web studio remain future work.
 
 ## License
 

@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 from random import Random
 
-from ..validation import ValidationIssue
+from ..errors import ValidationIssue
 from .models import (
     ALPHABET,
     Coordinate,

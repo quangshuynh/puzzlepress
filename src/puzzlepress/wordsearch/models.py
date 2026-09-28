@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
-from ..validation import ValidationIssue
+from ..errors import ValidationIssue
 
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 GENERATION_VERSION = 1

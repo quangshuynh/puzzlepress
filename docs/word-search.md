@@ -75,7 +75,8 @@ by ID even if the grid happens to contain other occurrences.
 
 The standalone CLI uses repeated `--word` values and assigns ordered IDs
 `word-1`, `word-2`, etc. It always verifies before printing; `--solution` shows
-placements. It writes no files. Book schema v1 remains general authored content:
-it has no puzzle dimensions or direction fields, so generation does not load
-book YAML. A later schema interval must include all puzzle settings in build
-identity before generating book artifacts.
+placements. It writes no files. The standalone generation-v1 algorithm is
+unchanged. `puzzle batch` now reads the optional schema-v1 `word_search` section,
+derives a seed per definition, invokes this same engine, and reports quality.
+Project puzzle settings participate in build identity. See
+[batch and quality contracts](batch-quality.md).
