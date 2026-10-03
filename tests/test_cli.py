@@ -1,12 +1,10 @@
 import subprocess
 import sys
-from pathlib import Path
 
 import pytest
 
 from puzzlepress import __version__, build_identity, load_project
 from puzzlepress.cli import main
-
 from tests.helpers import installed_puzzlepress
 
 

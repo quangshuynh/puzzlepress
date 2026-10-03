@@ -1,6 +1,6 @@
+import sys
 import sysconfig
 from pathlib import Path
-import sys
 
 
 def installed_puzzlepress() -> Path:

@@ -12,8 +12,8 @@ import pytest
 from puzzlepress import ProjectError, build_identity, dump_project, load_project, validate_project
 from puzzlepress.batch import analyze_content, derive_puzzle_seed, generate_batch
 from puzzlepress.wordsearch import Grid, WordSearchError, verify_word_search
-
 from tests.helpers import installed_puzzlepress
+
 
 def normalized(data):
     return validate_project(data).require_project()
