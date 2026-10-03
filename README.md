@@ -10,115 +10,77 @@
 [![Ruff](https://img.shields.io/badge/lint-Ruff-261230.svg)](https://docs.astral.sh/ruff/)
 [![mypy: strict](https://img.shields.io/badge/mypy-strict-blue.svg)](https://mypy-lang.org/)
 
-PuzzlePress is a deterministic Python publishing engine for themed puzzle books.
-It provides project validation and a reusable word-search engine. A CLI exposes
-the same core APIs intended for a future web publishing studio.
+PuzzlePress is a deterministic Python engine and local publishing studio for
+themed puzzle books. Validate authored projects, generate verified word searches,
+and inspect solutions and quality findings through the CLI or browser.
 
-**Status: Interval 3 complete.** Projects can define themed puzzles, reusable
-word banks, and explicit difficulty profiles. Batch generation produces verified
-grids and structured quality reports. Print/PDF output and the web studio are planned.
+**Interval 4 complete:** a read-only Web Studio uses the same Python core as the
+CLI. Browser editing, print/PDF interiors, covers and publishing remain future work.
 
-## Install
+## Quick start
 
-Requires Python 3.11 or newer. From the repository root:
+Requires Python 3.11+. The Studio build also requires Node.js 22+.
+From the repository root on Windows:
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
-.\.venv\Scripts\Activate.ps1
+.\.venv\Scripts\python.exe -m pip install -e ".[dev,studio,web-test]"
+cd studio
+npm.cmd ci
+npm.cmd run build
+cd ..
+.\.venv\Scripts\puzzlepress-studio.exe
 ```
 
-On Linux/macOS, activate with `source .venv/bin/activate`.
+Open **http://127.0.0.1:8000/books** and choose **Garden Word Searches**.
+After setup, start the Studio with the last command alone. One local Python
+process serves the UI and API. On Linux/macOS use `.venv/bin/python`,
+`.venv/bin/puzzlepress-studio` and `npm`.
+
+For CLI-only use, install with `python -m pip install -e .` and activate the
+virtual environment. PyYAML remains the only core runtime dependency.
 
 ## CLI
 
 ```text
 puzzlepress --version
 puzzlepress validate books/automotive
-puzzlepress inspect books/automotive/book.yaml
-puzzlepress puzzle generate --width 8 --height 6 --seed 2026 --word "FUEL PUMP" --word AXLE --solution
-puzzlepress puzzle batch books/garden-demo
-puzzlepress puzzle batch books/garden-demo --json --strict-quality
+puzzlepress inspect books/garden-demo
+puzzlepress puzzle generate --width 10 --height 8 --seed 2026 --word ENGINE --word PISTON --solution
+puzzlepress puzzle batch books/garden-demo --json
+puzzlepress puzzle batch books/garden-demo --strict-quality
 ```
-
-Generation prints the seed, text grid, target list, and verification status.
-`--solution` adds authoritative placements using zero-based `(column, row)`
-coordinates. Repeat `--direction` to enable a subset of `right`, `left`, `down`,
-`up`, `down-right`, `down-left`, `up-right`, and `up-left`. All eight are enabled
-by default. `--max-attempts` and `--max-restarts` bound the search.
 
 Commands are read-only. Exit codes: **0** success, **1** expected configuration
-or generation failure, **2** CLI usage error. Batch quality findings are warnings;
-`--strict-quality` makes them exit 1. JSON mode prints a complete report, including
-per-puzzle generation failures, to stdout. Invalid project errors go to stderr.
-`python -m puzzlepress` is also supported.
+or generation failure, **2** usage error. Batch quality findings are warnings
+unless `--strict-quality` is used. `python -m puzzlepress` is also supported.
 
-## Word-search API
+## Web Studio
 
-```python
-from puzzlepress.wordsearch import (
-    GenerationConfig,
-    GridSize,
-    TargetEntry,
-    generate_word_search,
-    verify_word_search,
-)
+- Discover local projects and inspect metadata, validation and build identity.
+- Review authored word banks, puzzle definitions, profiles and quality settings.
+- Generate and inspect real grids, exact seeds and independent verification.
+- Toggle authoritative solutions with highlighted paths and a coordinate register.
+- Review quality findings, screening completeness, reuse and similarity reports.
 
-puzzle = generate_word_search(
-    (TargetEntry("fuel-pump", "FUEL PUMP"), TargetEntry("axle", "AXLE")),
-    GenerationConfig(GridSize(width=8, height=6)),
-    seed=2026,
-)
-assert verify_word_search(puzzle).valid
-print(puzzle.grid.rows)
-print(puzzle.solution.placements)
-```
+[`garden-demo`](books/garden-demo/book.yaml) has two themed puzzles.
+[`automotive`](books/automotive/book.yaml) is a small source fixture without
+word-search definitions. Neither is presented as a completed publishing product.
 
-The engine preserves display text separately from uppercase search forms.
-Only ASCII letters and literal spaces are accepted; normalized duplicates are
-rejected. Matching letters may overlap. Filler uses A-Z and cannot overwrite
-targets. The same normalized inputs and seed produce the same result under the
-same generation semantics, without using global random state.
+### A look inside
 
-Generation returns every target or raises a structured `WordSearchError`.
-Bounded search can fail even when an arrangement exists. The independent verifier
-checks the saved placements against the grid and target manifest.
-See the [engine contract](docs/word-search.md) for limits and policies.
+<p>
+  <a href="docs/images/studio/library.png"><img src="docs/images/studio/library.png" alt="Studio library showing the automotive source fixture and garden-demo" width="48%"></a>
+  <a href="docs/images/studio/solution.png"><img src="docs/images/studio/solution.png" alt="Garden-demo puzzle inspector displaying authoritative solutions" width="48%"></a>
+</p>
 
-## Example project
-
-[`books/automotive/book.yaml`](books/automotive/book.yaml) is a small three-item
-source fixture. It is not a finished book. Schema v1 stores book metadata, an
-explicit unsigned 64-bit seed, ordered authored content, and an output location.
-
-Loading rejects malformed/ambiguous YAML, unknown fields, unsupported schemas,
-and overlapping source/output directories. Generated directories are disposable.
-The [project format](docs/project-format.md) documents these rules and the
-versioned SHA-256 build identity, which includes the engine version and excludes
-paths, timestamps, comments, and YAML key order.
-
-[`books/garden-demo/book.yaml`](books/garden-demo/book.yaml) demonstrates the
-optional schema-v1 `word_search` section with two themed puzzles. Its word banks,
-profiles, puzzle definitions, and quality settings all participate in identity.
-Older projects keep their existing identities.
-
-```python
-from puzzlepress import load_project
-from puzzlepress.batch import generate_batch
-
-report = generate_batch(load_project("books/garden-demo").project)
-assert report.success
-payload = report.to_dict()
-```
-
-Reports include accidental target occurrences, optional caller-supplied prohibited
-word matches, cross-puzzle reuse, duplicate target sets, and similarity metrics.
-Difficulty profiles are named settings, not measured difficulty scores. See
-[batch and quality contracts](docs/batch-quality.md) for schema, API, and report details.
+Actual application captures. See the [project overview](docs/images/studio/project.png),
+[normal puzzle view](docs/images/studio/puzzle.png), and
+[mobile inspector](docs/images/studio/mobile.png).
 
 ## Development
 
-With the development environment activated:
+Install the development extras shown above. With the Python environment activated:
 
 ```text
 python -m pytest --basetemp=.pytest_cache/tmp
@@ -129,33 +91,58 @@ python -m pip check
 git diff --check
 ```
 
-The dedicated pytest temporary directory supports restricted sandboxes.
-Symlink tests skip when OS permissions prevent creating symlinks. CI is configured
-for Windows/Linux on Python 3.11, 3.13, and 3.14.
+From `studio/`:
 
-PyYAML is the only runtime dependency. Development tools are pytest, Ruff, mypy,
-and PyYAML type stubs.
+```text
+npm ci
+npm run check
+npm test
+npm run build
+npx playwright install chromium
+npm run test:browser
+```
+
+`npm run check` runs strict TypeScript, ESLint and formatting checks. Browser tests
+use real engine output and include accessibility, keyboard, responsive and solution
+checks. For hot reload, run `npm run dev` alongside the Python server. Detailed
+startup options, API contracts and test commands are in [Studio documentation](docs/studio.md).
+
+CI covers Windows/Linux on Python 3.11, 3.13 and 3.14, plus a separate frontend and
+Chromium job. Symlink tests skip when OS permission is unavailable.
 
 ## Architecture
 
-- `models`, `validation`, `yaml_io`: immutable project values and schema handling.
-- `project`, `identity`: read-only loading, filesystem boundaries, build fingerprints.
-- `wordsearch`: puzzle values, normalization, bounded generation, independent verification.
-- `content`, `content_validation`: word banks, difficulty profiles, themed definitions.
-- `batch`, `quality`: deterministic batches, occurrence screening, reuse and similarity reports.
-- CLI modules: argument parsing and terminal/JSON presentation.
+```text
+                 PuzzlePress Python core
+                 /                     \
+               CLI                Studio service
+                                       |
+                                FastAPI / uvicorn
+                                       |
+                                React / TypeScript
+```
 
-Core generation has no terminal or filesystem side effects. See
-[AGENTS.md](AGENTS.md) for contribution rules and [CONTEXT.md](CONTEXT.md) for the
-current engineering handoff.
+Immutable Python models own validation, deterministic generation, identity and
+quality. The web adapter exposes existing reports; the browser renders them.
+There is no JavaScript generator, solver or second project validator. Build
+identities include engine version and output-affecting inputs. Seeds travel over
+HTTP as decimal strings. Source and disposable build directories stay disjoint.
 
-## Limitations and roadmap
+Contracts: [project format](docs/project-format.md), [word-search engine](docs/word-search.md),
+[batch and quality](docs/batch-quality.md), [Studio architecture](docs/studio.md).
+Contribution rules: [AGENTS.md](AGENTS.md). Current handoff: [CONTEXT.md](CONTEXT.md).
 
-Current puzzles use ASCII A-Z. Batches are limited to 20 definitions. Quality
-checks flag findings without changing grids; there is no built-in prohibited-word
-list. Screening is literal and capped with an explicit incomplete-scan flag.
-Difficulty calibration, automatic quality repair, real book content, print/PDF
-layout, publishing workflows, and the web studio remain future work.
+## Current limitations
+
+ASCII A-Z targets, at most 20 definitions per batch, and bounded greedy generation
+that can fail on feasible inputs. Quality is descriptive, with explicit scan
+limits and no built-in prohibited-word list or automatic repair. Profile names
+are authored settings, not calibrated difficulty scores.
+
+Studio is local and read-only. It reads a deliberately scoped books directory;
+it has no arbitrary filesystem browser, accounts, persistence, cloud services or
+telemetry. Frontend assets are built from this checkout. PDF output, browser
+editing, covers, KDP and publishing automation are not implemented.
 
 ## License
 

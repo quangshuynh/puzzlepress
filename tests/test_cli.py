@@ -7,6 +7,8 @@ import pytest
 from puzzlepress import __version__, build_identity, load_project
 from puzzlepress.cli import main
 
+from tests.helpers import installed_puzzlepress
+
 
 def run_cli(*args):
     return subprocess.run(
@@ -78,11 +80,11 @@ def test_usage_failure(args):
 
 
 def test_installed_console_script(example_path):
-    script = Path(sys.executable).parent / (
-        "puzzlepress.exe" if sys.platform == "win32" else "puzzlepress"
-    )
     result = subprocess.run(
-        [str(script), "validate", str(example_path)], capture_output=True, text=True, check=False
+        [str(installed_puzzlepress()), "validate", str(example_path)],
+        capture_output=True,
+        text=True,
+        check=False,
     )
     assert result.returncode == 0
     assert "Valid:" in result.stdout

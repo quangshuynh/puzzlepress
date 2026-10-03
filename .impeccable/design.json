@@ -1,0 +1,283 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-03T13:24:50.057361+00:00",
+  "title": "Design System: PuzzlePress Studio",
+  "extensions": {
+    "colorMeta": {
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Canvas",
+        "canonical": "#f7f5ef",
+        "tonalRamp": [
+          "oklch(15% 0.0082 91.5)",
+          "oklch(27% 0.0082 91.5)",
+          "oklch(38% 0.0082 91.5)",
+          "oklch(50% 0.0082 91.5)",
+          "oklch(61% 0.0082 91.5)",
+          "oklch(73% 0.0082 91.5)",
+          "oklch(84% 0.0082 91.5)",
+          "oklch(95% 0.0082 91.5)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#fffef9",
+        "tonalRamp": [
+          "oklch(15% 0.0067 97.3)",
+          "oklch(27% 0.0067 97.3)",
+          "oklch(38% 0.0067 97.3)",
+          "oklch(50% 0.0067 97.3)",
+          "oklch(61% 0.0067 97.3)",
+          "oklch(73% 0.0067 97.3)",
+          "oklch(84% 0.0067 97.3)",
+          "oklch(95% 0.0067 97.3)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#252d28",
+        "tonalRamp": [
+          "oklch(15% 0.0144 157.9)",
+          "oklch(27% 0.0144 157.9)",
+          "oklch(38% 0.0144 157.9)",
+          "oklch(50% 0.0144 157.9)",
+          "oklch(61% 0.0144 157.9)",
+          "oklch(73% 0.0144 157.9)",
+          "oklch(84% 0.0144 157.9)",
+          "oklch(95% 0.0144 157.9)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "canonical": "#62665e",
+        "tonalRamp": [
+          "oklch(15% 0.0134 128.8)",
+          "oklch(27% 0.0134 128.8)",
+          "oklch(38% 0.0134 128.8)",
+          "oklch(50% 0.0134 128.8)",
+          "oklch(61% 0.0134 128.8)",
+          "oklch(73% 0.0134 128.8)",
+          "oklch(84% 0.0134 128.8)",
+          "oklch(95% 0.0134 128.8)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "canonical": "#d9dbd0",
+        "tonalRamp": [
+          "oklch(15% 0.0150 115.1)",
+          "oklch(27% 0.0150 115.1)",
+          "oklch(38% 0.0150 115.1)",
+          "oklch(50% 0.0150 115.1)",
+          "oklch(61% 0.0150 115.1)",
+          "oklch(73% 0.0150 115.1)",
+          "oklch(84% 0.0150 115.1)",
+          "oklch(95% 0.0150 115.1)"
+        ]
+      },
+      "primary": {
+        "role": "primary",
+        "displayName": "Primary",
+        "canonical": "#2c5141",
+        "tonalRamp": [
+          "oklch(15% 0.0510 164.5)",
+          "oklch(27% 0.0510 164.5)",
+          "oklch(38% 0.0510 164.5)",
+          "oklch(50% 0.0510 164.5)",
+          "oklch(61% 0.0510 164.5)",
+          "oklch(73% 0.0510 164.5)",
+          "oklch(84% 0.0510 164.5)",
+          "oklch(95% 0.0510 164.5)"
+        ]
+      },
+      "primary-hover": {
+        "role": "neutral",
+        "displayName": "Primary Hover",
+        "canonical": "#1d3b2d",
+        "tonalRamp": [
+          "oklch(15% 0.0443 162.3)",
+          "oklch(27% 0.0443 162.3)",
+          "oklch(38% 0.0443 162.3)",
+          "oklch(50% 0.0443 162.3)",
+          "oklch(61% 0.0443 162.3)",
+          "oklch(73% 0.0443 162.3)",
+          "oklch(84% 0.0443 162.3)",
+          "oklch(95% 0.0443 162.3)"
+        ]
+      },
+      "wash": {
+        "role": "neutral",
+        "displayName": "Wash",
+        "canonical": "#e7ecdf",
+        "tonalRamp": [
+          "oklch(15% 0.0181 124.0)",
+          "oklch(27% 0.0181 124.0)",
+          "oklch(38% 0.0181 124.0)",
+          "oklch(50% 0.0181 124.0)",
+          "oklch(61% 0.0181 124.0)",
+          "oklch(73% 0.0181 124.0)",
+          "oklch(84% 0.0181 124.0)",
+          "oklch(95% 0.0181 124.0)"
+        ]
+      },
+      "review": {
+        "role": "semantic",
+        "displayName": "Review",
+        "canonical": "#795319",
+        "tonalRamp": [
+          "oklch(15% 0.0879 73.5)",
+          "oklch(27% 0.0879 73.5)",
+          "oklch(38% 0.0879 73.5)",
+          "oklch(50% 0.0879 73.5)",
+          "oklch(61% 0.0879 73.5)",
+          "oklch(73% 0.0879 73.5)",
+          "oklch(84% 0.0879 73.5)",
+          "oklch(95% 0.0879 73.5)"
+        ]
+      },
+      "review-background": {
+        "role": "semantic",
+        "displayName": "Review Background",
+        "canonical": "#f6edd8",
+        "tonalRamp": [
+          "oklch(15% 0.0294 87.5)",
+          "oklch(27% 0.0294 87.5)",
+          "oklch(38% 0.0294 87.5)",
+          "oklch(50% 0.0294 87.5)",
+          "oklch(61% 0.0294 87.5)",
+          "oklch(73% 0.0294 87.5)",
+          "oklch(84% 0.0294 87.5)",
+          "oklch(95% 0.0294 87.5)"
+        ]
+      },
+      "failure": {
+        "role": "semantic",
+        "displayName": "Failure",
+        "canonical": "#913c32",
+        "tonalRamp": [
+          "oklch(15% 0.1174 29.0)",
+          "oklch(27% 0.1174 29.0)",
+          "oklch(38% 0.1174 29.0)",
+          "oklch(50% 0.1174 29.0)",
+          "oklch(61% 0.1174 29.0)",
+          "oklch(73% 0.1174 29.0)",
+          "oklch(84% 0.1174 29.0)",
+          "oklch(95% 0.1174 29.0)"
+        ]
+      },
+      "failure-background": {
+        "role": "semantic",
+        "displayName": "Failure Background",
+        "canonical": "#faeee9",
+        "tonalRamp": [
+          "oklch(15% 0.0147 44.2)",
+          "oklch(27% 0.0147 44.2)",
+          "oklch(38% 0.0147 44.2)",
+          "oklch(50% 0.0147 44.2)",
+          "oklch(61% 0.0147 44.2)",
+          "oklch(73% 0.0147 44.2)",
+          "oklch(84% 0.0147 44.2)",
+          "oklch(95% 0.0147 44.2)"
+        ]
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "loading-line",
+        "value": "breathe 1.4s ease-in-out infinite alternate",
+        "purpose": "Loading indicator only; disabled for reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "laptop",
+        "value": "1150px"
+      },
+      {
+        "name": "tablet",
+        "value": "850px"
+      },
+      {
+        "name": "phone",
+        "value": "600px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Generate and review authored puzzles.",
+      "html": "<button class=\"ds-primary\">Generate &amp; review puzzles</button>",
+      "css": ".ds-primary{background:var(--green,#2c5141);color:var(--paper,#fffef9);border:1px solid #2c5141;border-radius:4px;padding:10px 18px;min-height:44px;font:600 14px sans-serif;cursor:pointer}.ds-primary:hover{background:#1d3b2d}.ds-primary:focus-visible{outline:3px solid #9b5925;outline-offset:4px;}"
+    },
+    {
+      "name": "Secondary button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Toggle an inspection view.",
+      "html": "<button class=\"ds-secondary\" aria-pressed=\"false\">Show solution</button>",
+      "css": ".ds-secondary{background:var(--paper,#fffef9);color:var(--green,#2c5141);border:1px solid #9aa592;border-radius:4px;padding:10px 18px;min-height:44px;font:600 14px sans-serif;cursor:pointer}.ds-secondary:hover{background:#e7ecdf}.ds-secondary:focus-visible{outline:3px solid #9b5925;outline-offset:4px;}"
+    },
+    {
+      "name": "Book search",
+      "kind": "input",
+      "description": "A visible label and local title filter.",
+      "html": "<label class=\"ds-search\">Find a book <input type=\"search\" placeholder=\"Search title or ID\"></label>",
+      "css": ".ds-search{font:12px sans-serif;color:#252d28}.ds-search input{background:#fffef9;color:#252d28;border:1px solid #a7afa0;border-radius:4px;padding:9px 12px;min-height:42px}.ds-search input::placeholder{color:#62665e}.ds-search input:focus-visible{outline:3px solid #9b5925;outline-offset:4px;}"
+    },
+    {
+      "name": "Project navigation",
+      "kind": "nav",
+      "description": "Native links with a ruled current section.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Project\"><a href=\"#overview\" aria-current=\"page\">Overview</a><a href=\"#puzzles\">Puzzles</a><a href=\"#quality\">Quality</a></nav>",
+      "css": ".ds-nav{display:flex;gap:32px;border-bottom:1px solid #d9dbd0;font:13px sans-serif}.ds-nav a{color:#62665e;padding:12px 0 15px;text-decoration:none;border-bottom:2px solid transparent}.ds-nav a[aria-current]{color:#2c5141;border-color:#2c5141;font-weight:600}.ds-nav a:hover{color:#2c5141}.ds-nav a:focus-visible{outline:3px solid #9b5925;outline-offset:4px;}"
+    },
+    {
+      "name": "Solution letter",
+      "kind": "custom",
+      "description": "Real solution cells also use an underline and heavier weight.",
+      "html": "<table class=\"ds-grid\"><caption>Solution cells</caption><tbody><tr><td>R</td><td>O</td><td>S</td><td>E</td></tr></tbody></table>",
+      "css": ".ds-grid{border-collapse:collapse;font:16px sans-serif}.ds-grid td{width:34px;height:34px;text-align:center;background:#dfe9cd;color:#254522;font-weight:700;text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:2px}.ds-grid caption{font-size:12px;color:#62665e;padding-bottom:12px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The publishing desk",
+    "overview": "A precise, calm workspace for inspecting authored books. Typography provides hierarchy; ruled lists carry dense source information. Generated puzzles occupy an uncluttered paper surface, with their evidence beside them.",
+    "keyCharacteristics": [
+      "Editorial typography with compact interface controls.",
+      "Flat surfaces, warm paper, restrained green and explicit status text.",
+      "Real source and generated analysis, clearly distinguished."
+    ],
+    "rules": [
+      {
+        "name": "The Evidence Rule",
+        "body": "Status color must accompany a precise text label and may only reflect an existing engine or validation result.",
+        "section": "colors"
+      },
+      {
+        "name": "The Source and Analysis Rule",
+        "body": "Present authored configuration before generation; keep generation, verification and quality states distinct in all views.",
+        "section": "layout"
+      }
+    ],
+    "dos": [
+      "Do preserve author-defined ordering and exact seed strings.",
+      "Do use real placements for solutions and state coordinate conventions.",
+      "Do keep source text escaped and long identities wrap-safe.",
+      "Do preserve keyboard controls, focus visibility and non-color status cues."
+    ],
+    "donts": [
+      "Don't fabricate cover, publishing or financial status.",
+      "Don't introduce gradients, glass effects, decorative charts or nested cards.",
+      "Don't imply that no quality findings means publication readiness.",
+      "Don't present future workflows as working navigation."
+    ]
+  }
+}

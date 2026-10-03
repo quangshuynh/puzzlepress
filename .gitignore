@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Studio tooling and disposable output
+node_modules/
+*.tsbuildinfo
+test-results/
+playwright-report/

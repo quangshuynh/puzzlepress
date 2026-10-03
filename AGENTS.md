@@ -1,7 +1,7 @@
 # Working on PuzzlePress
 
 PuzzlePress is a deterministic Python engine for themed puzzle books. The CLI
-and a future web studio share the same core. Read `CONTEXT.md` for current scope.
+and local Web Studio share the same core. Read `CONTEXT.md` for current scope.
 
 ## Rules
 
@@ -36,7 +36,7 @@ and a future web studio share the same core. Read `CONTEXT.md` for current scope
 After activating `.venv` (Python 3.11+):
 
 ```text
-python -m pip install -e ".[dev]"
+python -m pip install -e ".[dev,studio,web-test]"
 python -m pytest --basetemp=.pytest_cache/tmp
 python -m ruff check .
 python -m ruff format --check .
@@ -47,6 +47,11 @@ puzzlepress puzzle generate --width 10 --height 8 --seed 2026 --word ENGINE --wo
 git diff --check
 git status --short
 ```
+
+Studio checks (from `studio/`): `npm ci`, `npm run check`, `npm test`,
+`npm run build`, and `npm run test:browser` with Playwright Chromium installed.
+Keep Python authoritative; frontend transport types must not become a second
+project validator, generator, solver, or quality implementation.
 
 Without activation on Windows, use `.\.venv\Scripts\python.exe` and
 `.\.venv\Scripts\puzzlepress.exe`. On Linux/macOS, use `.venv/bin/`.

@@ -14,9 +14,12 @@ dependencies = ["PyYAML>=6.0.2,<7"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8,<10", "ruff>=0.11,<1", "mypy>=1.15,<2", "types-PyYAML>=6,<7"]
+studio = ["fastapi>=0.135,<0.136", "uvicorn>=0.34,<1"]
+web-test = ["httpx>=0.28,<1"]
 
 [project.scripts]
 puzzlepress = "puzzlepress.cli:main"
+puzzlepress-studio = "puzzlepress.studio.server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

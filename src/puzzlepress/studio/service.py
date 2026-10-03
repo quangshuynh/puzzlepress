@@ -1,0 +1,143 @@
+"""Read-only, root-scoped project access and presentation of core reports."""
+
+import re
+from dataclasses import asdict, dataclass
+from pathlib import Path
+from threading import Lock
+
+from puzzlepress import __version__
+from puzzlepress.batch import generate_batch
+from puzzlepress.errors import ProjectError, ValidationIssue
+from puzzlepress.identity import build_identity
+from puzzlepress.models import Project
+from puzzlepress.project import load_project
+from puzzlepress.wordsearch import verify_word_search
+
+
+class StudioError(Exception):
+    def __init__(self, status: int, code: str, message: str) -> None:
+        self.status = status
+        self.code = code
+        super().__init__(message)
+
+
+def issue_dicts(error: ProjectError) -> list[dict[str, object]]:
+    # Filesystem failures may contain absolute paths; keep those in server diagnostics.
+    return [
+        asdict(ValidationIssue(issue.path, issue.code, "Cannot read project source."))
+        if issue.code in {"io", "not_found", "not_directory"}
+        else asdict(issue)
+        for issue in error.issues
+    ]
+
+
+@dataclass(frozen=True)
+class ProjectStore:
+    root: Path
+
+    def source(self, key: str) -> Path:
+        # Keys identify immediate folders, independently of authored book IDs.
+        if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,127}", key):
+            raise StudioError(404, "project_not_found", "Project not found in the book library.")
+        try:
+            root = self.root.resolve()
+            folder = root / key
+            source = folder / "book.yaml"
+            resolved_folder = folder.resolve()
+            resolved_source = source.resolve()
+            if (
+                resolved_folder.parent != root
+                or resolved_source.parent != resolved_folder
+                or folder.is_symlink()
+                or source.is_symlink()
+            ):
+                raise StudioError(404, "project_not_found", "Project is outside the book library.")
+            if not resolved_source.is_file():
+                raise StudioError(
+                    404, "project_not_found", "Project not found in the book library."
+                )
+            return resolved_source
+        except (OSError, RuntimeError, ValueError) as error:
+            raise StudioError(503, "source_unavailable", "Cannot access project source.") from error
+
+    def load(self, key: str) -> Project:
+        return load_project(self.source(key)).project
+
+    def detail(self, key: str) -> dict[str, object]:
+        project = self.load(key)
+        source = project.to_dict()
+        source["build"] = {"seed": str(project.build.seed)}
+        return {
+            "key": key,
+            "source": source,
+            "identity": build_identity(project),
+            "engine_version": __version__,
+            "validation": {"valid": True, "issues": []},
+        }
+
+    def discover(self) -> list[dict[str, object]]:
+        if not self.root.exists():
+            raise StudioError(
+                503, "library_unavailable", "The configured books directory is missing."
+            )
+        try:
+            keys = sorted(p.name for p in self.root.iterdir() if p.is_dir())
+        except OSError as error:
+            raise StudioError(
+                503, "library_unavailable", "Cannot read the books directory."
+            ) from error
+        projects: list[dict[str, object]] = []
+        for key in keys:
+            try:
+                projects.append(self.detail(key))
+            except StudioError as error:
+                if error.status != 404:
+                    raise
+            except ProjectError as error:
+                projects.append(
+                    {"key": key, "validation": {"valid": False, "issues": issue_dicts(error)}}
+                )
+        return projects
+
+
+class StudioService:
+    """Serialize expensive requests; never cache stale authored source or write it."""
+
+    def __init__(self, store: ProjectStore) -> None:
+        self.store = store
+        self._generation_lock = Lock()
+
+    def generate(self, key: str, identity: str) -> dict[str, object]:
+        if not self._generation_lock.acquire(blocking=False):
+            raise StudioError(409, "generation_busy", "Generation is running. Try again shortly.")
+        try:
+            project = self.store.load(key)
+            if build_identity(project) != identity:
+                raise StudioError(
+                    409, "source_changed", "Source changed. Reload the project before generating."
+                )
+            if project.word_search is None:
+                raise StudioError(422, "no_puzzles", "This project has no word-search definitions.")
+            report = generate_batch(project)
+            verification: dict[str, object] = {}
+            for result in report.puzzles:
+                if result.puzzle is None:
+                    verification[result.id] = None
+                else:
+                    checked = verify_word_search(result.puzzle)
+                    verification[result.id] = {"valid": checked.valid, **asdict(checked)}
+            # Keep the CLI report intact; add independently verified web presentation data.
+            return {
+                "report": report.to_dict(),
+                "verification": verification,
+                "solution_cells": {
+                    result.id: {
+                        placement.target_id: [asdict(cell) for cell in placement.coordinates]
+                        for placement in result.puzzle.solution.placements
+                    }
+                    for result in report.puzzles
+                    if result.puzzle
+                },
+            }
+        finally:
+            self._generation_lock.release()

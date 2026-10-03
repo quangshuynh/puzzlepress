@@ -13,6 +13,7 @@ from puzzlepress import ProjectError, build_identity, dump_project, load_project
 from puzzlepress.batch import analyze_content, derive_puzzle_seed, generate_batch
 from puzzlepress.wordsearch import Grid, WordSearchError, verify_word_search
 
+from tests.helpers import installed_puzzlepress
 
 def normalized(data):
     return validate_project(data).require_project()
@@ -269,11 +270,8 @@ def test_truncated_scan_cannot_be_reported_clean(garden, monkeypatch):
 
 
 def run_batch_cli(path, *args):
-    script = Path(sys.executable).parent / (
-        "puzzlepress.exe" if sys.platform == "win32" else "puzzlepress"
-    )
     return subprocess.run(
-        [str(script), "puzzle", "batch", str(path), *args],
+        [str(installed_puzzlepress()), "puzzle", "batch", str(path), *args],
         capture_output=True,
         text=True,
         check=False,

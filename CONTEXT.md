@@ -2,86 +2,95 @@
 
 ## Completed scope
 
-Interval 3: project-defined word searches, reusable word banks, themed puzzle
-definitions, explicit difficulty profiles, deterministic batches, and quality
-reports. Intervals 1 and 2 remain covered by unchanged regression tests.
+Interval 4 complete: local, read-only Web Studio with real project discovery,
+source overview, deterministic batches, puzzle/solution inspectors and quality
+review. Existing core/CLI source and regression tests unchanged. Interval 5
+browser editing has not started. No commits, pushes or deployment.
 
-Python 3.11+, package/engine version `0.1.0`, schema version `1`, identity version
-`1`, standalone generation version `1`, project word-search pipeline version `1`.
-No new dependencies. PyYAML is the sole runtime dependency; pytest, Ruff, strict
-mypy, and PyYAML stubs support development.
+Python 3.11+, engine/package `0.1.0`, schema/identity/generation/pipeline versions
+all remain `1`. Core runtime still only PyYAML. Studio extras: FastAPI
+`>=0.135,<0.136` (before native telemetry defaults), uvicorn; API tests: httpx.
+Frontend: React, strict TypeScript, Vite, locally bundled Newsreader/Public Sans.
+Dev: Vitest/Testing Library/jsdom, ESLint, Prettier, Playwright and axe.
+Frontend lockfile: `studio/package-lock.json`; use Node 22+.
 
-## Architecture and decisions
+## Architecture and entry points
 
-- Existing project models/validation/YAML/loading/identity and `wordsearch/`
-  remain. Shared errors moved to `errors.py` to avoid model import cycles;
-  existing public error imports still work.
-- `content.py` defines immutable word banks, difficulty profiles, themed puzzle
-  definitions, quality settings, and their collection. `content_validation.py`
-  validates the optional schema-v1 `word_search` section and all references.
-- Profiles explicitly specify dimensions and directions; names are authored
-  labels, not calibrated difficulty scores. Each puzzle selects ordered IDs
-  from one bank. Unknown fields and normalized duplicates within a bank fail.
-- A project supports 1..20 banks/profiles/puzzles, 1..100 entries per bank and
-  targets per puzzle. Existing ASCII normalization and generation bounds remain:
-  dimensions 1..50, at most 50 letters per target, defaults 20 restarts/100,000
-  attempts, hard caps 100 restarts/1,000,000 attempts per puzzle.
-- `batch.generate_batch` revalidates source, derives each seed from SHA-256 of
-  project seed plus puzzle ID and pipeline version, then generates sequentially.
-  Reordering/inserting definitions preserves existing grids. Expected placement
-  failures remain in the report and do not prevent later definitions running.
-- `quality.py` scans all eight directions for accidental target paths and
-  optional prohibited words. Authoritative paths are excluded only from target
-  scans. Palindrome reverse traversals are deduplicated. Scans cap at 1,000 hits;
-  incomplete scans explicitly warn. Disabled screening is reported separately.
-- `batch.analyze_content` reports normalized word reuse, equal target sets,
-  Jaccard similarity and containment overlap. Batch reports add same-position
-  grid agreement. Thresholds are configurable; no hidden automatic repair.
-- Reports are immutable, with independent JSON-compatible dictionaries. JSON
-  seeds are decimal strings for lossless JavaScript use. Core seeds are integers.
-- Full normalized `word_search` content/settings and pipeline version enter
-  project build identity. Missing sections are omitted, retaining legacy hashes.
-  Engine version still participates; output paths and timestamps remain excluded.
-- Core APIs do not print/write or mutate global randomness. Source and generated
-  trees remain disjoint. No commands write generated artifacts.
+- `src/puzzlepress/studio/service.py`: scoped read-only project store, original
+  core reports plus independent verification and authoritative solution cells.
+- `studio/server.py`: FastAPI handlers, static bundle, structured expected errors,
+  logged unexpected exceptions, loopback-only uvicorn launcher.
+- `studio/src/`: App navigation/loading/error boundary, Library, Overview,
+  Puzzles/Inspector/Quality, presentation primitives, CSS and transport types.
+  No frontend validator, generator, solver, seed or quality algorithms.
+- `puzzlepress-studio` from repo root serves `studio/dist` and `/api` at
+  `http://127.0.0.1:8000`. Flags: `--books`, `--frontend`, `--port`. Missing build
+  returns 503. Wheel does not include frontend assets; checkout is required.
+- Build once with `cd studio; npm ci; npm run build`. For hot reload run
+  `npm run dev` alongside Python; Vite proxies API/logo to port 8000.
+- API: GET `/api/projects`, GET `/api/projects/{key}`, POST
+  `/api/projects/{key}/generation` with `{identity: <current build identity>}`.
+  Routes: `/`, `/books`, `/books/{key}`, plus `/puzzles`, `/quality`, and
+  `/puzzles/{id}` under each project. Deep links serve the shell.
+- Discovery sorts immediate root folders. Keys: 1..128 ASCII letters/digits,
+  hyphens/underscores, starting alphanumeric; separate from authored book IDs.
+  Resolved folder/YAML boundaries reject escapes and source symlinks. Invalid
+  projects remain listed. No arbitrary filesystem browser or source writes.
+- Generation requires viewed identity (409 if stale); one batch per process
+  (409 if busy). Expected placement failures remain HTTP 200 partial reports;
+  invalid source is 422, missing project 404. Unexpected failures log diagnostics,
+  return generic 500. Local Host/Origin constraints and CSP apply; no CORS.
+- Puzzle/quality views generate once per mounted project. Tabs reuse results;
+  refresh/reopen deterministically recomputes. No persistent cache/source watching.
+  A page close does not interrupt Python generation already running.
 
-## CLI and examples
+## Core contracts to preserve
 
-Existing `--version`, `validate`, `inspect`, and standalone `puzzle generate`
-remain. New: `puzzlepress puzzle batch <project> [--json] [--strict-quality]`.
-Exit 1 for validation or generation failure; quality findings warn unless strict
-mode requests exit 1. Usage errors exit 2. JSON partial-failure reports go to
-stdout; invalid-project errors go to stderr. `success` means all definitions
-were generated; `clean` also requires no quality findings.
+- Frozen models, explicit seeds/local RNG, canonical direction/input ordering,
+  bounded generation, independent placement verification, no core printing/writes.
+- `content`, `content_validation`: optional schema-v1 inline banks, explicit
+  profiles and themed definitions. Legacy `content.items` is not puzzle targets.
+- `batch.generate_batch` derives per-puzzle 64-bit seeds from project seed, puzzle
+  ID and pipeline version with SHA-256; reordering preserves individual grids.
+  JSON seeds, including Studio source seeds, are decimal strings.
+- `quality` scans all eight directions with authoritative target-path exclusion,
+  palindrome deduplication, 1,000-hit cap and explicit truncation. Empty policy
+  means prohibited screening disabled. Findings never change generation.
+- Reuse, exact duplicates, Jaccard/containment and same-position grid agreement
+  remain descriptive. Success means all generated; clean also needs no findings.
+- Identity covers engine and all output-affecting normalized authored inputs;
+  paths/timestamps excluded. Missing word_search keeps legacy hashes. No version
+  contract changed. Source/output trees stay disjoint; no generated book writes.
+- Limits: ASCII words, 20 banks/profiles/puzzles, 100 entries/targets, dimensions
+  1..50; default 20 restarts/100,000 attempts, caps 100/1,000,000 per puzzle.
 
-`books/automotive` remains the original fixture. `books/garden-demo` contains two
-small themed puzzles and produces a clean batch with seed 2026. Detailed contracts
-and API examples are in `docs/batch-quality.md`, `docs/project-format.md`, and
-`docs/word-search.md`. README gives installation and usage.
+## Design, tests and documentation
 
-## Final local verification
+Editorial paper/green system, original logo, semantic controls, local fonts,
+compact phone navigation, scrollable large grids, labeled cells, underlined
+solutions and textual register. UI register is labeled one-based; API zero-based.
+Validation, generation, verification and review findings are separate.
+`PRODUCT.md`, `DESIGN.md`, `.impeccable/design.json` record the system. User selected
+code-first. Impeccable written guidance applied; engine launcher unavailable.
 
-Windows Python 3.13.15: **317 passed, 1 skipped** (318 collected). The skipped
-symlink test requires unavailable OS permission. Ruff lint/format, strict mypy
-(20 source files), `pip check`, installed CLI, and `git diff --check` passed.
-Documentation Python examples executed successfully. Same-seed batch JSON is
-identical across runs and process hash seeds; different project seeds change grids.
-Tests include schema failures, identity coverage, partial failures, exact retry
-bounds, policy/accidental scans, palindrome deduplication, truncation, threshold
-boundaries, reuse across banks, and five 25-target 20x20 puzzles.
+Windows Python 3.13.15: **349 passed, 3 skipped** (352 collected); skips require
+symlink permission. New API suite: 32 passed, 2 skipped, included in total.
+Ruff lint/format (40 files), strict mypy (23 source files), pip check, eight
+installed CLI regressions and git diff --check passed. Frontend: 12 Vitest tests,
+strict TS/ESLint/Prettier, npm ls and production build passed. Three Playwright
+tests passed with installed Chrome; zero axe violations on library and both
+solution views, no browser errors in the main flow. Widths: 1440/1024/768/390;
+both grids/solution cell sets match HTTP output. Eight actual screenshots in
+`docs/images/studio/`. CI adds API checks and Linux frontend/Chromium job;
+remote CI not run here.
 
-CI includes the new fixture/batch commands on Windows/Linux Python 3.11/3.13/3.14;
-remote jobs were not run here. Nothing committed, pushed, published, or deployed.
+Limits: Starlette warns about its httpx test-client deprecation. Windows emitted
+one connection-reset diagnostic during browser navigation; requests/tests passed.
+No Firefox/WebKit or manual screen-reader certification. No editing, persistence,
+PDF, covers, KDP, authentication, cloud or telemetry. Source boundary assumes
+trusted authors, not hostile concurrent filesystem replacement.
 
-## Limits and next interval
-
-ASCII A-Z word content; inline banks only; 20-puzzle batch cap. Greedy search can
-fail on feasible inputs. Similarity metrics flag review candidates, without
-rotation/translation comparison or an originality guarantee. Screening is literal
-matching against an explicit list, without contextual moderation or a built-in
-policy. There is no automatic suppression or repair.
-
-PDFs, covers, KDP layout, web UI, measured difficulty, external content files,
-and production book publishing remain deferred. Interval 4 has not started;
-its scope has not been supplied. Review schema and pipeline-version compatibility
-before changing generation, seed derivation, or quality semantics.
+README has quick start; `docs/studio.md` has architecture/API/commands;
+`docs/interval-4-report.md` has completion details. Before Interval 5, review save
+transactions, stale-source conflicts, folder-route stability and whether
+generation needs persistence. Do not implement those implicitly.

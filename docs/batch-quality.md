@@ -157,5 +157,6 @@ failure, 2 for CLI usage errors. Warnings keep exit 0 unless `--strict-quality`
 is requested. JSON reports, including partial failures, go to stdout. Source
 validation errors go to stderr without a report. No output files are written.
 
-PDFs, covers, KDP layout, web UI, difficulty calibration, automatic repair,
+The read-only [Web Studio](studio.md) displays these same reports.
+PDFs, covers, KDP layout, difficulty calibration, automatic repair,
 external word-bank files, and large book production remain deferred.

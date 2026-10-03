@@ -1,0 +1,375 @@
+{
+  "report": {
+    "pipeline_version": 1,
+    "identity": "pp1-sha256-85966304262a0b3af4ffee5c742099e5635e1c4d52c817fa20334681101a6f84",
+    "success": true,
+    "clean": true,
+    "quality_config": {
+      "max_word_reuse": 2,
+      "target_similarity_threshold": 0.8,
+      "grid_similarity_threshold": 0.9,
+      "prohibited_words": []
+    },
+    "puzzles": [
+      {
+        "id": "flowers",
+        "title": "In the Flower Bed",
+        "theme": "Flowers",
+        "difficulty": "gentle",
+        "seed": "11860534647203643612",
+        "errors": [],
+        "failure_stats": null,
+        "quality": {
+          "accidental_targets": {
+            "occurrences": [],
+            "truncated": false
+          },
+          "prohibited": {
+            "occurrences": [],
+            "truncated": false
+          },
+          "prohibited_screening_enabled": false
+        },
+        "puzzle": {
+          "generation_version": 1,
+          "config": {
+            "width": 10,
+            "height": 8,
+            "directions": [
+              "right",
+              "down"
+            ],
+            "max_restarts": 20,
+            "max_attempts": 100000
+          },
+          "grid": [
+            "LBAVVEVDUG",
+            "IKLWDINNGR",
+            "LYBBUVNWGK",
+            "YNKLWIEADY",
+            "LPWATRSNNW",
+            "AIPWIIAOVV",
+            "KPXMVSAKOA",
+            "JAAUKROSEA"
+          ],
+          "targets": [
+            {
+              "id": "rose",
+              "display": "ROSE",
+              "search": "ROSE"
+            },
+            {
+              "id": "lily",
+              "display": "LILY",
+              "search": "LILY"
+            },
+            {
+              "id": "iris",
+              "display": "IRIS",
+              "search": "IRIS"
+            }
+          ],
+          "stats": {
+            "attempts": 7,
+            "restarts": 0
+          },
+          "placements": [
+            {
+              "target_id": "rose",
+              "search": "ROSE",
+              "start": {
+                "x": 5,
+                "y": 7
+              },
+              "end": {
+                "x": 8,
+                "y": 7
+              },
+              "direction": "right"
+            },
+            {
+              "target_id": "lily",
+              "search": "LILY",
+              "start": {
+                "x": 0,
+                "y": 0
+              },
+              "end": {
+                "x": 0,
+                "y": 3
+              },
+              "direction": "down"
+            },
+            {
+              "target_id": "iris",
+              "search": "IRIS",
+              "start": {
+                "x": 5,
+                "y": 3
+              },
+              "end": {
+                "x": 5,
+                "y": 6
+              },
+              "direction": "down"
+            }
+          ]
+        }
+      },
+      {
+        "id": "herbs",
+        "title": "The Herb Garden",
+        "theme": "Herbs",
+        "difficulty": "varied",
+        "seed": "18429660187663881125",
+        "errors": [],
+        "failure_stats": null,
+        "quality": {
+          "accidental_targets": {
+            "occurrences": [],
+            "truncated": false
+          },
+          "prohibited": {
+            "occurrences": [],
+            "truncated": false
+          },
+          "prohibited_screening_enabled": false
+        },
+        "puzzle": {
+          "generation_version": 1,
+          "config": {
+            "width": 10,
+            "height": 10,
+            "directions": [
+              "right",
+              "left",
+              "down",
+              "up",
+              "down-right",
+              "down-left",
+              "up-right",
+              "up-left"
+            ],
+            "max_restarts": 20,
+            "max_attempts": 100000
+          },
+          "grid": [
+            "DRZKIWGUFU",
+            "ZFJAWEGWOS",
+            "QNPWPMZXCS",
+            "LJSVPDKPMS",
+            "RBAOPHPCSW",
+            "KDGULFERYW",
+            "TEETFWMKOA",
+            "NMFOURYEKX",
+            "IRXFCDHIKZ",
+            "MAQBVBTFZE"
+          ],
+          "targets": [
+            {
+              "id": "mint",
+              "display": "MINT",
+              "search": "MINT"
+            },
+            {
+              "id": "sage",
+              "display": "SAGE",
+              "search": "SAGE"
+            },
+            {
+              "id": "thyme",
+              "display": "THYME",
+              "search": "THYME"
+            }
+          ],
+          "stats": {
+            "attempts": 3,
+            "restarts": 0
+          },
+          "placements": [
+            {
+              "target_id": "mint",
+              "search": "MINT",
+              "start": {
+                "x": 0,
+                "y": 9
+              },
+              "end": {
+                "x": 0,
+                "y": 6
+              },
+              "direction": "up"
+            },
+            {
+              "target_id": "sage",
+              "search": "SAGE",
+              "start": {
+                "x": 2,
+                "y": 3
+              },
+              "end": {
+                "x": 2,
+                "y": 6
+              },
+              "direction": "down"
+            },
+            {
+              "target_id": "thyme",
+              "search": "THYME",
+              "start": {
+                "x": 6,
+                "y": 9
+              },
+              "end": {
+                "x": 6,
+                "y": 5
+              },
+              "direction": "up"
+            }
+          ]
+        }
+      }
+    ],
+    "reuse": [],
+    "similarities": [
+      {
+        "left_id": "flowers",
+        "right_id": "herbs",
+        "shared_words": [],
+        "target_jaccard": 0.0,
+        "target_overlap": 0.0,
+        "identical_targets": false,
+        "grid_agreement": null
+      }
+    ],
+    "findings": []
+  },
+  "verification": {
+    "flowers": {
+      "valid": true,
+      "issues": []
+    },
+    "herbs": {
+      "valid": true,
+      "issues": []
+    }
+  },
+  "solution_cells": {
+    "flowers": {
+      "rose": [
+        {
+          "x": 5,
+          "y": 7
+        },
+        {
+          "x": 6,
+          "y": 7
+        },
+        {
+          "x": 7,
+          "y": 7
+        },
+        {
+          "x": 8,
+          "y": 7
+        }
+      ],
+      "lily": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 1
+        },
+        {
+          "x": 0,
+          "y": 2
+        },
+        {
+          "x": 0,
+          "y": 3
+        }
+      ],
+      "iris": [
+        {
+          "x": 5,
+          "y": 3
+        },
+        {
+          "x": 5,
+          "y": 4
+        },
+        {
+          "x": 5,
+          "y": 5
+        },
+        {
+          "x": 5,
+          "y": 6
+        }
+      ]
+    },
+    "herbs": {
+      "mint": [
+        {
+          "x": 0,
+          "y": 9
+        },
+        {
+          "x": 0,
+          "y": 8
+        },
+        {
+          "x": 0,
+          "y": 7
+        },
+        {
+          "x": 0,
+          "y": 6
+        }
+      ],
+      "sage": [
+        {
+          "x": 2,
+          "y": 3
+        },
+        {
+          "x": 2,
+          "y": 4
+        },
+        {
+          "x": 2,
+          "y": 5
+        },
+        {
+          "x": 2,
+          "y": 6
+        }
+      ],
+      "thyme": [
+        {
+          "x": 6,
+          "y": 9
+        },
+        {
+          "x": 6,
+          "y": 8
+        },
+        {
+          "x": 6,
+          "y": 7
+        },
+        {
+          "x": 6,
+          "y": 6
+        },
+        {
+          "x": 6,
+          "y": 5
+        }
+      ]
+    }
+  }
+}

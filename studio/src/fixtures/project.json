@@ -1,0 +1,125 @@
+{
+  "key": "garden-demo",
+  "source": {
+    "schema_version": 1,
+    "book": {
+      "id": "garden-demo",
+      "title": "Garden Word Searches",
+      "language": "en",
+      "subtitle": null,
+      "description": null,
+      "author": null,
+      "imprint": null
+    },
+    "build": {
+      "seed": "2026"
+    },
+    "content": {
+      "items": []
+    },
+    "output": {
+      "directory": "../../build/garden-demo"
+    },
+    "word_search": {
+      "banks": [
+        {
+          "id": "garden",
+          "entries": [
+            {
+              "id": "rose",
+              "display": "ROSE"
+            },
+            {
+              "id": "lily",
+              "display": "LILY"
+            },
+            {
+              "id": "iris",
+              "display": "IRIS"
+            },
+            {
+              "id": "mint",
+              "display": "MINT"
+            },
+            {
+              "id": "sage",
+              "display": "SAGE"
+            },
+            {
+              "id": "thyme",
+              "display": "THYME"
+            }
+          ]
+        }
+      ],
+      "profiles": [
+        {
+          "id": "gentle",
+          "width": 10,
+          "height": 8,
+          "directions": [
+            "right",
+            "down"
+          ],
+          "max_restarts": 20,
+          "max_attempts": 100000
+        },
+        {
+          "id": "varied",
+          "width": 10,
+          "height": 10,
+          "directions": [
+            "right",
+            "left",
+            "down",
+            "up",
+            "down-right",
+            "down-left",
+            "up-right",
+            "up-left"
+          ],
+          "max_restarts": 20,
+          "max_attempts": 100000
+        }
+      ],
+      "puzzles": [
+        {
+          "id": "flowers",
+          "title": "In the Flower Bed",
+          "theme": "Flowers",
+          "bank": "garden",
+          "target_ids": [
+            "rose",
+            "lily",
+            "iris"
+          ],
+          "difficulty": "gentle"
+        },
+        {
+          "id": "herbs",
+          "title": "The Herb Garden",
+          "theme": "Herbs",
+          "bank": "garden",
+          "target_ids": [
+            "mint",
+            "sage",
+            "thyme"
+          ],
+          "difficulty": "varied"
+        }
+      ],
+      "quality": {
+        "max_word_reuse": 2,
+        "target_similarity_threshold": 0.8,
+        "grid_similarity_threshold": 0.9,
+        "prohibited_words": []
+      }
+    }
+  },
+  "identity": "pp1-sha256-85966304262a0b3af4ffee5c742099e5635e1c4d52c817fa20334681101a6f84",
+  "engine_version": "0.1.0",
+  "validation": {
+    "valid": true,
+    "issues": []
+  }
+}
