@@ -40,5 +40,12 @@ export async function request<T>(path: string, signal: AbortSignal, body?: objec
       data?.error?.issues,
     );
   }
-  return response.json() as Promise<T>;
+  try {
+    return (await response.json()) as T;
+  } catch {
+    throw new ApiError(
+      'Studio received an unreadable response. Retry or reload the saved source to review.',
+      'malformed_response',
+    );
+  }
 }

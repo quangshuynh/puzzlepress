@@ -1,5 +1,6 @@
 """Read-only, root-scoped project access and presentation of core reports."""
 
+import hashlib
 import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -10,8 +11,9 @@ from puzzlepress.batch import generate_batch
 from puzzlepress.errors import ProjectError, ValidationIssue
 from puzzlepress.identity import build_identity
 from puzzlepress.models import Project
-from puzzlepress.project import load_project
+from puzzlepress.project import resolve_output_directory
 from puzzlepress.wordsearch import verify_word_search
+from puzzlepress.yaml_io import parse_project
 
 
 class StudioError(Exception):
@@ -61,19 +63,23 @@ class ProjectStore:
             raise StudioError(503, "source_unavailable", "Cannot access project source.") from error
 
     def load(self, key: str) -> Project:
-        return load_project(self.source(key)).project
+        return self.snapshot(key)[0]
+
+    def snapshot(self, key: str) -> tuple[Project, str]:
+        path = self.source(key)
+        try:
+            raw = path.read_bytes()
+            project = parse_project(raw.decode("utf-8-sig"))
+        except (OSError, UnicodeError) as error:
+            raise ProjectError(
+                (ValidationIssue("source", "io", "Cannot read project source."),)
+            ) from error
+        resolve_output_directory(project, path.parent)
+        return project, "sha256-" + hashlib.sha256(raw).hexdigest()
 
     def detail(self, key: str) -> dict[str, object]:
-        project = self.load(key)
-        source = project.to_dict()
-        source["build"] = {"seed": str(project.build.seed)}
-        return {
-            "key": key,
-            "source": source,
-            "identity": build_identity(project),
-            "engine_version": __version__,
-            "validation": {"valid": True, "issues": []},
-        }
+        project, revision = self.snapshot(key)
+        return project_detail(key, project, revision)
 
     def discover(self) -> list[dict[str, object]]:
         if not self.root.exists():
@@ -100,6 +106,19 @@ class ProjectStore:
         return projects
 
 
+def project_detail(key: str, project: Project, revision: str | None = None) -> dict[str, object]:
+    source = project.to_dict()
+    source["build"] = {"seed": str(project.build.seed)}
+    return {
+        "key": key,
+        "revision": revision,
+        "source": source,
+        "identity": build_identity(project),
+        "engine_version": __version__,
+        "validation": {"valid": True, "issues": []},
+    }
+
+
 class StudioService:
     """Serialize expensive requests; never cache stale authored source or write it."""
 
@@ -108,14 +127,17 @@ class StudioService:
         self._generation_lock = Lock()
 
     def generate(self, key: str, identity: str) -> dict[str, object]:
+        project = self.store.load(key)
+        if build_identity(project) != identity:
+            raise StudioError(
+                409, "source_changed", "Source changed. Reload the project before generating."
+            )
+        return self.generate_project(project)
+
+    def generate_project(self, project: Project) -> dict[str, object]:
         if not self._generation_lock.acquire(blocking=False):
             raise StudioError(409, "generation_busy", "Generation is running. Try again shortly.")
         try:
-            project = self.store.load(key)
-            if build_identity(project) != identity:
-                raise StudioError(
-                    409, "source_changed", "Source changed. Reload the project before generating."
-                )
             if project.word_search is None:
                 raise StudioError(422, "no_puzzles", "This project has no word-search definitions.")
             report = generate_batch(project)

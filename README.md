@@ -12,10 +12,11 @@
 
 PuzzlePress is a deterministic Python engine and local publishing studio for
 themed puzzle books. Validate authored projects, generate verified word searches,
-and inspect solutions and quality findings through the CLI or browser.
+and author content with authoritative previews and quality findings in the browser.
 
-**Interval 4 complete:** a read-only Web Studio uses the same Python core as the
-CLI. Browser editing, print/PDF interiors, covers and publishing remain future work.
+**Interval 5 complete:** the visual Studio editor uses the same Python core as the
+CLI, with validated drafts, deterministic previews and safe source saves.
+Print/PDF interiors, covers and publishing remain future work.
 
 ## Quick start
 
@@ -58,7 +59,9 @@ unless `--strict-quality` is used. `python -m puzzlepress` is also supported.
 ## Web Studio
 
 - Discover local projects and inspect metadata, validation and build identity.
-- Review authored word banks, puzzle definitions, profiles and quality settings.
+- Edit puzzle titles, themes, IDs, ordered targets and reusable word-bank entries.
+- Add, remove and reorder puzzles; select and configure shared difficulty profiles.
+- Validate unsaved drafts, preview them, then save with stale-source protection.
 - Generate and inspect real grids, exact seeds and independent verification.
 - Toggle authoritative solutions with highlighted paths and a coordinate register.
 - Review quality findings, screening completeness, reuse and similarity reports.
@@ -67,16 +70,23 @@ unless `--strict-quality` is used. `python -m puzzlepress` is also supported.
 [`automotive`](books/automotive/book.yaml) is a small source fixture without
 word-search definitions. Neither is presented as a completed publishing product.
 
+Open a book and choose **Edit**. Make changes, **Validate draft**, then **Preview
+draft** to inspect the grid and quality. **Save changes** validates again and
+reloads the persisted source. Drafts survive project tabs; **Revert draft** discards
+unsaved work deliberately. Saves canonicalize YAML, including removal of comments
+and original formatting. See the [editing workflow](docs/studio.md#authoring-workflow).
+
 ### A look inside
 
 <p>
-  <a href="docs/images/studio/library.png"><img src="docs/images/studio/library.png" alt="Studio library showing the automotive source fixture and garden-demo" width="48%"></a>
-  <a href="docs/images/studio/solution.png"><img src="docs/images/studio/solution.png" alt="Garden-demo puzzle inspector displaying authoritative solutions" width="48%"></a>
+  <a href="docs/images/studio/draft-preview.png"><img src="docs/images/studio/draft-preview.png" alt="Visual editor beside an unsaved generated puzzle and authoritative solution" width="48%"></a>
+  <a href="docs/images/studio/editor-quality.png"><img src="docs/images/studio/editor-quality.png" alt="Draft editor showing a real prohibited-word quality finding" width="48%"></a>
 </p>
 
-Actual application captures. See the [project overview](docs/images/studio/project.png),
-[normal puzzle view](docs/images/studio/puzzle.png), and
-[mobile inspector](docs/images/studio/mobile.png).
+Actual application captures from disposable demo projects. See the
+[word editor](docs/images/studio/word-editing.png),
+[validation](docs/images/studio/editor-validation.png), and
+[narrow editor](docs/images/studio/editor-390.png).
 
 ## Development
 
@@ -139,10 +149,12 @@ that can fail on feasible inputs. Quality is descriptive, with explicit scan
 limits and no built-in prohibited-word list or automatic repair. Profile names
 are authored settings, not calibrated difficulty scores.
 
-Studio is local and read-only. It reads a deliberately scoped books directory;
-it has no arbitrary filesystem browser, accounts, persistence, cloud services or
-telemetry. Frontend assets are built from this checkout. PDF output, browser
-editing, covers, KDP and publishing automation are not implemented.
+Studio edits only existing `book.yaml` projects within its configured books root.
+It has no arbitrary filesystem browser, accounts, cloud services or telemetry.
+Drafts are in memory, without autosave or merge; conflicts require review and reload.
+Use one Studio process per library. YAML comments and formatting are not preserved.
+Frontend assets are built from this checkout. PDF output, covers, KDP and publishing
+automation are not implemented.
 
 ## License
 

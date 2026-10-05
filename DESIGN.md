@@ -76,7 +76,8 @@ navigation, primary actions and specific successful checks. Amber denotes review
 red denotes failures. Muted text remains readable on its assigned surface.
 
 **The Evidence Rule.** Status color must accompany a precise text label and may
-only reflect an existing engine or validation result.
+only reflect an existing engine/validation result or explicit local draft state.
+Amber may identify unsaved changes; it must not imply a quality finding.
 
 ## Typography
 

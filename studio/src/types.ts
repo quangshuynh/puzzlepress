@@ -28,6 +28,7 @@ export interface QualityConfig {
 }
 export interface Project {
   key: string;
+  revision?: string;
   identity?: string;
   engine_version?: string;
   validation: { valid: boolean; issues: Issue[] };
@@ -44,6 +45,7 @@ export interface Project {
     };
     build: { seed: string };
     content: { items: string[] };
+    output: { directory: string };
     word_search?: {
       banks: { id: string; entries: { id: string; display: string }[] }[];
       profiles: Profile[];

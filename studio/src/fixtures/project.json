@@ -1,5 +1,6 @@
 {
   "key": "garden-demo",
+  "revision": "sha256-ffd7f7eb02c5d88f1f3e4880a505e140d60562cb113973fc448aeaabcffac540",
   "source": {
     "schema_version": 1,
     "book": {

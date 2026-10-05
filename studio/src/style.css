@@ -1130,3 +1130,230 @@ summary:hover {
     min-width: 450px;
   }
 }
+
+/* Authoring extends the publishing desk: ruled content and an adjacent paper. */
+.editor-toolbar,
+.editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.editor-toolbar {
+  justify-content: space-between;
+  gap: 20px;
+}
+.editor-toolbar h2 {
+  font-size: 29px;
+}
+.draft-status {
+  color: var(--review);
+  font-weight: 600;
+}
+.editor-layout {
+  display: grid;
+  grid-template-columns: minmax(340px, 0.95fr) minmax(0, 1.05fr);
+  gap: 32px;
+  margin-top: 28px;
+  align-items: start;
+}
+.authoring-fields {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  margin: 0;
+}
+.editor-field {
+  min-width: 0;
+  margin: 14px 0;
+}
+.editor label {
+  display: block;
+  font-weight: 600;
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+.editor input,
+.editor select,
+.editor textarea {
+  font: inherit;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid #9aa592;
+  border-radius: var(--radius);
+  min-height: 44px;
+  padding: 9px 10px;
+  width: 100%;
+  caret-color: var(--green);
+}
+.editor input[aria-invalid] {
+  border-color: var(--fail);
+}
+.editor textarea {
+  resize: vertical;
+}
+.field-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.editor .section-heading {
+  margin: 20px 0 12px;
+  gap: 12px;
+}
+.editor-settings {
+  border-top: 1px solid var(--line);
+  padding: 16px 0;
+  margin: 20px 0;
+}
+.editor-settings summary {
+  font-weight: 600;
+  cursor: pointer;
+  padding: 5px 0;
+}
+.definition-list,
+.target-editor {
+  padding: 0;
+  list-style: none;
+  margin: 12px 0;
+}
+.definition-list li,
+.target-editor li {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  padding: 8px 0;
+}
+.editor li button {
+  padding: 8px;
+  font-size: 12px;
+}
+.definition-select {
+  flex: 1;
+  text-align: left;
+  justify-content: flex-start;
+  gap: 10px;
+  border-color: transparent;
+  overflow-wrap: anywhere;
+}
+.editor button[aria-pressed='true']:not(.primary) {
+  background: var(--wash);
+  border-color: var(--green);
+}
+.target-editor li > span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.editor-subheading {
+  margin-top: 24px;
+}
+.puzzle-fields {
+  margin-top: 28px;
+}
+.bank-entry {
+  display: grid;
+  grid-template-columns: minmax(70px, 0.65fr) minmax(100px, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+  border-bottom: 1px solid var(--line);
+}
+.bank-entry > button {
+  margin-top: 38px;
+  padding: 8px;
+  font-size: 12px;
+}
+.bank-entries {
+  margin-bottom: 16px;
+}
+.direction-options {
+  margin: 20px 0;
+  border: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+.direction-options label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+.direction-options input {
+  width: 18px;
+  min-height: 18px;
+  accent-color: var(--green);
+}
+.field-errors {
+  color: var(--fail);
+  font-size: 12px;
+}
+.field-errors ul {
+  padding-left: 16px;
+}
+.draft-preview {
+  min-width: 0;
+  border-left: 1px solid var(--line);
+  padding-left: 28px;
+}
+.preview-empty {
+  padding: 64px 24px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  margin-top: 20px;
+}
+.preview-empty h2 {
+  font-size: 32px;
+}
+.draft-preview .inspector-layout {
+  display: block;
+}
+.draft-preview .puzzle-paper {
+  padding: 24px 14px;
+}
+.draft-preview .inspector-notes {
+  margin-top: 24px;
+}
+.draft-preview .back-link {
+  display: none;
+}
+.editor button:disabled {
+  cursor: not-allowed;
+}
+@media (max-width: 1200px) {
+  .editor-layout {
+    grid-template-columns: 1fr;
+  }
+  .draft-preview {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    padding: 24px 0 0;
+  }
+}
+@media (max-width: 600px) {
+  .field-pair {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .editor-actions {
+    gap: 8px;
+  }
+  .editor-actions button {
+    flex: 1 1 auto;
+  }
+  .editor-toolbar {
+    align-items: start;
+  }
+  .editor li button {
+    padding: 6px;
+  }
+  .bank-entry {
+    grid-template-columns: minmax(65px, 0.65fr) minmax(90px, 1fr) auto;
+    gap: 6px;
+  }
+}
+
+.editor-layout > form {
+  min-width: 0;
+}

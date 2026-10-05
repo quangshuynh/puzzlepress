@@ -1,7 +1,8 @@
-# PuzzlePress Studio
+﻿# PuzzlePress Studio
 
-Studio is a local, read-only application for inspecting real PuzzlePress projects,
-generated word searches, authoritative solutions, and descriptive quality reports.
+Studio is a local visual editor for word-search projects. Python remains the
+single authority for schema validation, normalization, generation, identity and
+quality. The browser keeps drafts and displays authoritative results.
 
 ## Start locally
 
@@ -17,134 +18,163 @@ cd ..
 .\.venv\Scripts\puzzlepress-studio.exe
 ```
 
-Open <http://127.0.0.1:8000/books>. Stop with Ctrl+C. After the initial frontend
-build, only the last command is needed. No Node process runs in this mode.
-Linux/macOS equivalents use `.venv/bin/python`, `.venv/bin/puzzlepress-studio`,
-and `npm`. Node is only needed for frontend development and builds.
+Open <http://127.0.0.1:8000/books>. After building, only the last command is needed.
+Linux/macOS use `.venv/bin/python`, `.venv/bin/puzzlepress-studio` and `npm`.
+The launcher is loopback-only; flags are `--books books`, `--frontend studio/dist`
+and `--port 8000`. Paths are relative to the launch directory. A checkout is
+required: the Python wheel does not bundle the frontend. For frontend development,
+run `npm run dev` in `studio/` alongside the Python server; Vite proxies API calls.
 
-The CLI accepts `--books books`, `--frontend studio/dist`, and `--port 8000`.
-Paths are relative to the launch directory. Binding is deliberately loopback-only.
-The Studio is supported from a repository checkout; frontend files are not bundled
-into the Python wheel. `python -m puzzlepress.studio.server` is also supported.
+## Authoring workflow
 
-For frontend hot reload, keep the Python server running and use `npm run dev`
-from `studio/`. Open Vite's printed local URL. Vite proxies API and logo requests
-to port 8000; no cross-origin API policy is needed. Rebuild before using the Python
-server's UI again. The original CLI installation still needs only PyYAML.
+1. Open a valid project and choose **Edit**. The initial draft is a copy of the
+   normalized persisted source. Overview, Puzzles and Quality show saved source;
+   the Edit tab retains its draft when you visit those tabs.
+2. Edit a puzzle title, ID or theme. Select its bank and difficulty profile. Add
+   or remove target references and reorder them with the Up/Down controls.
+3. In **Word banks**, choose any existing bank and edit entry IDs/display text,
+   add entries or deliberately remove them. Bank changes affect all referencing
+   puzzles. Renaming/removing entry IDs does not silently repair references;
+   validation identifies references that need attention.
+4. Add, remove or reorder puzzle definitions. New IDs are the first unused
+   `puzzle-N`; entries use `word-N`. No randomness or clock data is introduced.
+   The project seed is shared. Changing a puzzle ID changes its derived seed;
+   reordering puzzles preserves their individual seeds and grids.
+5. Expand **Profile settings** to edit the selected shared profile's dimensions,
+   directions and work limits. Names are authored settings, not calibrated scores.
+   Quality policy exposes maximum reuse and the prohibited-word list. Similarity
+   thresholds and other unexposed schema values are retained in the draft.
+6. **Validate draft** explicitly asks Python to validate the entire project.
+   Issues retain original paths/codes; safely mapped input errors also appear
+   beside their fields. Editing clears outdated issues and preview results.
+7. **Preview draft** validates and generates the whole unsaved batch. Inspect the
+   selected grid, targets, decimal-string seed, profile, independent verification,
+   authoritative solutions and whole-book quality. Findings never rewrite content.
+   Generation failures, review findings, disabled screening and incomplete scans
+   remain distinct. Neither validation nor preview writes any source or output.
+8. **Save changes** validates again, checks the revision, persists and reloads.
+   The editor adopts the server's reloaded state, including normalization. Saving
+   requires schema/filesystem validity, not a clean quality report or successful
+   generation. Publishers may save valid content that still needs review.
 
-## Architecture decision
+**Revert draft** returns to the snapshot originally opened or last saved, after
+confirmation. It does not fetch external edits. Leaving the project with edits
+requires confirmation; browser close/refresh uses the native warning where
+supported. Drafts stay in memory only. No autosave, undo history or recovery after
+closing the browser is provided. Requests disable draft controls while pending;
+responses from abandoned components are ignored.
 
-FastAPI and uvicorn provide a thin HTTP adapter around the existing Python core.
-React, strict TypeScript, and Vite provide reusable application views without an
-additional full-stack framework, database, router package, or server process in
-normal use. Native links and History API navigation keep URLs shareable and
-refreshable. This leaves room for an editor without implementing one now.
+A legacy project can explicitly add initial word-search content, with visible
+10×10/right/down custom settings. The first word and theme need author input.
+Invalid saved YAML remains visible as an invalid project; repair it on disk before
+opening the visual editor. The editor does not create project folders, rename
+banks/profiles or add additional banks/profiles to existing content.
 
-`studio/service.py` handles scoped reads, identity checks and report presentation.
-`studio/server.py` handles HTTP errors and static assets. Handlers contain no
-publishing rules. Existing `load_project`, `build_identity`, `generate_batch`, and
-`verify_word_search` remain authoritative and unchanged. HTTP generation retains
-the exact JSON report used by the CLI, plus verification results and solution cells.
+## Conflict and failure recovery
 
-`studio/src/types.ts` describes transport shapes only. It contains no schema
-validation, normalization, seed derivation, solver, or quality algorithm. Tests
-compare its real-data JSON fixtures to fresh Python output. JavaScript seeds are
-strings. No inputs, dimensions, words, directions, or quality policies are changed
-by the browser. Rendering and numeric formatting are presentation concerns.
+A save includes the revision loaded with the authoritative source. A competing
+save or external byte change, including comments or output settings, returns
+`409 source_changed`. The draft remains available. Review/copy the edits you want
+to keep, then choose **Reload saved source** and confirm discarding the draft.
+Reload is read-only and the draft is replaced only after the response succeeds.
+There is no automatic merge or force-overwrite button.
 
-FastAPI is constrained to `>=0.135,<0.136`, before native telemetry hooks became
-defaults. There is no analytics, telemetry exporter, account system, external font
-request, or cloud service. Dependency upgrades should review that constraint.
+Invalid drafts return structured issues without writing. Failed saves retain the
+draft and never show a success state. `save_unconfirmed` means replacement occurred
+but reload could not confirm the result; reload to review before retrying. A lost
+network response can likewise leave the client uncertain whether a save completed.
+Missing projects, unavailable server, malformed response and unexpected failures
+have recovery messages. Python tracebacks stay in server logs.
 
-References: [FastAPI responses](https://fastapi.tiangolo.com/advanced/custom-response/)
-and [Vite backend integration](https://vite.dev/guide/backend-integration.html).
+## Persistence and YAML behavior
 
-## Discovery and filesystem boundary
+Only `book.yaml` in an immediate project folder under the configured books root
+can be replaced. Route keys are 1..128 ASCII letters/digits/hyphens/underscores,
+starting alphanumeric. Keys are independent of book IDs. Resolved directory/file
+boundaries and symlinks are checked; output must remain disjoint from source.
+No caller-supplied destination or arbitrary filesystem write is accepted.
 
-The configured root defaults to `books/`. Discovery is sorted by immediate folder
-name and opens only `book.yaml`. Folder keys contain 1..128 ASCII letters, digits,
-hyphens or underscores and start with a letter or digit. They are route keys,
-independent of authored `book.id`; two folders cannot collide through book IDs.
+`studio/editing.py` validates the complete proposed object through `validate_project`
+and `resolve_output_directory`. It stages `dump_project` UTF-8 bytes in a unique
+sibling temporary file, flushes and fsyncs it, then reloads and verifies that staged
+model. It rechecks route/output boundaries and the exact original revision before
+`os.replace`. Same-directory replacement is atomic on supported local Windows and
+POSIX filesystems: readers see the old or new complete file. Successful saves reload
+and validate the authoritative file and return that state. Saves within a process
+serialize through a lock. Failures before replacement preserve the old source and
+attempt to remove the staged file; cleanup failures are logged.
 
-Resolved folders must remain immediate children of the root and resolved YAML
-files must remain inside their folder. Symlink sources and directory links that
-escape are rejected. Invalid YAML projects remain visible with their validation
-issues; directories without a supported source are ignored. A missing root is a
-configuration error, while an empty existing root is an empty library.
+Use one Studio process per books root. Portable file APIs do not provide an atomic
+compare-and-swap against an uncooperative external editor: a very small interval
+remains between the last revision check and replacement. This is trusted local
+authoring software, not protection against hostile concurrent filesystem swaps.
+Network filesystem semantics and sudden-power-loss durability are not guaranteed.
+A forcibly killed process may leave a `.puzzlepress-*.tmp` sibling; it is never
+loaded as project source, and Studio does not recursively clean directories.
 
-The app never writes book YAML or generated book artifacts. Frontend build output
-is disposable `studio/dist/`, separate from authored `books/`. There is no arbitrary
-filesystem browser. The boundary assumes a trusted local author, not an attacker
-concurrently replacing filesystem entries between checks and reads.
+The existing PyYAML serializer is deliberately canonical, not a formatting
+round-tripper. It sorts mapping keys, emits normalized defaults and null optional
+book fields, preserves authored sequence order, and uses its own scalar quoting,
+whitespace and formatting. Comments, original quotes and blank lines are lost.
+Seeds become decimal YAML integers; HTTP seeds remain decimal strings. Directions
+and prohibited search forms follow existing core normalization. Equivalent models
+produce identical YAML bytes. No YAML dependency or schema change was added.
 
-## HTTP surface
+## Architecture and HTTP surface
 
-| Method and path | Result |
+- `studio/service.py`: scoped snapshots, byte revisions, core report presentation.
+- `studio/editing.py`: explicit adapter-level persistence, keeping core APIs pure.
+- `studio/server.py`: thin HTTP handlers, expected errors, static assets and launcher.
+- `studio/src/Editor.tsx`, `ContentEditor.tsx`, `editor-fields.tsx`: draft lifecycle,
+  visual inputs and transport presentation. No second domain implementation.
+
+| Method and path | Request / result |
 | --- | --- |
-| `GET /api/projects` | Discovered valid and invalid projects, metadata and source validation |
-| `GET /api/projects/{key}` | Normalized source, decimal-string seed, schema/engine version, identity and validation |
-| `POST /api/projects/{key}/generation` | Complete core batch report, verification per puzzle, authoritative cell coordinates |
+| `GET /api/projects` | Sorted library, including invalid projects |
+| `GET /api/projects/{key}` | Normalized source, validation, identity, engine version, byte revision |
+| `POST /api/projects/{key}/generation` | `{identity}`; saved-source batch report |
+| `POST /api/projects/{key}/draft/validate` | `{source}`; normalized valid project and semantic identity |
+| `POST /api/projects/{key}/draft/preview` | `{source}`; core batch, verification and authoritative solution cells |
+| `POST /api/projects/{key}/draft/save` | `{source, revision}`; reloaded authoritative state and new revision |
 
-Generation body: `{"identity":"pp1-sha256-…"}`. It accepts no generation overrides.
-Only one batch runs per process. A concurrent request returns `409 generation_busy`.
-An identity mismatch returns `409 source_changed`. Reloading/retrying fetches fresh
-source. Invalid projects return `422 invalid_project` with original structured
-issues. Missing projects return `404 project_not_found`; a legacy source without
-puzzles returns `422 no_puzzles`. Expected per-puzzle search exhaustion remains
-inside an HTTP 200 batch report, preserving partial successes.
+Revision is `sha256-<digest of exact source bytes>`. It detects cosmetic changes
+and output edits that semantic identity intentionally excludes. Identical bytes
+have the same revision, including repeated canonical saves. Draft validation has
+no persisted revision (`null`). Build identity/version and per-puzzle seed
+contracts are unchanged. Reports retain the CLI structure and string seeds.
 
-Errors have `{"error":{"code":"…","message":"…","issues":[]}}`. Unexpected
-exceptions remain visible in server logs and become a generic HTTP 500 message.
-Filesystem I/O diagnostics are sanitized. JSON POSTs require a matching Origin
-when supplied; Host is limited to local names. Static files use a restrictive CSP.
+Errors use `{"error":{"code":"...","message":"...","issues":[]}}`.
+Invalid project/draft: 422; missing project: 404; stale source: 409; save I/O failure:
+503; unexpected programming failure: generic 500 with logged diagnostics.
+One generation runs per service at a time; competing previews/saved generation
+receive `409 generation_busy`. Expected per-puzzle generation failures are in the
+HTTP 200 batch report. Closing a page does not interrupt already-running Python.
+JSON POSTs require same-origin Origin when supplied, local Host and JSON content
+type. CSP and no-store response headers remain enabled; no CORS, auth or telemetry.
 
-## Routes and interaction
+Routes: `/books`, `/books/{key}`, `/books/{key}/edit`, `/books/{key}/puzzles`,
+`/books/{key}/puzzles/{id}`, `/books/{key}/quality`. Deep links serve the shell.
 
-| Route | View |
-| --- | --- |
-| `/`, `/books` | Searchable library, real metadata and validation |
-| `/books/{key}` | Authored metadata, definitions, banks, profiles, limits, quality configuration and identity |
-| `/books/{key}/puzzles` | Generated list with verification, failures and review findings |
-| `/books/{key}/puzzles/{id}` | Read-only grid, targets, seed, profile, solutions and quality |
-| `/books/{key}/quality` | Batch findings, policy status, reuse and pairwise comparisons |
+## Design, accessibility and screenshots
 
-Entering Puzzles, an inspector, or Quality generates the authored batch. Tabs
-reuse that report while the project remains open. A reload or reopening a project
-repeats deterministic generation. Results are not persisted or automatically
-regenerated to remove findings. A displayed report is a snapshot; external source
-edits are picked up on reload, not watched continuously. Generation is bounded by
-the core; closing a page does not interrupt Python work already in progress.
+The established paper/green design, supplied logo, locally bundled Newsreader and
+Public Sans remain. Desktop editing sits alongside preview; narrower views stack
+and include a preview jump. Labels, fieldsets, explicit buttons, focus outlines,
+keyboard reorder controls, native discard/delete confirmations and polite status
+messages support keyboard operation. Solutions also use underlines and a textual
+one-based coordinate register; the API remains zero-based. Large grids scroll
+inside their region. Reduced-motion behavior remains.
 
-Source validation, successful generation, verification and quality are separate
-states. Green means a specific check passed. Amber means review. Red indicates
-validation/generation failure. Screening disabled and screening incomplete remain
-explicit; no finding does not mean publication readiness. The fixture book-shaped
-labels in the library are source labels, not authored cover designs.
-
-The solution view uses Python-supplied cell membership. Underlines, heavier text
-and a textual register accompany color. The register uses one-based coordinates
-for readers and says so; API coordinates stay zero-based. Semantic tables provide
-row/column labels, and large grids have a focusable horizontal scroll region.
-
-## Design and accessibility
-
-Impeccable's written guidance informed the editorial system: locally hosted
-Newsreader headings, Public Sans controls, warm paper, restrained green accents,
-flat ruled lists, and sparse status markers. The existing logo is copied into the
-build without alteration. The user selected direct implementation; the Impeccable
-launcher was unavailable because its binary/cache setup required external access.
-`PRODUCT.md`, `DESIGN.md` and `.impeccable/` record the resulting system.
-
-At narrower widths the sidebar becomes a compact header and inspector columns
-stack. Grid letters retain their size; large grids scroll within their own region.
-Links and buttons retain native keyboard behavior, route changes focus main,
-there is a skip link, and reduced-motion preferences disable the loading animation.
-There are explicit loading, empty-library, missing-project, invalid-source,
-generation-failure, offline/server-failure and unexpected-render states.
+Actual captures from disposable projects:
+[editor](images/studio/editor.png), [word editing](images/studio/word-editing.png),
+[draft solution](images/studio/draft-preview.png), [quality](images/studio/editor-quality.png),
+[validation](images/studio/editor-validation.png), [conflict](images/studio/editor-conflict.png),
+and [1440](images/studio/editor-1440.png), [1024](images/studio/editor-1024.png),
+[768](images/studio/editor-768.png), [390](images/studio/editor-390.png) widths.
 
 ## Checks
 
-From the repository root with the environment activated:
+From the repository root, with the environment activated:
 
 ```text
 python -m pytest --basetemp=.pytest_cache/tmp
@@ -154,53 +184,32 @@ python -m mypy
 python -m pip check
 ```
 
-Backend/API tests are in `tests/web/`. Core-only tests can use
-`python -m pytest --ignore=tests/web`. From `studio/`:
+From `studio/`:
 
 ```text
 npm ci
 npm run check
 npm test
 npm run build
+npm ls --depth=0
 npx playwright install chromium
 npm run test:browser
-npm ls --depth=0
 ```
 
-`check` runs strict TypeScript, ESLint and Prettier. Browser tests start the local
-server when needed, exercise real Python data, compare both solutions to API
-coordinates, check keyboard/focus behavior and axe accessibility, and capture real
-screenshots. They cover desktop 1440, laptop 1024, tablet 768 and phone 390 pixels.
-To use installed Chrome instead of Playwright Chromium on Windows:
-`$env:STUDIO_BROWSER_CHANNEL='chrome'` before the browser command.
+`check` runs strict TypeScript, ESLint and Prettier. Browser tests start
+`e2e/server.py` on port 8015 with disposable temporary copies, never reuse a running
+server, and verify the repository fixtures' bytes remain unchanged. API writes
+also use pytest temporary projects. Browser checks cover real edit/preview/save/
+reload, deterministic preview, conflict, simulated HTTP save failure, field errors,
+keyboard operation, responsive layouts and axe. For installed Chrome on Windows,
+set `$env:STUDIO_BROWSER_CHANNEL='chrome'` before running browser tests.
+The Python Windows/Linux 3.11/3.13/3.14 CI matrix and separate Linux browser job
+remain unchanged; local results do not establish remote CI status.
 
-The Python CI matrix retains Windows/Linux on Python 3.11/3.13/3.14. A separate
-Linux job builds and tests the frontend and runs the browser checks. Remote CI
-must still run; local completion is not a claim about hosted jobs.
+## Limits
 
-## Screenshots
-
-Actual garden-demo sessions, captured by `studio/e2e/studio.spec.ts`:
-
-- [Library](images/studio/library.png)
-- [Project overview](images/studio/project.png)
-- [Puzzle inspector](images/studio/puzzle.png)
-- [Authoritative solution](images/studio/solution.png)
-- Responsive inspectors: [desktop](images/studio/desktop.png),
-  [laptop](images/studio/laptop.png), [tablet](images/studio/tablet.png),
-  [mobile](images/studio/mobile.png)
-
-## Limits and next decisions
-
-This is a local inspection foundation, with no browser editing or persistence.
-There is no PDF, cover editor, KDP workflow, authentication, deployment or cloud
-storage. Core limits remain ASCII words, 20 definitions and bounded greedy search.
-Only Chrome/Chromium has been exercised locally; automated checks do not replace
-screen-reader user testing. The local Windows run also emitted a connection-reset
-diagnostic during browser navigation, without failing requests or assertions.
-Starlette currently warns that its httpx-based test client is deprecated; API
-tests pass and a test-client dependency migration is deferred.
-
-Before Interval 5, review source-edit/save transactions, stale-source conflict
-handling, route-key stability if project folders move, and whether persisted
-generation sessions are needed. Those decisions are not implemented here.
+Existing ASCII/size/search limits apply. No extra schema fields, calibrated
+scores, automatic content repair, persisted previews, collaboration or cloud.
+Only Chrome/Chromium is exercised; axe is not screen-reader certification.
+Starlette warns about its deprecated httpx test client. No new dependencies.
+No book composition, PDF, cover creation, KDP or publishing functionality.

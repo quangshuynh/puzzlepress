@@ -5,7 +5,7 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   use: {
-    baseURL: 'http://127.0.0.1:8000',
+    baseURL: 'http://127.0.0.1:8015',
     browserName: 'chromium',
     channel: process.env.STUDIO_BROWSER_CHANNEL || undefined,
     trace: 'retain-on-failure',
@@ -13,10 +13,10 @@ export default defineConfig({
   webServer: {
     command:
       process.platform === 'win32'
-        ? '..\\.venv\\Scripts\\puzzlepress-studio.exe --books ../books --frontend dist'
-        : '../.venv/bin/puzzlepress-studio --books ../books --frontend dist',
-    url: 'http://127.0.0.1:8000/api/projects',
-    reuseExistingServer: !process.env.CI,
+        ? '..\\.venv\\Scripts\\python.exe e2e/server.py'
+        : '../.venv/bin/python e2e/server.py',
+    url: 'http://127.0.0.1:8015/api/projects',
+    reuseExistingServer: false,
     timeout: 15000,
   },
 });

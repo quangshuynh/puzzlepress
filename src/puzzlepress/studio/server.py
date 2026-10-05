@@ -1,4 +1,4 @@
-"""Single-process local HTTP boundary; no project mutations or domain rules."""
+"""Single-process local HTTP adapter; domain rules remain in the Python core."""
 
 import argparse
 import logging
@@ -16,7 +16,8 @@ from starlette.staticfiles import StaticFiles
 
 from puzzlepress.errors import ProjectError
 
-from .service import ProjectStore, StudioError, StudioService, issue_dicts
+from .editing import DraftStore
+from .service import ProjectStore, StudioError, StudioService, issue_dicts, project_detail
 
 LOGGER = logging.getLogger(__name__)
 
@@ -26,12 +27,22 @@ class GenerationRequest(BaseModel):
     identity: str
 
 
+class DraftRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    source: dict[str, object]
+
+
+class SaveRequest(DraftRequest):
+    revision: str
+
+
 def error_response(status: int, code: str, message: str) -> JSONResponse:
     return JSONResponse({"error": {"code": code, "message": message, "issues": []}}, status)
 
 
 def create_app(books: Path, frontend: Path) -> FastAPI:
     service = StudioService(ProjectStore(books.resolve()))
+    drafts = DraftStore(service.store)
     app = FastAPI(title="PuzzlePress Studio", docs_url=None, redoc_url=None, openapi_url=None)
     app.add_middleware(
         TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"]
@@ -75,9 +86,7 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
 
     @app.exception_handler(RequestValidationError)
     async def request_error(request: Request, error: RequestValidationError) -> JSONResponse:
-        return error_response(
-            422, "invalid_request", "Supply the current project identity as JSON."
-        )
+        return error_response(422, "invalid_request", "Supply the required request fields as JSON.")
 
     @app.exception_handler(HTTPException)
     async def http_error(request: Request, error: HTTPException) -> JSONResponse:
@@ -106,6 +115,18 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
     def generation(key: str, body: GenerationRequest) -> dict[str, object]:
         return service.generate(key, body.identity)
 
+    @app.post("/api/projects/{key}/draft/validate")
+    def validate_draft(key: str, body: DraftRequest) -> dict[str, object]:
+        return project_detail(key, drafts.validate(key, body.source))
+
+    @app.post("/api/projects/{key}/draft/preview")
+    def preview_draft(key: str, body: DraftRequest) -> dict[str, object]:
+        return service.generate_project(drafts.validate(key, body.source))
+
+    @app.post("/api/projects/{key}/draft/save")
+    def save_draft(key: str, body: SaveRequest) -> dict[str, object]:
+        return drafts.save(key, body.source, body.revision)
+
     if (frontend / "assets").is_dir():
         app.mount("/assets", StaticFiles(directory=frontend / "assets"), name="assets")
 
@@ -121,6 +142,7 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
     @app.get("/books/{key}")
     @app.get("/books/{key}/puzzles")
     @app.get("/books/{key}/quality")
+    @app.get("/books/{key}/edit")
     @app.get("/books/{key}/puzzles/{puzzle_id}")
     def shell() -> FileResponse:
         index = frontend / "index.html"
@@ -134,7 +156,7 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run the local, read-only PuzzlePress Studio.")
+    parser = argparse.ArgumentParser(description="Run the local PuzzlePress authoring Studio.")
     parser.add_argument("--books", type=Path, default=Path("books"))
     parser.add_argument("--frontend", type=Path, default=Path("studio/dist"))
     parser.add_argument("--port", type=int, default=8000)

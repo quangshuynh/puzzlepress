@@ -5,11 +5,15 @@ import { Overview } from './Overview';
 import { Inspector, PuzzleList, Quality } from './Puzzles';
 import type { Generation, Project } from './types';
 import { Empty, ErrorState, Loading } from './ui';
+import { Editor } from './Editor';
 
-function usePath() {
+function usePath(allow: (next: string, current: string) => boolean) {
   const [path, setPath] = useState(window.location.pathname);
   useEffect(() => {
-    const update = () => setPath(window.location.pathname);
+    const update = () => {
+      if (allow(window.location.pathname, path)) setPath(window.location.pathname);
+      else history.pushState(null, '', path);
+    };
     const click = (event: MouseEvent) => {
       const link = (event.target as Element).closest('a');
       if (
@@ -27,6 +31,7 @@ function usePath() {
         return;
       event.preventDefault();
       if (link.pathname === window.location.pathname) return;
+      if (!allow(link.pathname, path)) return;
       history.pushState(null, '', link.pathname);
       update();
     };
@@ -36,7 +41,7 @@ function usePath() {
       window.removeEventListener('popstate', update);
       document.removeEventListener('click', click);
     };
-  }, []);
+  }, [allow, path]);
   return path;
 }
 
@@ -44,10 +49,12 @@ function ProjectWorkspace({
   projectKey,
   section,
   puzzleId,
+  onDirty,
 }: {
   projectKey: string;
   section: string;
   puzzleId?: string;
+  onDirty: (dirty: boolean) => void;
 }) {
   const [project, setProject] = useState<Project>();
   const [error, setError] = useState<Error>();
@@ -69,7 +76,7 @@ function ProjectWorkspace({
       generationController.current?.abort();
     };
   }, [projectKey, attempt]);
-  const needsGeneration = section !== 'overview';
+  const needsGeneration = section !== 'overview' && section !== 'edit';
   useEffect(() => {
     if (
       !needsGeneration ||
@@ -120,9 +127,12 @@ function ProjectWorkspace({
             {project.source?.book.id} · {project.source?.book.language}
           </p>
         </div>
-        <span className="source-note">Read-only studio</span>
+        <span className="source-note">Local authoring studio</span>
       </header>
       <nav className="project-nav" aria-label="Project">
+        <a href={`${base}/edit`} aria-current={section === 'edit' ? 'page' : undefined}>
+          Edit
+        </a>
         <a href={base} aria-current={section === 'overview' ? 'page' : undefined}>
           Overview
         </a>
@@ -133,7 +143,20 @@ function ProjectWorkspace({
           Quality
         </a>
       </nav>
-      {section === 'overview' ? (
+      {project.source && (
+        <div hidden={section !== 'edit'}>
+          <Editor
+            project={project}
+            onDirty={onDirty}
+            onSaved={(next) => {
+              setProject(next);
+              setGeneration(undefined);
+              setGenerationError(undefined);
+            }}
+          />
+        </div>
+      )}
+      {section === 'edit' ? null : section === 'overview' ? (
         <Overview project={project} />
       ) : !project.source?.word_search ? (
         <Empty title="No puzzle definitions">
@@ -195,7 +218,16 @@ class RenderBoundary extends Component<{ children: ReactNode }, { failed: boolea
 }
 
 export function App() {
-  const path = usePath();
+  const [dirty, setDirty] = useState(false);
+  const path = usePath((next, current) => {
+    const currentKey = current.split('/')[2];
+    return (
+      !dirty ||
+      next.startsWith(`/books/${currentKey}/`) ||
+      next === `/books/${currentKey}` ||
+      window.confirm('Leave this project and discard unsaved changes?')
+    );
+  });
   const main = useRef<HTMLElement>(null);
   const first = useRef(true);
   useEffect(() => {
@@ -206,7 +238,7 @@ export function App() {
     }
     first.current = false;
   }, [path]);
-  const match = path.match(/^\/books\/([^/]+)(?:\/(puzzles|quality)(?:\/([^/]+))?)?\/?$/);
+  const match = path.match(/^\/books\/([^/]+)(?:\/(puzzles|quality|edit)(?:\/([^/]+))?)?\/?$/);
   const isLibrary = path === '/' || path === '/books' || path === '/books/';
   return (
     <div className="app-shell">
@@ -266,6 +298,7 @@ export function App() {
                 projectKey={match[1]}
                 section={match[2] ?? 'overview'}
                 puzzleId={match[3]}
+                onDirty={setDirty}
               />
             ) : (
               <ErrorState error={new ApiError('This Studio page does not exist.', 'not_found')} />

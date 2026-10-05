@@ -145,9 +145,12 @@ def test_generation_matches_core_and_authoritative_solutions(client, garden):
 def test_frontend_contract_fixtures_are_real_engine_output(garden):
     fixtures = ROOT / "studio/src/fixtures"
     service = StudioService(ProjectStore(ROOT / "books"))
-    assert json.loads((fixtures / "project.json").read_text()) == service.store.detail(
-        "garden-demo"
-    )
+    fixture = json.loads((fixtures / "project.json").read_text())
+    detail = service.store.detail("garden-demo")
+    # Byte revisions vary with checkout line endings; semantic transport does not.
+    assert fixture.pop("revision").startswith("sha256-")
+    assert detail.pop("revision").startswith("sha256-")
+    assert fixture == detail
     assert json.loads((fixtures / "generation.json").read_text()) == json.loads(
         json.dumps(service.generate("garden-demo", build_identity(garden)))
     )

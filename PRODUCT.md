@@ -10,14 +10,15 @@ Delegated in the Interval 4 brief. Python core, optional FastAPI/uvicorn adapter
 React and TypeScript with Vite. A built frontend and API share one local origin.
 
 ## Users
-Puzzle-book publishers inspecting authored projects and generated word searches locally.
+Puzzle-book publishers authoring projects and reviewing generated word searches locally.
 
 ## Product Purpose
 Expose the same deterministic engine used by the CLI through a visual publishing studio.
 
 ## Capabilities and Constraints
-Read-only library, source overview, generation, puzzle inspection, authoritative
-solutions and descriptive quality reports. No editing, PDF, cover, KDP, cloud or account features.
+Local library, source overview, visual puzzle and word-bank entry editing, shared
+profile settings, Python draft validation, deterministic preview, quality review,
+and deliberate revision-checked source saves. No PDF, cover, KDP, cloud or accounts.
 
 ## Brand Commitments
 Preserve docs/images/puzzlepress-logo.png. Editorial, calm, professional, precise,
