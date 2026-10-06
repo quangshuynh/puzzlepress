@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 with tempfile.TemporaryDirectory(prefix="puzzlepress-browser-") as directory:
     books = Path(directory) / "books"
-    for key in ("garden-demo", "automotive"):
+    for key in ("garden-demo", "automotive", "composition-demo"):
         target = books / key
         target.mkdir(parents=True)
         shutil.copyfile(ROOT / "books" / key / "book.yaml", target / "book.yaml")
@@ -26,4 +26,7 @@ with tempfile.TemporaryDirectory(prefix="puzzlepress-browser-") as directory:
         ),
         encoding="utf-8",
     )
+    target = books / "composer-demo"
+    target.mkdir()
+    shutil.copyfile(ROOT / "books/composition-demo/book.yaml", target / "book.yaml")
     uvicorn.run(create_app(books, ROOT / "studio/dist"), host="127.0.0.1", port=8015)

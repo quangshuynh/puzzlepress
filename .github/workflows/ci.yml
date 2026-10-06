@@ -24,6 +24,8 @@ jobs:
       - run: puzzlepress puzzle generate --width 10 --height 8 --seed 2026 --word ENGINE --word CLUTCH --word PISTON --solution
       - run: puzzlepress validate books/garden-demo
       - run: puzzlepress puzzle batch books/garden-demo --json
+      - run: puzzlepress validate books/composition-demo
+      - run: puzzlepress book plan books/composition-demo --json
 
   studio:
     runs-on: ubuntu-latest

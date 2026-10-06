@@ -6,6 +6,8 @@ import { Inspector, PuzzleList, Quality } from './Puzzles';
 import type { Generation, Project } from './types';
 import { Empty, ErrorState, Loading } from './ui';
 import { Editor } from './Editor';
+import { Composer } from './Composer';
+import { useDraft } from './draft';
 
 function usePath(allow: (next: string, current: string) => boolean) {
   const [path, setPath] = useState(window.location.pathname);
@@ -45,6 +47,28 @@ function usePath(allow: (next: string, current: string) => boolean) {
   return path;
 }
 
+function DraftWorkspace({
+  project,
+  section,
+  onDirty,
+  onSaved,
+}: {
+  project: Project;
+  section: string;
+  onDirty: (dirty: boolean) => void;
+  onSaved: (project: Project) => void;
+}) {
+  const draft = useDraft(project, onSaved, onDirty);
+  return (
+    <>
+      <div hidden={section !== 'edit'}>
+        <Editor d={draft} />
+      </div>
+      {section === 'book' && <Composer d={draft} />}
+    </>
+  );
+}
+
 function ProjectWorkspace({
   projectKey,
   section,
@@ -76,7 +100,7 @@ function ProjectWorkspace({
       generationController.current?.abort();
     };
   }, [projectKey, attempt]);
-  const needsGeneration = section !== 'overview' && section !== 'edit';
+  const needsGeneration = !['overview', 'edit', 'book'].includes(section);
   useEffect(() => {
     if (
       !needsGeneration ||
@@ -133,6 +157,9 @@ function ProjectWorkspace({
         <a href={`${base}/edit`} aria-current={section === 'edit' ? 'page' : undefined}>
           Edit
         </a>
+        <a href={`${base}/book`} aria-current={section === 'book' ? 'page' : undefined}>
+          Book
+        </a>
         <a href={base} aria-current={section === 'overview' ? 'page' : undefined}>
           Overview
         </a>
@@ -144,19 +171,18 @@ function ProjectWorkspace({
         </a>
       </nav>
       {project.source && (
-        <div hidden={section !== 'edit'}>
-          <Editor
-            project={project}
-            onDirty={onDirty}
-            onSaved={(next) => {
-              setProject(next);
-              setGeneration(undefined);
-              setGenerationError(undefined);
-            }}
-          />
-        </div>
+        <DraftWorkspace
+          project={project}
+          section={section}
+          onDirty={onDirty}
+          onSaved={(next) => {
+            setProject(next);
+            setGeneration(undefined);
+            setGenerationError(undefined);
+          }}
+        />
       )}
-      {section === 'edit' ? null : section === 'overview' ? (
+      {section === 'edit' || section === 'book' ? null : section === 'overview' ? (
         <Overview project={project} />
       ) : !project.source?.word_search ? (
         <Empty title="No puzzle definitions">
@@ -238,7 +264,7 @@ export function App() {
     }
     first.current = false;
   }, [path]);
-  const match = path.match(/^\/books\/([^/]+)(?:\/(puzzles|quality|edit)(?:\/([^/]+))?)?\/?$/);
+  const match = path.match(/^\/books\/([^/]+)(?:\/(puzzles|quality|edit|book)(?:\/([^/]+))?)?\/?$/);
   const isLibrary = path === '/' || path === '/books' || path === '/books/';
   return (
     <div className="app-shell">
@@ -292,7 +318,7 @@ export function App() {
           <RenderBoundary>
             {isLibrary ? (
               <Library />
-            ) : match && !(match[2] === 'quality' && match[3]) ? (
+            ) : match && !(['quality', 'edit', 'book'].includes(match[2]) && match[3]) ? (
               <ProjectWorkspace
                 key={match[1]}
                 projectKey={match[1]}

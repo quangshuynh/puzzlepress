@@ -1,0 +1,88 @@
+# A small book demonstrating composition: matter, publication order, solutions,
+# a recto-start blank and roman front-matter numbering.
+schema_version: 1
+book:
+  id: composition-demo
+  title: Seaside Word Searches
+  subtitle: A small composition demonstration
+  language: en
+  author: PuzzlePress Examples
+build:
+  seed: 2026
+word_search:
+  banks:
+    - id: seaside
+      entries:
+        - {id: shell, display: SHELL}
+        - {id: wave, display: WAVE}
+        - {id: sand, display: SAND}
+        - {id: crab, display: CRAB}
+        - {id: tide, display: TIDE}
+        - {id: kelp, display: KELP}
+        - {id: gull, display: GULL}
+        - {id: dune, display: DUNE}
+        - {id: pier, display: PIER}
+        - {id: buoy, display: BUOY}
+        - {id: reef, display: REEF}
+        - {id: cove, display: COVE}
+  profiles:
+    - id: gentle
+      width: 10
+      height: 8
+      directions: [right, down]
+    - id: varied
+      width: 10
+      height: 10
+      directions: [right, left, down, up, down-right, down-left, up-right, up-left]
+  puzzles:
+    - id: shoreline
+      title: Along the Shoreline
+      theme: The beach
+      bank: seaside
+      target_ids: [shell, wave, sand]
+      difficulty: gentle
+    - id: rockpool
+      title: In the Rock Pool
+      theme: Small creatures
+      bank: seaside
+      target_ids: [crab, kelp, tide]
+      difficulty: gentle
+    - id: harbour
+      title: By the Harbour
+      theme: Boats and moorings
+      bank: seaside
+      target_ids: [pier, buoy, gull]
+      difficulty: varied
+    - id: dunes
+      title: Over the Dunes
+      theme: Coastal landscape
+      bank: seaside
+      target_ids: [dune, reef, cove]
+      difficulty: varied
+composition:
+  front_matter:
+    - kind: title_page
+    - kind: copyright_page
+      text: Placeholder notice for a demonstration project. Replace it with your own text before publishing.
+    - kind: instructions
+      title: How to Play
+      text: |-
+        Find each listed word hidden in the grid. Words run in straight lines.
+        Solutions are at the back of the book.
+  puzzles:
+    start: recto
+  solutions:
+    placement: end
+    title: Solutions
+    per_page: 2
+    start: recto
+  back_matter:
+    - kind: notes
+      title: Notes
+  page_numbers:
+    scheme: roman_front_matter
+    show_front_matter: false
+    show_solutions: true
+    show_back_matter: true
+output:
+  directory: ../../build/composition-demo

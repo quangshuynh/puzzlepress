@@ -115,6 +115,11 @@ Small status marks differ in shape as well as color. The supplied logo is preser
 - Inspector: semantic letter table, highlighted solution cells with underlines and
   heavier weight, plus a textual coordinate register.
 - Details: native disclosure for developer payloads and less-used configuration.
+- Composer: a manuscript outline. Sections open with a heavy ink rule and a serif
+  heading; items are ruled rows with compact Up/Down/Remove buttons. The plan is a
+  semantic table grouped by section, with side and number as text, uncounted
+  numbers in parentheses and blanks on canvas with their reason. It is a logical
+  list, never a simulated page spread or print preview.
 - States: text and recovery actions for errors, meaningful empty states, polite
   loading status. A single loading-line animation respects reduced motion.
 

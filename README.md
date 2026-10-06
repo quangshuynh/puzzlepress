@@ -12,10 +12,11 @@
 
 PuzzlePress is a deterministic Python engine and local publishing studio for
 themed puzzle books. Validate authored projects, generate verified word searches,
-and author content with authoritative previews and quality findings in the browser.
+compose them into an ordered book, and author everything in a local browser studio
+with authoritative previews and quality findings.
 
-**Interval 5 complete:** the visual Studio editor uses the same Python core as the
-CLI, with validated drafts, deterministic previews and safe source saves.
+**Interval 6 complete:** Studio supports puzzle authoring, book composition and a
+publication-plan preview: a verified, renderer-independent list of logical pages.
 Print/PDF interiors, covers and publishing remain future work.
 
 ## Quick start
@@ -50,11 +51,14 @@ puzzlepress inspect books/garden-demo
 puzzlepress puzzle generate --width 10 --height 8 --seed 2026 --word ENGINE --word PISTON --solution
 puzzlepress puzzle batch books/garden-demo --json
 puzzlepress puzzle batch books/garden-demo --strict-quality
+puzzlepress book plan books/composition-demo
+puzzlepress book plan books/composition-demo --json
 ```
 
 Commands are read-only. Exit codes: **0** success, **1** expected configuration
 or generation failure, **2** usage error. Batch quality findings are warnings
-unless `--strict-quality` is used. `python -m puzzlepress` is also supported.
+unless `--strict-quality` is used. `book plan` exits 1 when a puzzle fails to
+generate, still printing the plan. `python -m puzzlepress` is also supported.
 
 ## Web Studio
 
@@ -65,10 +69,14 @@ unless `--strict-quality` is used. `python -m puzzlepress` is also supported.
 - Generate and inspect real grids, exact seeds and independent verification.
 - Toggle authoritative solutions with highlighted paths and a coordinate register.
 - Review quality findings, screening completeness, reuse and similarity reports.
+- Compose the book: front matter, puzzle order, solutions, back matter and page numbers.
+- Preview the verified publication plan: every logical page, its side and its number.
 
-[`garden-demo`](books/garden-demo/book.yaml) has two themed puzzles.
-[`automotive`](books/automotive/book.yaml) is a small source fixture without
-word-search definitions. Neither is presented as a completed publishing product.
+[`composition-demo`](books/composition-demo/book.yaml) is a small composed book:
+front matter, four puzzles, grouped solutions and a notes page.
+[`garden-demo`](books/garden-demo/book.yaml) has two themed puzzles without a
+composition. [`automotive`](books/automotive/book.yaml) is a small source fixture
+without word-search definitions. None is presented as a finished publishing product.
 
 Open a book and choose **Edit**. Make changes, **Validate draft**, then **Preview
 draft** to inspect the grid and quality. **Save changes** validates again and
@@ -76,17 +84,23 @@ reloads the persisted source. Drafts survive project tabs; **Revert draft** disc
 unsaved work deliberately. Saves canonicalize YAML, including removal of comments
 and original formatting. See the [editing workflow](docs/studio.md#authoring-workflow).
 
+Choose **Book** to compose. Reorder puzzles, edit matter and set solution and
+numbering policy, then **Preview plan**. The plan is not a print preview: it states
+what belongs in the book and in what order, not how pages are laid out. Composition
+edits share the same draft, validation and save. See [book composition](docs/book-composition.md).
+
 ### A look inside
 
 <p>
   <a href="docs/images/studio/draft-preview.png"><img src="docs/images/studio/draft-preview.png" alt="Visual editor beside an unsaved generated puzzle and authoritative solution" width="48%"></a>
-  <a href="docs/images/studio/editor-quality.png"><img src="docs/images/studio/editor-quality.png" alt="Draft editor showing a real prohibited-word quality finding" width="48%"></a>
+  <a href="docs/images/studio/composer-plan.png"><img src="docs/images/studio/composer-plan.png" alt="Book composer beside an unsaved publication plan with sections, sides and page numbers" width="48%"></a>
 </p>
 
 Actual application captures from disposable demo projects. See the
-[word editor](docs/images/studio/word-editing.png),
-[validation](docs/images/studio/editor-validation.png), and
-[narrow editor](docs/images/studio/editor-390.png).
+[quality review](docs/images/studio/editor-quality.png),
+[validation](docs/images/studio/editor-validation.png),
+[puzzle ordering](docs/images/studio/composer-order.png) and
+[narrow composer](docs/images/studio/composer-390.png).
 
 ## Development
 
@@ -132,14 +146,18 @@ Chromium job. Symlink tests skip when OS permission is unavailable.
                                 React / TypeScript
 ```
 
-Immutable Python models own validation, deterministic generation, identity and
-quality. The web adapter exposes existing reports; the browser renders them.
-There is no JavaScript generator, solver or second project validator. Build
+Project -> generation -> quality -> composition -> publication plan. Layout and
+PDF rendering are a separate, future stage that consumes the plan.
+
+Immutable Python models own validation, deterministic generation, identity,
+quality and publication planning. The web adapter exposes existing reports; the browser renders them.
+There is no JavaScript generator, solver, planner or second project validator. Build
 identities include engine version and output-affecting inputs. Seeds travel over
 HTTP as decimal strings. Source and disposable build directories stay disjoint.
 
 Contracts: [project format](docs/project-format.md), [word-search engine](docs/word-search.md),
-[batch and quality](docs/batch-quality.md), [Studio architecture](docs/studio.md).
+[batch and quality](docs/batch-quality.md), [book composition](docs/book-composition.md),
+[Studio architecture](docs/studio.md).
 Contribution rules: [AGENTS.md](AGENTS.md). Current handoff: [CONTEXT.md](CONTEXT.md).
 
 ## Current limitations
@@ -153,7 +171,8 @@ Studio edits only existing `book.yaml` projects within its configured books root
 It has no arbitrary filesystem browser, accounts, cloud services or telemetry.
 Drafts are in memory, without autosave or merge; conflicts require review and reload.
 Use one Studio process per library. YAML comments and formatting are not preserved.
-Frontend assets are built from this checkout. PDF output, covers, KDP and publishing
+Frontend assets are built from this checkout. Logical page counts are not final
+printed page counts. PDF output, print layout, covers, KDP preflight and publishing
 automation are not implemented.
 
 ## License

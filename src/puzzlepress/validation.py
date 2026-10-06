@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import PurePosixPath, PureWindowsPath
 from typing import cast
 
+from .composition_validation import validate_composition
 from .content_validation import validate_word_search_content
 from .errors import MAX_SEED
 from .errors import ProjectError as ProjectError
@@ -70,7 +71,9 @@ def validate_project(data: object) -> ValidationResult:
         return value.strip()
 
     root = mapping(
-        data, "", {"schema_version", "book", "build", "content", "output", "word_search"}
+        data,
+        "",
+        {"schema_version", "book", "build", "content", "output", "word_search", "composition"},
     )
     version = required(root, "schema_version", "schema_version")
     if type(version) is not int or version != SCHEMA_VERSION:
@@ -149,6 +152,12 @@ def validate_project(data: object) -> ValidationResult:
     if "word_search" in root:
         word_search, content_issues = validate_word_search_content(root["word_search"])
         issues.extend(content_issues)
+    composition = None
+    if "composition" in root:
+        composition, composition_issues = validate_composition(
+            root["composition"], "word_search" in root
+        )
+        issues.extend(composition_issues)
     if issues:
         return ValidationResult(None, tuple(issues))
     return ValidationResult(
@@ -167,6 +176,7 @@ def validate_project(data: object) -> ValidationResult:
             content=Content(tuple(items)),
             output=Output(cast(str, directory)),
             word_search=word_search,
+            composition=composition,
         ),
         (),
     )

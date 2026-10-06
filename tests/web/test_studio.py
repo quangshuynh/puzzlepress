@@ -243,6 +243,7 @@ def test_legacy_project_no_implicit_puzzles(client, library, source):
         "/books/garden-demo/puzzles",
         "/books/garden-demo/quality",
         "/books/garden-demo/puzzles/flowers",
+        "/books/garden-demo/book",
     ],
 )
 def test_deep_links_serve_shell(client, path):

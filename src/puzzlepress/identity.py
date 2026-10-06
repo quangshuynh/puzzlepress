@@ -4,6 +4,7 @@ import hashlib
 import json
 
 from . import __version__
+from .composition import COMPOSITION_VERSION
 from .content import PIPELINE_VERSION
 from .models import Project
 
@@ -25,6 +26,8 @@ def canonical_build_inputs(project: Project) -> bytes:
     }
     if project.word_search is not None:
         envelope["word_search_pipeline_version"] = PIPELINE_VERSION
+    if project.composition is not None:
+        envelope["composition_version"] = COMPOSITION_VERSION
     return json.dumps(
         envelope, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
     ).encode("utf-8")

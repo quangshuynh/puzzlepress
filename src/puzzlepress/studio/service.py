@@ -2,6 +2,8 @@
 
 import hashlib
 import re
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from threading import Lock
@@ -12,6 +14,8 @@ from puzzlepress.errors import ProjectError, ValidationIssue
 from puzzlepress.identity import build_identity
 from puzzlepress.models import Project
 from puzzlepress.project import resolve_output_directory
+from puzzlepress.publication import build_publication
+from puzzlepress.publication_verification import publication_payload, verify_publication_plan
 from puzzlepress.wordsearch import verify_word_search
 from puzzlepress.yaml_io import parse_project
 
@@ -134,10 +138,28 @@ class StudioService:
             )
         return self.generate_project(project)
 
-    def generate_project(self, project: Project) -> dict[str, object]:
+    @contextmanager
+    def _exclusive(self) -> Iterator[None]:
         if not self._generation_lock.acquire(blocking=False):
             raise StudioError(409, "generation_busy", "Generation is running. Try again shortly.")
         try:
+            yield
+        finally:
+            self._generation_lock.release()
+
+    def plan_project(self, project: Project) -> dict[str, object]:
+        """Generate and plan the given source; the verified plan is the only result."""
+        with self._exclusive():
+            if project.composition is None:
+                raise StudioError(422, "no_composition", "This project has no book composition.")
+            report, plan = build_publication(project)
+            verification = verify_publication_plan(plan, project, report)
+            if not verification.valid:
+                raise RuntimeError(f"Publication plan failed verification: {verification.issues!r}")
+            return publication_payload(report, plan, verification)
+
+    def generate_project(self, project: Project) -> dict[str, object]:
+        with self._exclusive():
             if project.word_search is None:
                 raise StudioError(422, "no_puzzles", "This project has no word-search definitions.")
             report = generate_batch(project)
@@ -161,5 +183,3 @@ class StudioService:
                     if result.puzzle
                 },
             }
-        finally:
-            self._generation_lock.release()

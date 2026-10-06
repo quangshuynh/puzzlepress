@@ -26,6 +26,23 @@ export interface QualityConfig {
   grid_similarity_threshold: number;
   prohibited_words: string[];
 }
+export interface MatterItem {
+  kind: string;
+  title?: string;
+  text?: string;
+}
+export interface Composition {
+  front_matter: MatterItem[];
+  puzzles: { start: string };
+  solutions: { placement: string; title?: string; per_page?: number; start?: string };
+  back_matter: MatterItem[];
+  page_numbers: {
+    scheme: string;
+    show_front_matter: boolean;
+    show_solutions: boolean;
+    show_back_matter: boolean;
+  };
+}
 export interface Project {
   key: string;
   revision?: string;
@@ -52,6 +69,7 @@ export interface Project {
       puzzles: Definition[];
       quality: QualityConfig;
     };
+    composition?: Composition;
   };
 }
 export interface Cell {
@@ -112,4 +130,55 @@ export interface Generation {
   };
   verification: Record<string, { valid: boolean; issues: Issue[] } | null>;
   solution_cells: Record<string, Record<string, Cell[]>>;
+}
+export interface PlanPuzzle {
+  id: string;
+  ordinal: number;
+  title: string;
+  theme: string;
+  seed: string;
+  digest: string | null;
+}
+export interface PlanPage {
+  index: number;
+  side: 'recto' | 'verso';
+  section: 'front_matter' | 'puzzles' | 'solutions' | 'back_matter';
+  kind: string;
+  number: { value: number; style: string; label: string; displayed: boolean };
+  heading: string | null;
+  matter: {
+    title: string | null;
+    subtitle: string | null;
+    author: string | null;
+    imprint: string | null;
+    text: string | null;
+  } | null;
+  puzzle: PlanPuzzle | null;
+  solution_page: number | null;
+  solutions: { puzzle: PlanPuzzle; puzzle_page: number }[];
+  blank: { reason: string; before_section: string | null } | null;
+}
+export interface PlanResult {
+  plan: {
+    plan_version: number;
+    identity: string;
+    book_id: string;
+    complete: boolean;
+    pages: PlanPage[];
+    statistics: {
+      logical_pages: number;
+      front_matter_pages: number;
+      puzzle_pages: number;
+      solution_pages: number;
+      back_matter_pages: number;
+      blank_pages: number;
+      puzzles: number;
+      solutions: number;
+      first_puzzle_page: number | null;
+      first_solution_page: number | null;
+    };
+    diagnostics: Issue[];
+  };
+  verification: { valid: boolean; issues: Issue[] };
+  generation: { success: boolean; clean: boolean; quality_findings: number };
 }

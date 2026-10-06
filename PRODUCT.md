@@ -17,15 +17,17 @@ Expose the same deterministic engine used by the CLI through a visual publishing
 
 ## Capabilities and Constraints
 Local library, source overview, visual puzzle and word-bank entry editing, shared
-profile settings, Python draft validation, deterministic preview, quality review,
-and deliberate revision-checked source saves. No PDF, cover, KDP, cloud or accounts.
+profile settings, book composition (matter, puzzle order, solution and numbering
+policy), Python draft validation, deterministic preview, verified logical
+publication-plan preview, quality review, and deliberate revision-checked source
+saves. No PDF, print layout, cover, KDP, cloud or accounts.
 
 ## Brand Commitments
 Preserve docs/images/puzzlepress-logo.png. Editorial, calm, professional, precise,
 typography-forward. No fabricated publishing metrics or marketing dashboard.
 
 ## Evidence on Hand
-books/garden-demo contains two real puzzle definitions. books/automotive is a legacy source fixture.
+books/composition-demo is a composed four-puzzle book. books/garden-demo contains two real puzzle definitions. books/automotive is a legacy source fixture.
 
 ## Accessibility & Inclusion
 Keyboard navigation, visible focus, semantic headings and grids, textual solution

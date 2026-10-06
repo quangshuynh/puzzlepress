@@ -1,6 +1,6 @@
 ﻿# PuzzlePress Studio
 
-Studio is a local visual editor for word-search projects. Python remains the
+Studio is a local visual editor for word-search projects and their book composition. Python remains the
 single authority for schema validation, normalization, generation, identity and
 quality. The browser keeps drafts and displays authoritative results.
 
@@ -70,6 +70,36 @@ Invalid saved YAML remains visible as an invalid project; repair it on disk befo
 opening the visual editor. The editor does not create project folders, rename
 banks/profiles or add additional banks/profiles to existing content.
 
+## Book composer
+
+Choose **Book** in a project. The composer edits the same in-memory draft as
+**Edit**: one revision, one unsaved state, one validation and one save. Changes
+made in either tab are visible in the other. Composition rules are in
+[book composition](book-composition.md).
+
+1. A project without `composition` shows an explicit **Start book composition**
+   action: a title page, editable instructions and solutions at the end. Nothing is
+   saved until **Save changes**. No copyright text is supplied.
+2. **Front matter** and **Back matter** list one logical page per item. Add, remove
+   and reorder items with buttons. The title page edits the book's subtitle, author
+   and imprint; the book title stays in Edit.
+3. **Puzzles** sets whether the section starts on a recto page and reorders the
+   project's single puzzle order with Up/Down. Focus follows the moved puzzle.
+   Reordering also reorders Edit and reports, never a grid.
+4. **Solutions** chooses end or omit, the section heading, solutions per logical
+   page and the section start. **Page numbers** chooses the scheme and which
+   sections print numbers.
+5. On opening, the saved plan is requested once. After edits, **Preview plan**
+   validates, generates and plans the unsaved draft. The plan lists every logical
+   page grouped by section, with side, number (parenthesized when counted but not
+   printed), content, cross-references and explicit blanks with their reason, plus
+   statistics, verification, completeness and a separate quality-finding count.
+   It is not a print preview. After a save or reload the plan refreshes.
+
+Validation errors attach to their composer fields. Failed and stale saves keep the
+draft, exactly as in Edit. Drag-and-drop is not used: buttons work for pointer and
+keyboard and avoid accidental moves.
+
 ## Conflict and failure recovery
 
 A save includes the revision loaded with the authoritative source. A competing
@@ -125,8 +155,9 @@ produce identical YAML bytes. No YAML dependency or schema change was added.
 - `studio/service.py`: scoped snapshots, byte revisions, core report presentation.
 - `studio/editing.py`: explicit adapter-level persistence, keeping core APIs pure.
 - `studio/server.py`: thin HTTP handlers, expected errors, static assets and launcher.
-- `studio/src/Editor.tsx`, `ContentEditor.tsx`, `editor-fields.tsx`: draft lifecycle,
-  visual inputs and transport presentation. No second domain implementation.
+- `studio/src/draft.tsx`: shared draft lifecycle and toolbar; `Editor.tsx`,
+  `ContentEditor.tsx`, `Composer.tsx`, `editor-fields.tsx`: visual inputs and
+  transport presentation. No second domain implementation or planner.
 
 | Method and path | Request / result |
 | --- | --- |
@@ -135,6 +166,7 @@ produce identical YAML bytes. No YAML dependency or schema change was added.
 | `POST /api/projects/{key}/generation` | `{identity}`; saved-source batch report |
 | `POST /api/projects/{key}/draft/validate` | `{source}`; normalized valid project and semantic identity |
 | `POST /api/projects/{key}/draft/preview` | `{source}`; core batch, verification and authoritative solution cells |
+| `POST /api/projects/{key}/draft/plan` | `{source}`; verified publication plan, verification and generation summary |
 | `POST /api/projects/{key}/draft/save` | `{source, revision}`; reloaded authoritative state and new revision |
 
 Revision is `sha256-<digest of exact source bytes>`. It detects cosmetic changes
@@ -146,13 +178,13 @@ contracts are unchanged. Reports retain the CLI structure and string seeds.
 Errors use `{"error":{"code":"...","message":"...","issues":[]}}`.
 Invalid project/draft: 422; missing project: 404; stale source: 409; save I/O failure:
 503; unexpected programming failure: generic 500 with logged diagnostics.
-One generation runs per service at a time; competing previews/saved generation
-receive `409 generation_busy`. Expected per-puzzle generation failures are in the
+One generation or plan runs per service at a time; competing requests receive
+`409 generation_busy`. Planning a draft without composition returns `422 no_composition`. Expected per-puzzle generation failures are in the
 HTTP 200 batch report. Closing a page does not interrupt already-running Python.
 JSON POSTs require same-origin Origin when supplied, local Host and JSON content
 type. CSP and no-store response headers remain enabled; no CORS, auth or telemetry.
 
-Routes: `/books`, `/books/{key}`, `/books/{key}/edit`, `/books/{key}/puzzles`,
+Routes: `/books`, `/books/{key}`, `/books/{key}/edit`, `/books/{key}/book`, `/books/{key}/puzzles`,
 `/books/{key}/puzzles/{id}`, `/books/{key}/quality`. Deep links serve the shell.
 
 ## Design, accessibility and screenshots
@@ -171,6 +203,12 @@ Actual captures from disposable projects:
 [validation](images/studio/editor-validation.png), [conflict](images/studio/editor-conflict.png),
 and [1440](images/studio/editor-1440.png), [1024](images/studio/editor-1024.png),
 [768](images/studio/editor-768.png), [390](images/studio/editor-390.png) widths.
+Composer: [overview](images/studio/composer.png), [front matter](images/studio/composer-front-matter.png),
+[ordering](images/studio/composer-order.png), [plan](images/studio/composer-plan.png),
+[validation](images/studio/composer-validation.png), and [1440](images/studio/composer-1440.png),
+[1024](images/studio/composer-1024.png), [768](images/studio/composer-768.png),
+[390](images/studio/composer-390.png) widths. Above 1200px the plan stays in view while
+editing; narrower layouts stack it below the outline with a **Jump to plan** link.
 
 ## Checks
 
@@ -201,7 +239,7 @@ npm run test:browser
 server, and verify the repository fixtures' bytes remain unchanged. API writes
 also use pytest temporary projects. Browser checks cover real edit/preview/save/
 reload, deterministic preview, conflict, simulated HTTP save failure, field errors,
-keyboard operation, responsive layouts and axe. For installed Chrome on Windows,
+keyboard operation, responsive layouts and axe, for both Edit and the Book composer. For installed Chrome on Windows,
 set `$env:STUDIO_BROWSER_CHANNEL='chrome'` before running browser tests.
 The Python Windows/Linux 3.11/3.13/3.14 CI matrix and separate Linux browser job
 remain unchanged; local results do not establish remote CI status.
@@ -212,4 +250,5 @@ Existing ASCII/size/search limits apply. No extra schema fields, calibrated
 scores, automatic content repair, persisted previews, collaboration or cloud.
 Only Chrome/Chromium is exercised; axe is not screen-reader certification.
 Starlette warns about its deprecated httpx test client. No new dependencies.
-No book composition, PDF, cover creation, KDP or publishing functionality.
+Composition stops at a logical plan: no PDF, print layout, cover creation, KDP or
+publishing functionality.

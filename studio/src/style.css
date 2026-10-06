@@ -1357,3 +1357,210 @@ summary:hover {
 .editor-layout > form {
   min-width: 0;
 }
+
+/* Book composer: a manuscript outline beside its logical page plan. */
+.outline-section {
+  border-top: 2px solid var(--ink);
+  padding-top: 14px;
+  margin-top: 32px;
+}
+.outline-section:first-of-type {
+  margin-top: 8px;
+}
+.outline-section > h3 {
+  font-family: 'Newsreader Variable', Georgia, serif;
+  font-size: 23px;
+  font-weight: 450;
+  letter-spacing: -0.015em;
+}
+.outline-section > p.small {
+  margin-top: 4px;
+}
+.matter-list,
+.outline-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+}
+.matter-list > li {
+  border-bottom: 1px solid var(--line);
+  padding: 10px 0 6px;
+}
+.matter-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.matter-head h4 {
+  flex: 1;
+  margin: 0;
+  font-size: 14px;
+}
+.outline-list li {
+  display: grid;
+  grid-template-columns: 2.4em minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  padding: 8px 0;
+}
+.outline-list .ordinal {
+  font-family: 'Newsreader Variable', Georgia, serif;
+  font-size: 20px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.outline-title,
+.plan-entry {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.outline-title small,
+.plan-entry small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+.choice-group {
+  border: 0;
+  padding: 0;
+  margin: 14px 0;
+  min-width: 0;
+}
+.choice-group legend {
+  font-weight: 600;
+  font-size: 12px;
+  padding: 0;
+  margin-bottom: 4px;
+}
+.editor .choice-group label,
+.editor .check {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  min-height: 44px;
+  padding: 6px 0;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+}
+.editor .choice-group input,
+.editor .check input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  margin: 3px 0 0;
+  accent-color: var(--green);
+}
+.choice-group label small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+.field-hint {
+  margin-top: 4px;
+}
+.plan-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 12px;
+}
+.plan-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  margin: 18px 0 8px;
+  border-top: 1px solid var(--line);
+}
+.plan-stats > div {
+  padding: 10px 12px 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.plan-stats dt {
+  color: var(--muted);
+}
+.plan-stats dd {
+  font-family: 'Newsreader Variable', Georgia, serif;
+  font-size: 19px;
+}
+.plan-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.plan-table thead th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--ink);
+}
+.plan-table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.plan-section th {
+  text-align: left;
+  padding: 20px 8px 6px;
+  font-family: 'Newsreader Variable', Georgia, serif;
+  font-size: 18px;
+  font-weight: 450;
+  border-bottom: 1px solid var(--line);
+}
+.plan-index {
+  width: 3.4em;
+  color: var(--muted);
+}
+.plan-side {
+  width: 4.6em;
+  font-size: 12px;
+  color: var(--muted);
+}
+.plan-folio {
+  width: 4.4em;
+}
+.plan-blank td {
+  background: var(--canvas);
+}
+.plan-blank em {
+  font-weight: 600;
+}
+.plan-excerpt {
+  white-space: pre-line;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+@media (max-width: 600px) {
+  .outline-list li {
+    grid-template-columns: 2em minmax(0, 1fr) auto auto;
+    gap: 6px;
+  }
+  .plan-table td,
+  .plan-table thead th {
+    padding: 7px 4px;
+  }
+  .plan-index {
+    width: 2.6em;
+  }
+  .plan-side,
+  .plan-folio {
+    width: 3.8em;
+  }
+}
+@media (min-width: 1201px) {
+  /* Keep the plan beside the outline while editing lower sections. */
+  .plan-preview {
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+  }
+}

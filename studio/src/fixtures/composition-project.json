@@ -1,0 +1,211 @@
+{
+  "key": "composition-demo",
+  "revision": "sha256-b15651cddf6ae73c7ce5da8df967b64cb952dd0ca2f6d15b4684905db85330c7",
+  "source": {
+    "schema_version": 1,
+    "book": {
+      "id": "composition-demo",
+      "title": "Seaside Word Searches",
+      "language": "en",
+      "subtitle": "A small composition demonstration",
+      "description": null,
+      "author": "PuzzlePress Examples",
+      "imprint": null
+    },
+    "build": {
+      "seed": "2026"
+    },
+    "content": {
+      "items": []
+    },
+    "output": {
+      "directory": "../../build/composition-demo"
+    },
+    "word_search": {
+      "banks": [
+        {
+          "id": "seaside",
+          "entries": [
+            {
+              "id": "shell",
+              "display": "SHELL"
+            },
+            {
+              "id": "wave",
+              "display": "WAVE"
+            },
+            {
+              "id": "sand",
+              "display": "SAND"
+            },
+            {
+              "id": "crab",
+              "display": "CRAB"
+            },
+            {
+              "id": "tide",
+              "display": "TIDE"
+            },
+            {
+              "id": "kelp",
+              "display": "KELP"
+            },
+            {
+              "id": "gull",
+              "display": "GULL"
+            },
+            {
+              "id": "dune",
+              "display": "DUNE"
+            },
+            {
+              "id": "pier",
+              "display": "PIER"
+            },
+            {
+              "id": "buoy",
+              "display": "BUOY"
+            },
+            {
+              "id": "reef",
+              "display": "REEF"
+            },
+            {
+              "id": "cove",
+              "display": "COVE"
+            }
+          ]
+        }
+      ],
+      "profiles": [
+        {
+          "id": "gentle",
+          "width": 10,
+          "height": 8,
+          "directions": [
+            "right",
+            "down"
+          ],
+          "max_restarts": 20,
+          "max_attempts": 100000
+        },
+        {
+          "id": "varied",
+          "width": 10,
+          "height": 10,
+          "directions": [
+            "right",
+            "left",
+            "down",
+            "up",
+            "down-right",
+            "down-left",
+            "up-right",
+            "up-left"
+          ],
+          "max_restarts": 20,
+          "max_attempts": 100000
+        }
+      ],
+      "puzzles": [
+        {
+          "id": "shoreline",
+          "title": "Along the Shoreline",
+          "theme": "The beach",
+          "bank": "seaside",
+          "target_ids": [
+            "shell",
+            "wave",
+            "sand"
+          ],
+          "difficulty": "gentle"
+        },
+        {
+          "id": "rockpool",
+          "title": "In the Rock Pool",
+          "theme": "Small creatures",
+          "bank": "seaside",
+          "target_ids": [
+            "crab",
+            "kelp",
+            "tide"
+          ],
+          "difficulty": "gentle"
+        },
+        {
+          "id": "harbour",
+          "title": "By the Harbour",
+          "theme": "Boats and moorings",
+          "bank": "seaside",
+          "target_ids": [
+            "pier",
+            "buoy",
+            "gull"
+          ],
+          "difficulty": "varied"
+        },
+        {
+          "id": "dunes",
+          "title": "Over the Dunes",
+          "theme": "Coastal landscape",
+          "bank": "seaside",
+          "target_ids": [
+            "dune",
+            "reef",
+            "cove"
+          ],
+          "difficulty": "varied"
+        }
+      ],
+      "quality": {
+        "max_word_reuse": 2,
+        "target_similarity_threshold": 0.8,
+        "grid_similarity_threshold": 0.9,
+        "prohibited_words": []
+      }
+    },
+    "composition": {
+      "front_matter": [
+        {
+          "kind": "title_page"
+        },
+        {
+          "kind": "copyright_page",
+          "text": "Placeholder notice for a demonstration project. Replace it with your own text before publishing."
+        },
+        {
+          "kind": "instructions",
+          "title": "How to Play",
+          "text": "Find each listed word hidden in the grid. Words run in straight lines.\nSolutions are at the back of the book."
+        }
+      ],
+      "puzzles": {
+        "start": "recto"
+      },
+      "solutions": {
+        "placement": "end",
+        "title": "Solutions",
+        "per_page": 2,
+        "start": "recto"
+      },
+      "back_matter": [
+        {
+          "kind": "notes",
+          "title": "Notes"
+        }
+      ],
+      "page_numbers": {
+        "scheme": "roman_front_matter",
+        "show_front_matter": false,
+        "show_solutions": true,
+        "show_back_matter": true
+      }
+    }
+  },
+  "identity": "pp1-sha256-4bd3089c4209be27a02cf588c9955e750058e1da449d8de2b20e107a1ac1b980",
+  "engine_version": "0.1.0",
+  "validation": {
+    "valid": true,
+    "issues": []
+  }
+}

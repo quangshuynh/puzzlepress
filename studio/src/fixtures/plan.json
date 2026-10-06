@@ -1,0 +1,332 @@
+{
+  "plan": {
+    "plan_version": 1,
+    "identity": "pp1-sha256-4bd3089c4209be27a02cf588c9955e750058e1da449d8de2b20e107a1ac1b980",
+    "book_id": "composition-demo",
+    "language": "en",
+    "complete": true,
+    "pages": [
+      {
+        "index": 1,
+        "side": "recto",
+        "section": "front_matter",
+        "kind": "title_page",
+        "number": {
+          "value": 1,
+          "style": "roman",
+          "label": "i",
+          "displayed": false
+        },
+        "heading": null,
+        "matter": {
+          "title": "Seaside Word Searches",
+          "subtitle": "A small composition demonstration",
+          "author": "PuzzlePress Examples",
+          "imprint": null,
+          "text": null
+        },
+        "puzzle": null,
+        "solution_page": null,
+        "solutions": [],
+        "blank": null
+      },
+      {
+        "index": 2,
+        "side": "verso",
+        "section": "front_matter",
+        "kind": "copyright_page",
+        "number": {
+          "value": 2,
+          "style": "roman",
+          "label": "ii",
+          "displayed": false
+        },
+        "heading": null,
+        "matter": {
+          "title": null,
+          "subtitle": null,
+          "author": null,
+          "imprint": null,
+          "text": "Placeholder notice for a demonstration project. Replace it with your own text before publishing."
+        },
+        "puzzle": null,
+        "solution_page": null,
+        "solutions": [],
+        "blank": null
+      },
+      {
+        "index": 3,
+        "side": "recto",
+        "section": "front_matter",
+        "kind": "instructions",
+        "number": {
+          "value": 3,
+          "style": "roman",
+          "label": "iii",
+          "displayed": false
+        },
+        "heading": null,
+        "matter": {
+          "title": "How to Play",
+          "subtitle": null,
+          "author": null,
+          "imprint": null,
+          "text": "Find each listed word hidden in the grid. Words run in straight lines.\nSolutions are at the back of the book."
+        },
+        "puzzle": null,
+        "solution_page": null,
+        "solutions": [],
+        "blank": null
+      },
+      {
+        "index": 4,
+        "side": "verso",
+        "section": "front_matter",
+        "kind": "blank",
+        "number": {
+          "value": 4,
+          "style": "roman",
+          "label": "iv",
+          "displayed": false
+        },
+        "heading": null,
+        "matter": null,
+        "puzzle": null,
+        "solution_page": null,
+        "solutions": [],
+        "blank": {
+          "reason": "section_recto_start",
+          "before_section": "puzzles"
+        }
+      },
+      {
+        "index": 5,
+        "side": "recto",
+        "section": "puzzles",
+        "kind": "puzzle",
+        "number": {
+          "value": 1,
+          "style": "arabic",
+          "label": "1",
+          "displayed": true
+        },
+        "heading": null,
+        "matter": null,
+        "puzzle": {
+          "id": "shoreline",
+          "ordinal": 1,
+          "title": "Along the Shoreline",
+          "theme": "The beach",
+          "seed": "11247043226539962890",
+          "digest": "sha256-c6c537debf0018e4688c731583d5287706dceedd3b3f9bb22a4da817d642e1fd"
+        },
+        "solution_page": 9,
+        "solutions": [],
+        "blank": null
+      },
+      {
+        "index": 6,
+        "side": "verso",
+        "section": "puzzles",
+        "kind": "puzzle",
+        "number": {
+          "value": 2,
+          "style": "arabic",
+          "label": "2",
+          "displayed": true
+        },
+        "heading": null,
+        "matter": null,
+        "puzzle": {
+          "id": "rockpool",
+          "ordinal": 2,
+          "title": "In the Rock Pool",
+          "theme": "Small creatures",
+          "seed": "7075356637943355108",
+          "digest": "sha256-c1b70e3d4dfd99893af670ba861edb40a50c69561bf847c1fbe54758b9cc79e9"
+        },
+        "solution_page": 9,
+        "solutions": [],
+        "blank": null
+      },
+      {
+        "index": 7,
+        "side": "recto",
+        "section": "puzzles",
+        "kind": "puzzle",
+        "number": {
+          "value": 3,
+          "style": "arabic",
+          "label": "3",
+          "displayed": true
+        },
+        "heading": null,
+        "matter": null,
+        "puzzle": {
+          "id": "harbour",
+          "ordinal": 3,
+          "title": "By the Harbour",
+          "theme": "Boats and moorings",
+          "seed": "11565857589592183698",
+          "digest": "sha256-5a6e3db5f3182bf5b264808457137276500c6c4284309c3979e40f83b7677095"
+        },
+        "solution_page": 10,
+        "solutions": [],
+        "blank": null
+      },
+      {
+        "index": 8,
+        "side": "verso",
+        "section": "puzzles",
+        "kind": "puzzle",
+        "number": {
+          "value": 4,
+          "style": "arabic",
+          "label": "4",
+          "displayed": true
+        },
+        "heading": null,
+        "matter": null,
+        "puzzle": {
+          "id": "dunes",
+          "ordinal": 4,
+          "title": "Over the Dunes",
+          "theme": "Coastal landscape",
+          "seed": "2122434576890101058",
+          "digest": "sha256-53e10798bde371cbf76670f5379f6a1dcfa744604a456cb039682e13bbb1740c"
+        },
+        "solution_page": 10,
+        "solutions": [],
+        "blank": null
+      },
+      {
+        "index": 9,
+        "side": "recto",
+        "section": "solutions",
+        "kind": "solutions",
+        "number": {
+          "value": 5,
+          "style": "arabic",
+          "label": "5",
+          "displayed": true
+        },
+        "heading": "Solutions",
+        "matter": null,
+        "puzzle": null,
+        "solution_page": null,
+        "solutions": [
+          {
+            "puzzle": {
+              "id": "shoreline",
+              "ordinal": 1,
+              "title": "Along the Shoreline",
+              "theme": "The beach",
+              "seed": "11247043226539962890",
+              "digest": "sha256-c6c537debf0018e4688c731583d5287706dceedd3b3f9bb22a4da817d642e1fd"
+            },
+            "puzzle_page": 5
+          },
+          {
+            "puzzle": {
+              "id": "rockpool",
+              "ordinal": 2,
+              "title": "In the Rock Pool",
+              "theme": "Small creatures",
+              "seed": "7075356637943355108",
+              "digest": "sha256-c1b70e3d4dfd99893af670ba861edb40a50c69561bf847c1fbe54758b9cc79e9"
+            },
+            "puzzle_page": 6
+          }
+        ],
+        "blank": null
+      },
+      {
+        "index": 10,
+        "side": "verso",
+        "section": "solutions",
+        "kind": "solutions",
+        "number": {
+          "value": 6,
+          "style": "arabic",
+          "label": "6",
+          "displayed": true
+        },
+        "heading": null,
+        "matter": null,
+        "puzzle": null,
+        "solution_page": null,
+        "solutions": [
+          {
+            "puzzle": {
+              "id": "harbour",
+              "ordinal": 3,
+              "title": "By the Harbour",
+              "theme": "Boats and moorings",
+              "seed": "11565857589592183698",
+              "digest": "sha256-5a6e3db5f3182bf5b264808457137276500c6c4284309c3979e40f83b7677095"
+            },
+            "puzzle_page": 7
+          },
+          {
+            "puzzle": {
+              "id": "dunes",
+              "ordinal": 4,
+              "title": "Over the Dunes",
+              "theme": "Coastal landscape",
+              "seed": "2122434576890101058",
+              "digest": "sha256-53e10798bde371cbf76670f5379f6a1dcfa744604a456cb039682e13bbb1740c"
+            },
+            "puzzle_page": 8
+          }
+        ],
+        "blank": null
+      },
+      {
+        "index": 11,
+        "side": "recto",
+        "section": "back_matter",
+        "kind": "notes",
+        "number": {
+          "value": 7,
+          "style": "arabic",
+          "label": "7",
+          "displayed": true
+        },
+        "heading": null,
+        "matter": {
+          "title": "Notes",
+          "subtitle": null,
+          "author": null,
+          "imprint": null,
+          "text": null
+        },
+        "puzzle": null,
+        "solution_page": null,
+        "solutions": [],
+        "blank": null
+      }
+    ],
+    "statistics": {
+      "logical_pages": 11,
+      "front_matter_pages": 3,
+      "puzzle_pages": 4,
+      "solution_pages": 2,
+      "back_matter_pages": 1,
+      "blank_pages": 1,
+      "puzzles": 4,
+      "solutions": 4,
+      "first_puzzle_page": 5,
+      "first_solution_page": 9
+    },
+    "diagnostics": []
+  },
+  "verification": {
+    "valid": true,
+    "issues": []
+  },
+  "generation": {
+    "success": true,
+    "clean": true,
+    "quality_findings": 0
+  }
+}

@@ -2,6 +2,7 @@
 
 from dataclasses import asdict, dataclass
 
+from .composition import Composition
 from .content import WordSearchContent
 
 
@@ -41,6 +42,7 @@ class Project:
     content: Content
     output: Output
     word_search: WordSearchContent | None = None
+    composition: Composition | None = None
 
     def to_dict(self) -> dict[str, object]:
         """Return an independent, JSON/YAML-compatible source representation."""
@@ -50,4 +52,8 @@ class Project:
             del data["word_search"]
         else:
             data["word_search"] = self.word_search.to_dict()
+        if self.composition is None:
+            del data["composition"]
+        else:
+            data["composition"] = self.composition.to_dict()
         return data

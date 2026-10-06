@@ -17,6 +17,8 @@ and local Web Studio share the same core. Read `CONTEXT.md` for current scope.
   screening explicitly. Never silently regenerate or change authored policy.
 - Preserve per-puzzle seed derivation across batch reordering. Serialize 64-bit
   report seeds as decimal strings so web clients retain exact values.
+- Publication plans stay renderer-independent. Layout consumes a verified plan
+  and must reject, never silently regroup, repaginate or reorder, its pages.
 - Keep authored source and disposable generated directories disjoint. Recheck
   filesystem boundaries before any future write or recursive cleanup.
 - Preserve versioned schema and identity contracts. Include output-affecting

@@ -122,6 +122,14 @@ def _puzzle_dict(puzzle: WordSearch) -> dict[str, object]:
     }
 
 
+def puzzle_digest(puzzle: WordSearch) -> str:
+    """Content digest of a generated puzzle's reported grid, targets and solution."""
+    material = json.dumps(
+        _puzzle_dict(puzzle), sort_keys=True, separators=(",", ":"), ensure_ascii=True
+    ).encode("ascii")
+    return "sha256-" + hashlib.sha256(material).hexdigest()
+
+
 def derive_puzzle_seed(seed: int | str, puzzle_id: str) -> int:
     """Stable SHA-256 domain-separated derivation, independent of batch order."""
     if not isinstance(puzzle_id, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", puzzle_id):

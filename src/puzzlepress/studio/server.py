@@ -123,6 +123,10 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
     def preview_draft(key: str, body: DraftRequest) -> dict[str, object]:
         return service.generate_project(drafts.validate(key, body.source))
 
+    @app.post("/api/projects/{key}/draft/plan")
+    def plan_draft(key: str, body: DraftRequest) -> dict[str, object]:
+        return service.plan_project(drafts.validate(key, body.source))
+
     @app.post("/api/projects/{key}/draft/save")
     def save_draft(key: str, body: SaveRequest) -> dict[str, object]:
         return drafts.save(key, body.source, body.revision)
@@ -143,6 +147,7 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
     @app.get("/books/{key}/puzzles")
     @app.get("/books/{key}/quality")
     @app.get("/books/{key}/edit")
+    @app.get("/books/{key}/book")
     @app.get("/books/{key}/puzzles/{puzzle_id}")
     def shell() -> FileResponse:
         index = frontend / "index.html"

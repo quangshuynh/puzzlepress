@@ -33,6 +33,7 @@ output:
 | `content.items` | Ordered nonempty strings; omitted content/items defaults to an empty list. Duplicates and order are preserved. No puzzle-specific rules apply. |
 | `output.directory` | Relative path from the resolved YAML file's directory; defaults to `../build/<book.id>`. |
 | `word_search` | Optional banks, explicit difficulty profiles, themed puzzle definitions, and quality settings. See [batch schema](batch-quality.md). Omit for legacy projects; null is rejected. |
+| `composition` | Optional book composition: front/back matter, solution and page-number policy. Requires `word_search`. See [book composition](book-composition.md). |
 
 Unknown fields are errors, including nested typos. Text is trimmed at its edges;
 internal whitespace, case, and Unicode normalization form are preserved. Omitted
@@ -95,7 +96,8 @@ words. Declared unused banks/profiles also affect identity. Sequence order is
 preserved, except direction sets use enum order and prohibited search forms are sorted.
 
 Absent `word_search` is omitted from canonical inputs, preserving all legacy
-identities. Present sections require valid nonempty banks, profiles, and puzzles.
+identities. Likewise, a present `composition` is included in full with envelope
+field `composition_version: 1`; an absent one leaves identities unchanged. Present sections require valid nonempty banks, profiles, and puzzles.
 Schema v1 is extended additively; older engines reject the new section explicitly
 as unknown. The pipeline version covers seed derivation and quality/report
 semantics. Future changes must review this version and the engine version.

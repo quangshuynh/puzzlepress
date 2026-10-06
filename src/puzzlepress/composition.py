@@ -1,0 +1,124 @@
+"""Renderer-independent book composition: matter, section and numbering policy.
+
+Publication order of puzzles is the authored `word_search.puzzles` sequence.
+Composition never selects, repeats or reorders puzzles on its own.
+"""
+
+from dataclasses import dataclass
+from enum import StrEnum
+
+COMPOSITION_VERSION = 1
+
+
+class MatterKind(StrEnum):
+    TITLE_PAGE = "title_page"
+    COPYRIGHT_PAGE = "copyright_page"
+    INSTRUCTIONS = "instructions"
+    ABOUT = "about"
+    NOTES = "notes"
+
+
+FRONT_MATTER_KINDS = (MatterKind.TITLE_PAGE, MatterKind.COPYRIGHT_PAGE, MatterKind.INSTRUCTIONS)
+BACK_MATTER_KINDS = (MatterKind.ABOUT, MatterKind.NOTES)
+# Fields each kind accepts, in addition to `kind`; all listed fields are required.
+MATTER_FIELDS: dict[MatterKind, tuple[str, ...]] = {
+    MatterKind.TITLE_PAGE: (),
+    MatterKind.COPYRIGHT_PAGE: ("text",),
+    MatterKind.INSTRUCTIONS: ("title", "text"),
+    MatterKind.ABOUT: ("title", "text"),
+    MatterKind.NOTES: ("title",),
+}
+
+
+class SectionStart(StrEnum):
+    ANY = "any"
+    RECTO = "recto"
+
+
+class SolutionPlacement(StrEnum):
+    END = "end"
+    OMIT = "omit"
+
+
+class NumberingScheme(StrEnum):
+    CONTINUOUS = "continuous"
+    ROMAN_FRONT_MATTER = "roman_front_matter"
+
+
+SOLUTIONS_PER_PAGE = (1, 2, 4, 6)
+
+
+@dataclass(frozen=True)
+class MatterItem:
+    """One logical page of authored matter. Title pages use book metadata."""
+
+    kind: MatterKind
+    title: str | None = None
+    text: str | None = None
+
+    def to_dict(self) -> dict[str, object]:
+        data: dict[str, object] = {"kind": self.kind.value}
+        for field in MATTER_FIELDS[self.kind]:
+            data[field] = getattr(self, field)
+        return data
+
+
+@dataclass(frozen=True)
+class SolutionPolicy:
+    """Where solutions appear and how many are grouped on one logical page.
+
+    Grouping is semantic (which solutions share a page); arrangement within a
+    page is a renderer decision. A renderer must reject, not regroup, a density
+    it cannot fit.
+    """
+
+    placement: SolutionPlacement = SolutionPlacement.END
+    title: str | None = None
+    per_page: int = 1
+    start: SectionStart = SectionStart.ANY
+
+    def to_dict(self) -> dict[str, object]:
+        if self.placement is SolutionPlacement.OMIT:
+            return {"placement": self.placement.value}
+        return {
+            "placement": self.placement.value,
+            "title": self.title,
+            "per_page": self.per_page,
+            "start": self.start.value,
+        }
+
+
+@dataclass(frozen=True)
+class PageNumberPolicy:
+    scheme: NumberingScheme = NumberingScheme.CONTINUOUS
+    show_front_matter: bool = False
+    show_solutions: bool = True
+    show_back_matter: bool = True
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "scheme": self.scheme.value,
+            "show_front_matter": self.show_front_matter,
+            "show_solutions": self.show_solutions,
+            "show_back_matter": self.show_back_matter,
+        }
+
+
+@dataclass(frozen=True)
+class Composition:
+    """Solution policy is required: a book must state its solution decision."""
+
+    solutions: SolutionPolicy
+    front_matter: tuple[MatterItem, ...] = ()
+    puzzles_start: SectionStart = SectionStart.ANY
+    back_matter: tuple[MatterItem, ...] = ()
+    page_numbers: PageNumberPolicy = PageNumberPolicy()
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "front_matter": [item.to_dict() for item in self.front_matter],
+            "puzzles": {"start": self.puzzles_start.value},
+            "solutions": self.solutions.to_dict(),
+            "back_matter": [item.to_dict() for item in self.back_matter],
+            "page_numbers": self.page_numbers.to_dict(),
+        }
