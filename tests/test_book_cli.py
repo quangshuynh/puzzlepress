@@ -129,7 +129,10 @@ def test_build_writes_verified_interior_and_reports_it(tmp_path):
     pdf = out / "interior.pdf"
     manifest = json.loads((out / "interior.json").read_text("utf-8"))
     assert f"Interior: {pdf}" in result.stdout
-    assert "Pages: 11 | trim 8.5x11 in, no bleed | profile paperback-8.5x11 v1" in result.stdout
+    assert (
+        "Pages: 11 | trim 8.5x11 in, no bleed | black ink on white paper | "
+        "profile paperback-8.5x11 v2"
+    ) in result.stdout
     assert hashlib.sha256(pdf.read_bytes()).hexdigest() in result.stdout
     assert "Warning: [kdp_minimum_page_count]" in result.stderr
     assert manifest["page_count"] == 11 and manifest["book_id"] == "composition-demo"

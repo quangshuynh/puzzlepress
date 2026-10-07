@@ -15,11 +15,15 @@ from puzzlepress.interior.geometry import (
     solution_slots,
     solution_template,
 )
+from puzzlepress.interior.issues import LayoutIssue
 from puzzlepress.interior.model import Anchor, Box, Face
 from puzzlepress.interior.spec import (
     KDP,
     PAPERBACK_LETTER,
+    PROFILES,
+    Ink,
     Margins,
+    Paper,
     Strokes,
     TrimSize,
     Typography,
@@ -50,6 +54,19 @@ def test_default_profile_is_letter_without_bleed():
     assert SPEC.margins == Margins(54, 36, 45, 45)
     assert validate_print_spec(SPEC) == ()
     assert codes([print_profile("6x9")]) == ["unsupported_profile"]
+
+
+def test_profiles_state_ink_and_paper_explicitly():
+    cream = print_profile("paperback-8.5x11-cream")
+    assert not isinstance(cream, LayoutIssue)
+    assert (SPEC.profile_version, SPEC.ink, SPEC.paper) == (2, Ink.BLACK, Paper.WHITE)
+    assert (cream.profile_version, cream.ink, cream.paper) == (1, Ink.BLACK, Paper.CREAM)
+    assert SPEC.to_dict()["paper"] == "white" and cream.to_dict()["paper"] == "cream"
+    assert SPEC.to_dict()["ink"] == cream.to_dict()["ink"] == "black"
+    # Paper changes no page geometry; only the spine width of a cover depends on it.
+    assert (cream.trim, cream.margins, cream.bleed) == (SPEC.trim, SPEC.margins, SPEC.bleed)
+    assert validate_print_spec(cream) == ()
+    assert sorted(PROFILES) == ["paperback-8.5x11", "paperback-8.5x11-cream"]
 
 
 @pytest.mark.parametrize(
