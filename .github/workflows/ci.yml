@@ -26,6 +26,7 @@ jobs:
       - run: puzzlepress puzzle batch books/garden-demo --json
       - run: puzzlepress validate books/composition-demo
       - run: puzzlepress book plan books/composition-demo --json
+      - run: puzzlepress validate books/cover-demo
 
   print:
     # One interior build per OS; the PDF unit tests already run in every matrix entry.
@@ -86,6 +87,85 @@ jobs:
           puzzlepress book preflight books/composition-demo --output interior-out --json --no-write > again.json || true
           sha256sum -c before.txt
           cmp again.json interior-out/preflight.json
+
+  cover:
+    # One full-wrap cover build per OS from the committed cover demo.
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install -e .
+      - name: Record fixture digests
+        run: sha256sum books/cover-demo/book.yaml books/cover-demo/cover-assets/* > fixtures.txt
+      - run: puzzlepress validate books/cover-demo
+      - run: puzzlepress book build books/cover-demo --output cover-out
+      - name: Cover geometry derives from the built interior
+        run: |
+          puzzlepress cover inspect books/cover-demo --output cover-out --json > inspect.json
+          python - <<'EOF'
+          import json
+          facts = json.load(open("inspect.json"))
+          interior = json.load(open("cover-out/interior.json"))
+          pages = interior["page_count"]
+          g = facts["geometry"]
+          assert facts["interior"]["page_count"] == pages == 35, pages
+          assert abs(g["spine_width_in"] - pages * 0.002252) < 1e-6
+          assert abs(g["width_in"] - (0.25 + 17 + pages * 0.002252)) < 1e-6
+          assert g["height_in"] == 11.25 and not g["spine_text_allowed"]
+          assert facts["resolution"]["effective_dpi"] >= 300
+          EOF
+      - run: puzzlepress cover build books/cover-demo --output cover-out --json > build.json
+      - name: Verify the written cover independently
+        run: |
+          python - <<'EOF'
+          import hashlib, io, json, pathlib
+          from pypdf import PdfReader
+          out = pathlib.Path("cover-out")
+          manifest = json.loads((out / "cover.json").read_text())
+          data = (out / "cover.pdf").read_bytes()
+          assert hashlib.sha256(data).hexdigest() == manifest["pdf"]["sha256"]
+          reader = PdfReader(io.BytesIO(data), strict=True)
+          assert len(reader.pages) == 1 and not reader.outline
+          page = reader.pages[0]
+          width = manifest["geometry"]["width_in"] * 72
+          assert all(abs(a - b) < 0.01 for a, b in zip([float(v) for v in page.mediabox], [0, 0, width, 810]))
+          assert all(abs(a - b) < 0.01 for a, b in zip([float(v) for v in page.trimbox], [9, 9, width - 9, 801]))
+          assert "/Annots" not in page and "/AcroForm" not in reader.root_object
+          fonts = page["/Resources"]["/Font"].get_object().values()
+          assert all("/FontFile2" in f.get_object()["/FontDescriptor"] for f in fonts)
+          images = page["/Resources"]["/XObject"].get_object().values()
+          jpeg = [i.get_object() for i in images][0].get_data()
+          assert jpeg.startswith(b"\xff\xd8\xff\xe0") and b"Exif" not in data
+          EOF
+      - name: Cover preflight is valid, ready and observational
+        run: |
+          sha256sum cover-out/cover.pdf cover-out/cover.json cover-out/interior.pdf > before.txt
+          puzzlepress cover preflight books/cover-demo --output cover-out --json > preflight-stdout.json
+          cmp preflight-stdout.json cover-out/cover-preflight.json
+          sha256sum -c before.txt
+          python - <<'EOF'
+          import json
+          report = json.load(open("cover-out/cover-preflight.json"))
+          assert report["structural"]["status"] == "valid" and report["kdp"]["status"] == "ready"
+          assert report["state"] == "current"
+          assert [f["rule"] for f in report["findings"]] == ["kdp_cover_color_space"]
+          EOF
+      - name: Deterministic rebuild
+        run: |
+          puzzlepress book build books/cover-demo --output cover-again
+          puzzlepress cover build books/cover-demo --output cover-again
+          cmp cover-out/cover.pdf cover-again/cover.pdf
+          cmp cover-out/cover.json cover-again/cover.json
+      - name: Source fixtures unchanged
+        run: sha256sum -c fixtures.txt
 
   studio:
     runs-on: ubuntu-latest

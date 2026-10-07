@@ -217,5 +217,5 @@ recommends, but does not require, full embedding). One sans family with Latin-1
 coverage. No PDF/X conformance, color management, images, hyphenation, running
 heads, table of contents or per-book typography settings. The KDP page minimum
 is a build warning and a preflight readiness failure. Layout never repaginates, so
-overflow must be fixed in source or composition. Covers and KDP packaging are not
-implemented.
+overflow must be fixed in source or composition. Covers are built from the
+interior's facts ([cover](cover.md)); KDP packaging is not implemented.

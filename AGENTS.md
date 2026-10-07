@@ -25,6 +25,13 @@ and local Web Studio share the same core. Read `CONTEXT.md` for current scope.
 - Physical values live in print specifications, in points, with KDP limits in
   one place. Rebind puzzle digests before drawing; reopen and inspect every PDF.
   Use bundled, digest-pinned fonts only. Keep PDF bytes deterministic.
+- Cover geometry derives only from a current, verified interior build (page count
+  read from the PDF, profile paper); never accept an authored page count or spine
+  width. Paper is a print-profile fact, never inferred.
+- Cover photographs are authored source: import copies original bytes, never
+  overwrites, and crops are configuration. Studio previews and the final PDF use
+  the same Python crop, layout and renderer; the browser never lays out a cover.
+  Rendered covers carry only pixels, never source EXIF/GPS/XMP metadata.
 - Keep authored source and disposable generated directories disjoint. Recheck
   filesystem boundaries before any future write or recursive cleanup.
 - Preserve versioned schema and identity contracts. Include output-affecting
@@ -52,6 +59,9 @@ python -m mypy
 python -m pip check
 puzzlepress validate books/automotive
 puzzlepress book build books/composition-demo --output .pytest_cache/interior
+puzzlepress book build books/cover-demo --output .pytest_cache/cover
+puzzlepress cover build books/cover-demo --output .pytest_cache/cover
+puzzlepress cover preflight books/cover-demo --output .pytest_cache/cover --no-write
 puzzlepress puzzle generate --width 10 --height 8 --seed 2026 --word ENGINE --word PISTON --solution
 git diff --check
 git status --short

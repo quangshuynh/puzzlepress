@@ -126,6 +126,13 @@ Small status marks differ in shape as well as color. The supplied logo is preser
   where, measured and required values, and what they block. Overlays are thin
   dashed SVG lines over the raster, labeled and off by default; the binding edge
   is marked. Passed checks are secondary disclosures.
+- Cover studio: the rendered wrap is the dominant artifact on the neutral canvas,
+  a raster of the real cover PDF, never an HTML reconstruction. Ruled controls sit
+  to its left; readiness (interior facts, spine width, effective DPI, verdicts)
+  sits right from 1600px and below the preview narrower. View toggles crop the
+  same raster; overlays are thin labeled lines from Python geometry, off by
+  default. Crop works by drag, slider and keyboard. Type presets are few and
+  named; there are no free layers, effects or arbitrary positions.
 - States: text and recovery actions for errors, meaningful empty states, polite
   loading status. A single loading-line animation respects reduced motion.
 
@@ -138,7 +145,9 @@ Small status marks differ in shape as well as color. The supplied logo is preser
 - Do preserve keyboard controls, focus visibility and non-color status cues.
 
 ### Don't:
-- Don't fabricate cover, publishing or financial status.
+- Don't fabricate publishing or financial status, or cover content beyond what the
+  author wrote.
+- Don't present Cover Studio as an image editor or imply AI generation.
 - Don't introduce gradients, glass effects, decorative charts or nested cards.
 - Don't imply that no quality findings means publication readiness.
 - Don't present future workflows as working navigation.

@@ -150,8 +150,7 @@ Ambiguities, recorded rather than resolved:
 - **Line weight.** KDP states "0.75 point or 0.01 in"; 0.01 in is 0.72 pt. The
   stricter 0.75 pt applies.
 
-Not modeled: invisible objects, placeholder text, cover files, ISBN/barcode
-placement, bleed profiles, color interiors, paper type, per-marketplace trim
+Not modeled here: invisible objects, placeholder text, bleed profiles, color interiors, paper type, per-marketplace trim
 tables and image effective resolution (images make readiness fail as unverified).
 
 ### Updating KDP rules
@@ -233,5 +232,6 @@ descriptions, statuses and findings are available as text.
 One built-in profile, no bleed, black ink. Studio builds the default profile only.
 The 8.5 x 11 in maximum page count is unverified on the current official table.
 Preflight cannot judge visual quality or content correctness, and KDP's own
-reviewers may apply checks PuzzlePress does not model. Covers, KDP packaging,
-metadata, ISBNs and publishing are Interval 9+ work.
+reviewers may apply checks PuzzlePress does not model. Covers have their own
+preflight ([cover](cover.md#cover-preflight)). KDP packaging, metadata, ISBNs and
+publishing are not implemented.
