@@ -2,18 +2,19 @@
 
 ## Completed scope
 
-Interval 8 complete: print preview and KDP preflight. `book preflight` and Studio's
-Print tab inspect a built interior and report structural validity separately from
-modeled KDP readiness; Studio proofs the real PDF. No Interval 9 work (covers, KDP
-package, metadata), commits, pushes or deployment. Engine/package 0.1.0; schema,
-identity, pipeline, composition, plan, manifest and renderer versions unchanged;
-preflight report v1, ruleset `puzzlepress-kdp-paperback` v1. Contracts:
-docs/book-composition.md, docs/print-interior.md, docs/preflight.md.
+Interval 9 complete: photography-first Cover Studio on branch `feat/cover-studio`
+(from main `b3e8c13`, pushed, not merged; no PR, tag, release or deployment).
+Authors build a deterministic full-wrap paperback cover from their own photo,
+sized from the built interior, via CLI (`puzzlepress cover ...`) or Studio's Cover
+tab, with cover preflight. No Interval 10 work (KDP metadata, package,
+publishing). Engine/package 0.1.0; identity, pipeline, composition, plan,
+interior manifest and renderer versions unchanged; `paperback-8.5x11` profile v2.
+Contracts: docs/cover.md plus book-composition, print-interior, preflight.
 
 ## Architecture and launch
 
 - Python core is pure and authoritative. Runtime deps: PyYAML, ReportLab 5.0.x
-  (BSD; pulls Pillow, charset-normalizer), pypdf 6.x (BSD-3). Dev adds
+  (BSD), pypdf 6.x (BSD-3), Pillow 12.x (MIT-CMU; now declared, `>=12,<13`). Dev adds
   types-reportlab. Studio extras FastAPI/uvicorn; web tests httpx. React/strict
   TypeScript/Vite, locally bundled fonts.
 - Pipeline: project -> batch -> quality -> composition -> plan -> verification ->
@@ -30,14 +31,20 @@ docs/book-composition.md, docs/print-interior.md, docs/preflight.md.
   `interior.inspection.read_pdf_facts` is the single pypdf fact layer shared by
   the post-build check and preflight. `interior.build` stays the only writer
   (adds `write_preflight_report`, `interior_identity`, `toolchain`).
-- Studio: `printing.py` (status/build/page adapter), `preview.py` (PDFium raster,
-  LRU); `Print.tsx` plus existing `service.py`, `editing.py`, `draft.tsx` etc.
+- Cover: `cover_config.py`/`cover_validation.py` (schema) and `cover/` (`assets`,
+  `crop`, `geometry`, `fonts`, `layout`, `model`, `validation`, `render`,
+  `inspection`, `build` = only writer, `preflight`); `cover_cli.py`.
+- Studio: `printing.py` (status/build/page adapter, profile choice), `preview.py`
+  (PDFium raster, one process-wide lock), `covering.py` (cover adapter); `Print.tsx`,
+  `Cover.tsx` plus `service.py`, `editing.py`, `draft.tsx` etc.
 - Build `cd studio; npm ci; npm run build`; launch from root
   `.\.venv\Scripts\puzzlepress-studio.exe` (http://127.0.0.1:8000/books).
 
 ## Print interior
 
-- Profile `paperback-8.5x11` v1 (only one): 612x792 pt, no bleed (rejected), margins
+- Profiles `paperback-8.5x11` v2 (white, default) and `paperback-8.5x11-cream` v1,
+  both black ink, paper stated explicitly (v1 interiors now report stale; page
+  geometry and PDF bytes identical, identity differs). Shared geometry: 612x792 pt, no bleed (rejected), margins
   inside 0.75 / outside 0.5 / top+bottom 0.625 in, gray ink, centered folios
   (`outside` supported). Spec is renderer-facing, not authored YAML; `--profile`.
 - KDP rules centralized (verified on KDP help 2026-10): gutter table to 828 pages,
@@ -93,6 +100,52 @@ docs/book-composition.md, docs/print-interior.md, docs/preflight.md.
 - Preview: pypdfium2 rasters of the exact PDF bytes, scales 0.5/2/4 (306x396,
   1224x1584, 2448x3168), lossless PNG, in-memory LRU 96 MB keyed by PDF digest,
   page, size; one PDFium lock; digest URLs cached `private, immutable`.
+
+## Cover (docs/cover.md)
+
+- Config: optional `cover` (version 1) in book.yaml, requires composition,
+  excluded from build identity. layout full_wrap|front_photo; image {path
+  `cover-assets/<name>.jpg|png`, sha256}; crop {x, y 0..1, zoom 1..4, 4 dp};
+  type {style editorial|bold|minimal, position top|middle|bottom, align
+  center|left, tone light|dark}; legibility shade|panel|none; background #rrggbb;
+  spine_text auto|none; back_text <=1,200. Copy = book title/subtitle/author/imprint.
+- Photos: import copies original bytes, content-addressed, never overwrites, reuses
+  identical bytes. JPEG/PNG <=64 MB, <=80 MP. Decode once: EXIF orientation,
+  ICC->sRGB (LittleCMS), 8-bit RGB, opaque only. PDF gets a bare-pixel baseline
+  JPEG q95 4:4:4 (JFIF only), DCTDecode unchanged (no ASCII85). No EXIF/GPS/XMP/ICC.
+- Crop: cover-fit uniform scale x zoom, focal clamped; whole source pixels drawn,
+  clipped, no resampling. Effective DPI = used pixels / printed inches;
+  ok | image_low_effective_dpi | image_too_small.
+- Geometry from a current interior only (manifest digest, identity, source,
+  profile, toolchain; pages counted in the PDF). Wrap = 0.125 + W + spine + W +
+  0.125; spine = pages x 0.002252 (white) / 0.0025 (cream). KDP safe 0.125 in;
+  spine 0.0625 in; type area 0.5 in; barcode 2x1.2 in at 0.25 in from bottom/fold
+  (offsets assumed) with keep-clear corner. Spine text from 80 pages (stricter of
+  KDP's contradictory wording) and only if 7 pt fits; else omitted with reason.
+- Fonts: Vera Sans + Newsreader 72pt Regular, 16pt Regular/Italic (OFL 1.1,
+  upstream commit cfcb4f7, pinned SHA-256). Titles step 2 pt within preset, <=3 lines.
+- Identity `pp1-cover-sha256-` over book ID, semantic config (photo by digest),
+  copy, interior physical facts, cover profile v1, toolchain (renderer v1, engine,
+  ReportLab, Pillow, fonts). Provenance (interior identity, PDF digest, photo path)
+  is recorded, not identity: a rebuilt interior with equal facts only warns.
+- Output beside the interior: cover.pdf (1 page, MediaBox=BleedBox=wrap,
+  TrimBox=trim, DeviceRGB, no strokes/marks/annotations/metadata), cover.json,
+  cover-preflight.json. Byte-identical across process, cwd, PYTHONHASHSEED.
+- Cover preflight ruleset `puzzlepress-kdp-cover` v1, 25 rules (10 structural,
+  15 KDP; warnings: provenance, 40 MB, RGB vs CMYK). States no_config, missing,
+  current, stale, invalid. Never writes except cover-preflight.json.
+- CLI `cover inspect|import|build|preflight` (`--output`, `--json`, `--no-write`);
+  exit 0/1/2 as book commands; preflight 0 only when valid and ready.
+- Studio Cover tab: shared draft; debounced POST /draft/cover renders the real PDF
+  in memory (stale interior labeled, damaged refused); PDFium raster views
+  (wrap/front/spine/back); Python-geometry overlays; drag, sliders, keyboard crop
+  (arrows, Shift, +/-, 0; key-code fallback); readiness column; build saved
+  revision only. API: GET /cover, POST /draft/cover, GET /cover/preview,
+  GET/POST /cover/assets (raw image/jpeg|png upload, route-scoped), POST
+  /cover/build. Print: paper choice, keeps the built profile.
+- Fixtures: `books/cover-demo` (20 puzzles, 35 pages, synthetic stand-in photo from
+  tests/cover_demo_photo.py): valid and KDP ready, spine text omitted. 20-puzzle
+  limit keeps every book below 80 pages; spine text tested with synthetic facts.
 
 ## Composition model
 
@@ -159,38 +212,45 @@ small external-editor race remains. Drafts memory-only; no autosave/undo/merge.
 
 ## Actual local verification (Windows, Python 3.13.15, Node 24.18.0)
 
-- Baseline before edits matched Interval 7 (559 passed, 4 skipped; 29 Vitest).
-- Python: **646 passed, 4 skipped** (symlink permission), 1 Starlette httpx
-  warning. Preflight 59; print API 23; book CLI incl. 5 preflight. Ruff lint and
-  format (81 files), strict mypy (48), pip check.
-- Boundaries tested: 23/24 and 550/551 pages; gutter at 24/150/151/300/301/500/
-  501/700/701/828 on recto and verso (exact pass, 0.05 pt below fails), 829 not
-  evaluated; outside/top/bottom 0.25 in; 7 vs 6.99 pt; 0.75 vs 0.74 pt; blank runs.
-  Corruption: tampered/foreign PDF, forged manifest, unknown profile, old renderer,
-  malformed manifests, missing files, annotations, bookmarks, encryption, metadata,
-  spreads, raster image, transparency, verso arabic 1.
-- Frontend: npm ci, check (tsc, ESLint, Prettier), 39 Vitest (10 Print), npm ls,
-  build (JS 302.81 kB, CSS 30.24 kB). Playwright 9/9 three consecutive runs (2
-  new: real build, statuses, 24-page finding, keyboard, puzzle/blank/solution,
-  overlays vs layout boxes, spread pairing, detail raster, axe; 1440/1024/768/390).
-  Playwright rewrites existing captures; unrelated ones restored. New captures:
-  docs/images/studio/print*.png.
-- Installed CLI: 18 regressions as expected; two builds byte-identical;
-  `build/composition-demo` (11 pages, PDF 19d5bd5a..., unchanged from Interval 7)
-  plus preflight.json. CI print-job steps simulated in Git Bash (exit 1, cmp,
-  unchanged digests, deterministic rerun).
-- Visual: real Studio at 1440/390; title, copyright (verso overlays), blank,
-  recto puzzle, verso puzzle, 2-up spread; 4-up, 6-up and about pages rasterized
-  from variant builds. Pixel test: puzzle ink inside the live area.
-- Fixture SHA-256 (LF-normalized) unchanged: garden-demo ffd7f7eb..., automotive
-  209f3fd6..., composition-demo b15651cd.... Remote CI not verified.
+- Baseline before edits matched Interval 8 (646 passed, 4 skipped; 39 Vitest;
+  Playwright 9/9). `.pytest_cache` is unreadable in this sandbox; runs used a
+  scratch `--basetemp`.
+- Python: **954 passed, 4 skipped** (symlink permission), 1 Starlette httpx
+  warning; cover and cover API tests alone 306. Ruff lint and format (109 files),
+  strict mypy (65), pip check.
+- Boundaries: spine at 1/11/24/79/80/300/550 pages, white and cream; 79/80 spine
+  eligibility; exact safe, barcode and region insets; every EXIF orientation;
+  crop clamps, zoom, DPI; 144 preset/position/align/treatment combinations meet
+  the layout contract; tampered layouts, PDFs, manifests, interiors and photos.
+- Frontend: npm ci, check, 48 Vitest (9 Cover), build (JS 329.99 kB, CSS
+  34.20 kB), npm ls, npm audit --omit=dev 0. Playwright 12/12 twice (3 new: import,
+  keyboard crop, overlays, save/reload, build verdicts; drag; cover demo ready at
+  1440/1024/768/390; axe). Captures reproduced byte-identically.
+- Installed CLI: 34 regressions as expected. Independent check with an EXIF-6
+  photo carrying camera/GPS/comment data: none in cover.pdf, JFIF only, boxes
+  exact, spine 29 x 0.002252 in, upright raster, identical rebuild from another
+  cwd/PYTHONHASHSEED, stale after source/interior/photo changes, preflight
+  read-only. CI cover job simulated in Git Bash (all steps pass).
+- Real Studio inspected in the built-in browser at 1440 and 375; fixed: pale pressed
+  toggles, file input sizing, lost import notice, label/output pairing, cramped
+  three columns (now only >=1600px). Cover visually checked (type, shade, back,
+  barcode corner, bleed).
+- build/: composition-demo interior PDF 19d5bd5a... (unchanged since Interval 7),
+  valid, not KDP ready; cover-demo interior 9f907be3..., cover 5dcaf42d...
+  (identity pp1-cover-sha256-01167bf7...), valid and ready.
+- Fixture SHA-256 (LF) unchanged: automotive 209f3fd6, composition-demo b15651cd,
+  garden-demo ffd7f7eb; new cover-demo b906bbda (+ photo 34b4d3b9...). Remote CI
+  not verified.
 
 ## Limits and decisions for review
 
-One puzzle per page; all definitions included; solutions end or omitted; no TOC.
-One profile, no bleed, Vera Sans only (Latin-1), subset embedding, no PDF/X.
-Studio builds the default profile only. Preview images are visual only. Review
-before Interval 9: the unverified 8.5x11 maximum (550), whether subset embedding
-should stay a warning, preflight.json written by default (`--no-write` opts
-out), Studio preflight recomputed live (cached) rather than read from
-preflight.json, and two-file (three with report) non-atomic artifact replacement.
+One trim; black ink white/cream; RGB output without CMYK or output intent; two
+layouts, three presets; Latin-1 sans; no barcode/ISBN, hardcover or ebook covers;
+unreferenced imported photos are kept. Review before Interval 10: the 80-page
+spine reading, the assumed barcode offsets, RGB-as-warning, the 20-puzzle cap
+versus spine text, cover excluded from build identity, the profile v2 bump
+(staling v1 interiors), keeping the 550-page maximum for white paper, and the
+two-file non-atomic cover write. History note: commits 6850538 and fc4477d lack
+their source modules (an unanchored `cover/` ignore rule); 21819fa adds them.
+Interior notes from Interval 8 still apply (550 max ambiguity, subset embedding
+warning, preflight.json default write).

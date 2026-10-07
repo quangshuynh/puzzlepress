@@ -218,3 +218,13 @@ def test_cover_route_serves_the_shell(tmp_path):
     (frontend / "index.html").write_text("<html>shell</html>")
     client = TestClient(create_app(tmp_path / "books", frontend))
     assert client.get("/books/demo/cover").text == "<html>shell</html>"
+
+
+def test_draft_preview_is_byte_identical_to_the_built_cover(studio):
+    client, _, output = studio
+    build_interior(client)
+    saved = detail(client)
+    preview = draft(client, saved["source"]).json()["preview"]["pdf_sha256"]
+    built = client.post("/api/projects/book/cover/build", json={"revision": saved["revision"]})
+    assert built.json()["preview"]["pdf_sha256"] == preview
+    assert hashlib.sha256((output / "cover.pdf").read_bytes()).hexdigest() == preview
