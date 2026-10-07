@@ -10,19 +10,10 @@ export class ApiError extends Error {
   }
 }
 
-export async function request<T>(path: string, signal: AbortSignal, body?: object): Promise<T> {
+async function send<T>(path: string, signal: AbortSignal, init: RequestInit): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(path, {
-      signal,
-      ...(body
-        ? {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-          }
-        : {}),
-    });
+    response = await fetch(path, { signal, ...init });
   } catch (error) {
     if (signal.aborted) throw error;
     throw new ApiError(
@@ -48,4 +39,23 @@ export async function request<T>(path: string, signal: AbortSignal, body?: objec
       'malformed_response',
     );
   }
+}
+
+export function request<T>(path: string, signal: AbortSignal, body?: object): Promise<T> {
+  return send<T>(
+    path,
+    signal,
+    body
+      ? {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        }
+      : {},
+  );
+}
+
+// The one non-JSON request: a photograph's original bytes for cover import.
+export function upload<T>(path: string, signal: AbortSignal, file: Blob, type: string) {
+  return send<T>(path, signal, { method: 'POST', headers: { 'Content-Type': type }, body: file });
 }

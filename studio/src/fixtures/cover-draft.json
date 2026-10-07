@@ -1,0 +1,272 @@
+{
+  "checks": [
+    {
+      "code": "spine_text_omitted",
+      "message": "Spine text is omitted: KDP prints it only from 80 pages.",
+      "severity": "info"
+    }
+  ],
+  "cover_identity": "pp1-cover-sha256-01167bf7db435f269eb2150cf64075b311bf15addd212e575296623c896b7660",
+  "interior": {
+    "ink": "black",
+    "interior_identity": "pp1-interior-sha256-c2d3869cd741df1540e2b19d2374620a6a7cabfa4c7a64fe6bcc7a7229dff438",
+    "page_count": 35,
+    "paper": "white",
+    "profile_id": "paperback-8.5x11",
+    "profile_version": 2,
+    "stale": null,
+    "trim_in": [
+      8.5,
+      11.0
+    ]
+  },
+  "layout": {
+    "geometry": {
+      "bleed_in": 0.125,
+      "height_in": 11.25,
+      "page_count": 35,
+      "paper": "white",
+      "regions": {
+        "back": {
+          "height": 792,
+          "width": 612.0,
+          "x": 9.0,
+          "y": 9.0
+        },
+        "back_design": {
+          "height": 720.0,
+          "width": 540.0,
+          "x": 45.0,
+          "y": 45.0
+        },
+        "back_safe": {
+          "height": 774.0,
+          "width": 594.0,
+          "x": 18.0,
+          "y": 18.0
+        },
+        "barcode": {
+          "height": 86.4,
+          "width": 144,
+          "x": 459.0,
+          "y": 27.0
+        },
+        "barcode_keep_clear": {
+          "height": 113.4,
+          "width": 171.0,
+          "x": 450.0,
+          "y": 9.0
+        },
+        "front": {
+          "height": 792,
+          "width": 612.0,
+          "x": 626.675,
+          "y": 9.0
+        },
+        "front_design": {
+          "height": 720.0,
+          "width": 540.0,
+          "x": 662.675,
+          "y": 45.0
+        },
+        "front_safe": {
+          "height": 774.0,
+          "width": 594.0,
+          "x": 635.675,
+          "y": 18.0
+        },
+        "media": {
+          "height": 810.0,
+          "width": 1247.675,
+          "x": 0.0,
+          "y": 0.0
+        },
+        "spine": {
+          "height": 792,
+          "width": 5.675,
+          "x": 621.0,
+          "y": 9.0
+        },
+        "spine_safe": {
+          "height": 774.0,
+          "width": -3.325,
+          "x": 625.5,
+          "y": 18.0
+        },
+        "trim": {
+          "height": 792,
+          "width": 1229.675,
+          "x": 9.0,
+          "y": 9.0
+        }
+      },
+      "spine_text_allowed": false,
+      "spine_width_in": 0.07882,
+      "spine_width_pt": 5.675,
+      "width_in": 17.32882
+    },
+    "panels": [],
+    "photo": {
+      "center": [
+        0.5,
+        0.5
+      ],
+      "pixels": [
+        27,
+        0,
+        5573,
+        3600
+      ],
+      "region": {
+        "height": 810.0,
+        "width": 1247.675,
+        "x": 0.0,
+        "y": 0.0
+      },
+      "window": {
+        "bottom": 1.0,
+        "left": 0.004890857142857093,
+        "right": 0.9951091428571429,
+        "top": 0.0
+      }
+    },
+    "resolution": {
+      "effective_dpi": 320.0,
+      "max_dpi": 320.0,
+      "minimum_dpi": 300.0,
+      "printed_inches": [
+        17.3288,
+        11.25
+      ],
+      "source_pixels": [
+        5600,
+        3600
+      ],
+      "status": "ok",
+      "used_pixels": [
+        5545.22,
+        3600.0
+      ]
+    },
+    "spine_text": {
+      "allowed_by_page_count": false,
+      "reason": "page_count",
+      "rendered": false,
+      "size": null
+    },
+    "texts": [
+      {
+        "box": {
+          "height": 62.0,
+          "width": 399.59,
+          "x": 732.88,
+          "y": 703.0
+        },
+        "panel": "front",
+        "role": "title",
+        "rotated": false,
+        "size": 62,
+        "text": "Harbour Light"
+      },
+      {
+        "box": {
+          "height": 62.0,
+          "width": 418.221,
+          "x": 723.565,
+          "y": 639.76
+        },
+        "panel": "front",
+        "role": "title",
+        "rotated": false,
+        "size": 62,
+        "text": "Word Searches"
+      },
+      {
+        "box": {
+          "height": 20.0,
+          "width": 225.09,
+          "x": 820.13,
+          "y": 591.86
+        },
+        "panel": "front",
+        "role": "subtitle",
+        "rotated": false,
+        "size": 20,
+        "text": "Twenty puzzles from the coast"
+      },
+      {
+        "box": {
+          "height": 17.0,
+          "width": 150.756,
+          "x": 857.297,
+          "y": 45.0
+        },
+        "panel": "front",
+        "role": "author",
+        "rotated": false,
+        "size": 17,
+        "text": "PuzzlePress Examples"
+      },
+      {
+        "box": {
+          "height": 12.5,
+          "width": 377.575,
+          "x": 126.212,
+          "y": 752.5
+        },
+        "panel": "back",
+        "role": "back_text",
+        "rotated": false,
+        "size": 12.5,
+        "text": "Twenty word searches from harbour walls, tide pools and lighthouse paths."
+      },
+      {
+        "box": {
+          "height": 12.5,
+          "width": 348.338,
+          "x": 140.831,
+          "y": 734.75
+        },
+        "panel": "back",
+        "role": "back_text",
+        "rotated": false,
+        "size": 12.5,
+        "text": "Every grid is generated deterministically and independently verified;"
+      },
+      {
+        "box": {
+          "height": 12.5,
+          "width": 123.919,
+          "x": 253.041,
+          "y": 717.0
+        },
+        "panel": "back",
+        "role": "back_text",
+        "rotated": false,
+        "size": 12.5,
+        "text": "solutions are at the back."
+      },
+      {
+        "box": {
+          "height": 10.5,
+          "width": 108.644,
+          "x": 45.0,
+          "y": 45.0
+        },
+        "panel": "back",
+        "role": "imprint",
+        "rotated": false,
+        "size": 10.5,
+        "text": "PuzzlePress Demonstration"
+      }
+    ]
+  },
+  "preview": {
+    "pdf_sha256": "5dcaf42d430cac877dd7acf1ba5ed99d393e7ab377f34d7d76e22b18c6ce5ba2",
+    "scales": {
+      "detail": 2.5,
+      "preview": 1.0
+    }
+  },
+  "success": true
+}

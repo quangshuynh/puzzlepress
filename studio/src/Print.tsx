@@ -750,6 +750,7 @@ export function Print({ project, dirty }: { project: Project; dirty: boolean }) 
   const [message, setMessage] = useState('');
   const [failure, setFailure] = useState<InteriorStatus['build']>();
   const [attempt, setAttempt] = useState(0);
+  const [profile, setProfile] = useState<string>();
   const base = `/api/projects/${encodeURIComponent(project.key)}/interior`;
   useEffect(() => {
     const controller = new AbortController();
@@ -770,6 +771,7 @@ export function Print({ project, dirty }: { project: Project; dirty: boolean }) 
     try {
       const data = await request<InteriorStatus>(`${base}/build`, new AbortController().signal, {
         revision: project.revision,
+        ...(profile ? { profile } : {}),
       });
       setStatus(data);
       if (data.build?.success) setMessage('Interior built and preflight complete.');
@@ -812,6 +814,27 @@ export function Print({ project, dirty }: { project: Project; dirty: boolean }) 
           </p>
         </div>
         <div className="editor-actions">
+          {status.profiles && (
+            <div className="editor-field print-profile">
+              <label htmlFor="print-profile">Paper</label>
+              <select
+                id="print-profile"
+                value={profile ?? status.profile}
+                disabled={busy}
+                aria-describedby="print-profile-hint"
+                onChange={(event) => setProfile(event.target.value)}
+              >
+                {status.profiles.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.paper === 'cream' ? 'Cream' : 'White'} paper, black ink
+                  </option>
+                ))}
+              </select>
+              <span className="sr-only" id="print-profile-hint">
+                Paper sets the cover's spine width. Pages are laid out identically.
+              </span>
+            </div>
+          )}
           <button
             type="button"
             className="primary"

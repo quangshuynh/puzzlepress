@@ -70,6 +70,7 @@ export interface Project {
       quality: QualityConfig;
     };
     composition?: Composition;
+    cover?: CoverConfig;
   };
 }
 export interface Cell {
@@ -284,6 +285,8 @@ export interface InteriorStatus {
   key: string;
   revision: string;
   ruleset: number;
+  profiles?: { id: string; description: string; paper: string }[];
+  profile?: string;
   state: 'missing' | 'current' | 'stale' | 'invalid';
   report: PreflightReport | null;
   preview: {
@@ -293,5 +296,139 @@ export interface InteriorStatus {
     pages: PreviewPage[];
     geometry: PageGeometry[] | null;
   } | null;
+  build?: { success: boolean; stage?: string; diagnostics?: BuildDiagnostic[] };
+}
+// Cover Studio. Geometry, crop windows, resolution and verdicts come from Python.
+export interface CoverConfig {
+  version: number;
+  layout: 'full_wrap' | 'front_photo';
+  image: { path: string; sha256: string };
+  crop: { x: number; y: number; zoom: number };
+  type: {
+    style: 'editorial' | 'bold' | 'minimal';
+    position: 'top' | 'middle' | 'bottom';
+    align: 'center' | 'left';
+    tone: 'light' | 'dark';
+  };
+  legibility: 'shade' | 'panel' | 'none';
+  background: string;
+  spine_text: 'auto' | 'none';
+  back_text?: string;
+}
+export interface CoverAsset {
+  path: string;
+  problem: string | null;
+  sha256?: string;
+  format?: string;
+  bytes?: number;
+  pixels?: [number, number];
+  orientation?: number;
+  color?: string;
+  reused?: boolean;
+}
+export type CoverRegion =
+  | 'media'
+  | 'trim'
+  | 'back'
+  | 'spine'
+  | 'front'
+  | 'back_safe'
+  | 'front_safe'
+  | 'spine_safe'
+  | 'back_design'
+  | 'front_design'
+  | 'barcode'
+  | 'barcode_keep_clear';
+export interface CoverGeometry {
+  page_count: number;
+  paper: string;
+  bleed_in: number;
+  spine_width_in: number;
+  spine_width_pt: number;
+  width_in: number;
+  height_in: number;
+  spine_text_allowed: boolean;
+  regions: Record<CoverRegion, PtBox>;
+}
+export interface CoverResolution {
+  source_pixels: [number, number];
+  used_pixels: [number, number];
+  printed_inches: [number, number];
+  effective_dpi: number;
+  max_dpi: number;
+  minimum_dpi: number;
+  status: 'ok' | 'image_low_effective_dpi' | 'image_too_small';
+}
+export interface CoverSpine {
+  allowed_by_page_count: boolean;
+  rendered: boolean;
+  reason: 'authored' | 'page_count' | 'spine_too_narrow' | null;
+  size: number | null;
+}
+export interface CoverLayoutView {
+  geometry: CoverGeometry;
+  texts: {
+    role: string;
+    text: string;
+    panel: string;
+    size: number;
+    rotated: boolean;
+    box: PtBox;
+  }[];
+  panels: { role: string; box: PtBox }[];
+  photo: {
+    region: PtBox;
+    window: { left: number; top: number; right: number; bottom: number };
+    center: [number, number];
+    pixels: [number, number, number, number];
+  };
+  resolution: CoverResolution;
+  spine_text: CoverSpine;
+}
+export interface CoverCheck {
+  code: string;
+  severity: 'error' | 'warning' | 'info';
+  message: string;
+}
+export interface CoverDraft {
+  success: boolean;
+  stage?: string;
+  diagnostics?: BuildDiagnostic[];
+  interior?: {
+    page_count: number;
+    profile_id: string;
+    paper: string;
+    ink: string;
+    trim_in: [number, number];
+    stale: string | null;
+  };
+  cover_identity?: string;
+  layout?: CoverLayoutView;
+  checks?: CoverCheck[];
+  preview?: { pdf_sha256: string; scales: Record<string, number> };
+}
+export interface CoverReport {
+  report_version: number;
+  ruleset: { id: string; version: number; kdp_rules_checked: string };
+  state: string;
+  cover_identity: { recorded: string | null; expected: string | null };
+  interior: { page_count: number; paper: string; profile_id: string } | null;
+  artifacts: {
+    pdf: { sha256: string; bytes: number } | null;
+    manifest: { sha256: string; bytes: number } | null;
+    matches_render: boolean;
+  };
+  structural: { status: 'valid' | 'invalid' };
+  kdp: { status: 'ready' | 'not_ready' };
+  findings: PreflightFinding[];
+  rules: PreflightRule[];
+}
+export interface CoverStatus {
+  key: string;
+  revision: string;
+  state: 'no_config' | 'missing' | 'current' | 'stale' | 'invalid';
+  report: CoverReport | null;
+  layout?: CoverLayoutView | null;
+  preview: { pdf_sha256: string; scales: Record<string, number> } | null;
   build?: { success: boolean; stage?: string; diagnostics?: BuildDiagnostic[] };
 }
