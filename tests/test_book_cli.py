@@ -226,3 +226,93 @@ def test_installed_console_script_builds_interiors(tmp_path):
     )
     assert result.returncode == 0, result.stderr
     assert (tmp_path / "interior.pdf").stat().st_size > 0
+
+
+def preflight_cli(*args, **kwargs):
+    return run_cli("book", "preflight", *args, **kwargs)
+
+
+def test_preflight_reports_structural_valid_and_kdp_not_ready(tmp_path):
+    out = tmp_path / "out"
+    assert build_cli(DEMO, "--output", out).returncode == 0
+    built = {p.name: p.read_bytes() for p in out.iterdir()}
+    result = preflight_cli(DEMO, "--output", out)
+    assert result.returncode == 1 and "Traceback" not in result.stderr
+    assert "Structural: VALID" in result.stdout and "KDP readiness: NOT READY" in result.stdout
+    assert (
+        "kdp [kdp_minimum_page_count] 11 pages. The supported KDP paperback minimum is 24 pages."
+        in result.stdout
+    )
+    assert "Amazon KDP decides acceptance" in result.stdout
+    report = (out / "preflight.json").read_bytes()
+    assert {p.name: p.read_bytes() for p in out.iterdir() if p.name != "preflight.json"} == built
+    data = json.loads(report)
+    assert data["structural"]["status"] == "valid" and data["kdp"]["status"] == "not_ready"
+    assert data["artifacts"]["pdf"]["sha256"] == hashlib.sha256(built["interior.pdf"]).hexdigest()
+    assert data["ruleset"]["id"] == "puzzlepress-kdp-paperback" and data["report_version"] == 1
+
+
+def test_preflight_json_is_identical_to_report_file_and_across_processes(tmp_path):
+    out = tmp_path / "out"
+    assert build_cli(DEMO, "--output", out).returncode == 0
+    outputs = []
+    for seed, cwd in (("0", tmp_path), ("4242", ROOT)):
+        result = preflight_cli(
+            DEMO, "--output", out, "--json", cwd=cwd, env={**os.environ, "PYTHONHASHSEED": seed}
+        )
+        assert result.returncode == 1
+        outputs.append(result.stdout)
+        assert result.stdout.encode() == (out / "preflight.json").read_bytes()
+    assert outputs[0] == outputs[1]
+
+
+def test_preflight_exits_zero_only_when_kdp_ready(tmp_path):
+    source = write_source(tmp_path, demo_variant(puzzles=16))
+    out = tmp_path / "out"
+    assert build_cli(source, "--output", out).returncode == 0
+    result = preflight_cli(source, "--output", out, "--no-write")
+    assert result.returncode == 0, result.stdout
+    assert "KDP readiness: READY" in result.stdout and "Blocking: none" in result.stdout
+    assert not (out / "preflight.json").exists()
+
+
+def test_preflight_missing_stale_and_usage(tmp_path):
+    missing = preflight_cli(DEMO, "--output", tmp_path / "none", "--json")
+    assert missing.returncode == 1 and not (tmp_path / "none").exists()
+    assert json.loads(missing.stdout)["structural"]["status"] == "invalid"
+    assert "preflight.json not written" in missing.stderr
+
+    out = tmp_path / "out"
+    assert build_cli(DEMO, "--output", out).returncode == 0
+
+    def retitled(data):
+        data["book"]["title"] = "Changed"
+
+    source = write_source(tmp_path, demo_variant(retitled))
+    stale = preflight_cli(source, "--output", out, "--json", "--no-write")
+    payload = json.loads(stale.stdout)
+    assert stale.returncode == 1 and payload["structural"]["status"] == "invalid"
+    assert {"source_current", "pdf_matches_layout"} <= {f["rule"] for f in payload["findings"]}
+    assert not (out / "preflight.json").exists()
+
+    foreign = tmp_path / "foreign"
+    foreign.mkdir()
+    (foreign / "interior.json").write_text('{"book_id": "other"}', encoding="utf-8")
+    result = preflight_cli(DEMO, "--output", foreign)
+    assert result.returncode == 1 and not (foreign / "preflight.json").exists()
+    inside = preflight_cli(DEMO, "--output", DEMO / "build")
+    assert inside.returncode == 1 and "[source_overlap]" in inside.stderr
+    assert not (DEMO / "build").exists()
+    assert preflight_cli().returncode == 2
+
+
+def test_installed_console_script_preflights(tmp_path):
+    exe = str(installed_puzzlepress())
+    subprocess.run([exe, "book", "build", str(DEMO), "--output", str(tmp_path)], check=True)
+    result = subprocess.run(
+        [exe, "book", "preflight", str(DEMO), "--output", str(tmp_path), "--json"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 1 and json.loads(result.stdout)["kdp"]["status"] == "not_ready"

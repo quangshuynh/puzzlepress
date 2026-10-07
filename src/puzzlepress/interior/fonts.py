@@ -46,6 +46,8 @@ FONT_FILES = (
         "PuzzlePressSans-Italic",
     ),
 )
+# PostScript family name of the bundled faces as it appears in PDF font names.
+BUNDLED_FAMILY = "BitstreamVeraSans"
 # Vertical metrics shared by all three faces (hhea and the 'H' outline, 2048 units).
 ASCENT = 1901 / 2048
 DESCENT = 483 / 2048

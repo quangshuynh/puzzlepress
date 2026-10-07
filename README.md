@@ -12,12 +12,14 @@
 
 PuzzlePress is a deterministic Python engine and local publishing studio for
 themed puzzle books. Validate authored projects, generate verified word searches,
-compose them into an ordered book, build a print interior PDF, and author everything
-in a local browser studio with authoritative previews and quality findings.
+compose them into an ordered book, build a deterministic print interior PDF, preflight
+it, and proof every real page in a local browser studio.
 
-**Interval 7 complete:** `book build` lays out a verified publication plan and writes
-a structurally verified 8.5 x 11 in interior PDF with embedded fonts. It is not a
-complete KDP preflight; covers, print preview and publishing remain future work.
+**Interval 8 complete:** `book preflight` reports two separate verdicts for a built
+interior: structural validity (the files match their authoritative inputs) and
+readiness against the Amazon KDP paperback rules PuzzlePress models. Studio's Print
+tab previews the actual PDF. Preflight is not a guarantee of KDP acceptance; Amazon
+decides. Covers and publishing remain future work.
 
 ## Quick start
 
@@ -41,7 +43,8 @@ process serves the UI and API. On Linux/macOS use `.venv/bin/python`,
 
 For CLI-only use, install with `python -m pip install -e .` and activate the
 virtual environment. Runtime dependencies are PyYAML, ReportLab (PDF output) and
-pypdf (independent PDF inspection).
+pypdf (independent PDF inspection). The `studio` extra adds FastAPI, uvicorn and
+pypdfium2 (page previews).
 
 ## CLI
 
@@ -56,11 +59,16 @@ puzzlepress book plan books/composition-demo
 puzzlepress book plan books/composition-demo --json
 puzzlepress book build books/composition-demo
 puzzlepress book build books/composition-demo --output /tmp/demo-interior --json
+puzzlepress book preflight books/composition-demo
+puzzlepress book preflight books/composition-demo --json --no-write
 ```
 
 Commands are read-only except `book build`, which writes `interior.pdf` and an
 `interior.json` manifest to the project's output directory (here
-`build/composition-demo/`) or `--output`. Exit codes: **0** success, **1** expected configuration
+`build/composition-demo/`) or `--output`, and `book preflight`, which writes only
+`preflight.json` beside them (unless `--no-write`). `book preflight` exits 0 only
+when the interior is structurally valid and KDP ready. `composition-demo` has 11
+pages: structurally valid, not KDP ready (the paperback minimum is 24 pages). Exit codes: **0** success, **1** expected configuration
 or generation failure, **2** usage error. Batch quality findings are warnings
 unless `--strict-quality` is used. `book plan` exits 1 when a puzzle fails to
 generate, still printing the plan. `book build` exits 1 with structured
@@ -77,6 +85,8 @@ diagnostics (overflow, digest mismatch, invalid profile) and writes nothing. `py
 - Review quality findings, screening completeness, reuse and similarity reports.
 - Compose the book: front matter, puzzle order, solutions, back matter and page numbers.
 - Preview the verified publication plan: every logical page, its side and its number.
+- Build the interior, then proof real rendered pages: thumbnails, spreads, zoom,
+  margin overlays, and preflight findings linked to the pages they concern.
 
 [`composition-demo`](books/composition-demo/book.yaml) is a small composed book:
 front matter, four puzzles, grouped solutions and a notes page.
@@ -101,12 +111,18 @@ edits share the same draft, validation and save. See [book composition](docs/boo
   <a href="docs/images/studio/draft-preview.png"><img src="docs/images/studio/draft-preview.png" alt="Visual editor beside an unsaved generated puzzle and authoritative solution" width="48%"></a>
   <a href="docs/images/studio/composer-plan.png"><img src="docs/images/studio/composer-plan.png" alt="Book composer beside an unsaved publication plan with sections, sides and page numbers" width="48%"></a>
 </p>
+<p>
+  <a href="docs/images/studio/print.png"><img src="docs/images/studio/print.png" alt="Print proof: structural valid, KDP not ready, the rendered title page and preflight findings" width="48%"></a>
+  <a href="docs/images/studio/print-spread.png"><img src="docs/images/studio/print-spread.png" alt="Facing-page spread of a puzzle and a solution page with live-area and KDP margin overlays" width="48%"></a>
+</p>
 
 Actual application captures from disposable demo projects. See the
 [quality review](docs/images/studio/editor-quality.png),
 [validation](docs/images/studio/editor-validation.png),
-[puzzle ordering](docs/images/studio/composer-order.png) and
-[narrow composer](docs/images/studio/composer-390.png).
+[puzzle ordering](docs/images/studio/composer-order.png),
+[narrow composer](docs/images/studio/composer-390.png),
+[preflight findings](docs/images/studio/print-findings.png) and
+[narrow print proof](docs/images/studio/print-390.png).
 
 ## Development
 
@@ -152,7 +168,8 @@ Chromium job. Symlink tests skip when OS permission is unavailable.
                                 React / TypeScript
 ```
 
-Project -> generation -> quality -> composition -> publication plan -> layout -> PDF.
+Project -> generation -> quality -> composition -> publication plan -> layout -> PDF
+-> preflight.
 The print engine consumes the plan and the generated puzzles, verifies their
 digests, lays out pages without repaginating and rejects content that does not fit.
 
@@ -164,7 +181,8 @@ HTTP as decimal strings. Source and disposable build directories stay disjoint.
 
 Contracts: [project format](docs/project-format.md), [word-search engine](docs/word-search.md),
 [batch and quality](docs/batch-quality.md), [book composition](docs/book-composition.md),
-[print interior](docs/print-interior.md), [Studio architecture](docs/studio.md).
+[print interior](docs/print-interior.md), [preflight and preview](docs/preflight.md),
+[Studio architecture](docs/studio.md).
 Contribution rules: [AGENTS.md](AGENTS.md). Current handoff: [CONTEXT.md](CONTEXT.md).
 
 ## Current limitations
@@ -180,8 +198,9 @@ Drafts are in memory, without autosave or merge; conflicts require review and re
 Use one Studio process per library. YAML comments and formatting are not preserved.
 Frontend assets are built from this checkout. Interiors use one profile (8.5 x 11
 in, no bleed, black ink) and one bundled sans family; books under 24 pages build
-with a KDP warning. Print preview, full KDP preflight, covers and publishing
-automation are not implemented.
+with a KDP warning and fail KDP readiness. Preflight models a documented subset of
+KDP rules; some official values are ambiguous (see [preflight](docs/preflight.md)).
+Covers, KDP packaging and publishing automation are not implemented.
 
 ## License
 

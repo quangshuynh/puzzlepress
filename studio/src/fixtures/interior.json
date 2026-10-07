@@ -1,0 +1,1977 @@
+{
+ "build": {
+  "success": true
+ },
+ "key": "composition-demo",
+ "revision": "sha256-e186e89d343f19fdf2237e4a4b489c72e178f46b5cbe71340d75fc250d92dd4e",
+ "ruleset": 1,
+ "state": "current",
+ "report": {
+  "report_version": 1,
+  "ruleset": {
+   "id": "puzzlepress-kdp-paperback",
+   "version": 1,
+   "kdp_rules_checked": "2026-10-07"
+  },
+  "book_id": "composition-demo",
+  "source_identity": "pp1-sha256-4bd3089c4209be27a02cf588c9955e750058e1da449d8de2b20e107a1ac1b980",
+  "profile": {
+   "id": "paperback-8.5x11",
+   "version": 1,
+   "description": "8.5 x 11 in paperback interior, black ink, no bleed",
+   "trim": {
+    "name": "8.5x11",
+    "width_in": 8.5,
+    "height_in": 11.0
+   },
+   "bleed": false
+  },
+  "artifacts": {
+   "pdf": {
+    "sha256": "19d5bd5af6f2b381af7d2bad5b0daca57534b4a2f1139c46f23bfba0137bfecf",
+    "bytes": 76622
+   },
+   "manifest": {
+    "sha256": "7504866377a23d099e7d7d01c8b054e3500eceec1fe281f73768bafe186ff1a2",
+    "bytes": 2481
+   },
+   "interior_identity": "pp1-interior-sha256-47abfe739d7818a5e5183e6037492e0933a8a713ecebec2d82e5cbbfb1b9ee2e",
+   "expected_interior_identity": "pp1-interior-sha256-47abfe739d7818a5e5183e6037492e0933a8a713ecebec2d82e5cbbfb1b9ee2e",
+   "matches_layout": true
+  },
+  "page_count": 11,
+  "structural": {
+   "status": "valid"
+  },
+  "kdp": {
+   "status": "not_ready"
+  },
+  "counts": {
+   "severity": {
+    "error": 1,
+    "warning": 1,
+    "info": 0
+   },
+   "scope": {
+    "structural": 0,
+    "kdp": 2
+   },
+   "category": {
+    "artifact": 0,
+    "integrity": 0,
+    "page": 1,
+    "geometry": 0,
+    "typography": 0,
+    "font": 1,
+    "content": 0
+   },
+   "outcome": {
+    "passed": 36,
+    "failed": 2,
+    "not_applicable": 1,
+    "not_evaluated": 0
+   }
+  },
+  "findings": [
+   {
+    "rule": "kdp_minimum_page_count",
+    "severity": "error",
+    "scope": "kdp",
+    "category": "page",
+    "message": "11 pages. The supported KDP paperback minimum is 24 pages.",
+    "physical_page": null,
+    "logical_page": null,
+    "page_kind": null,
+    "side": null,
+    "folio": null,
+    "subject": null,
+    "region": null,
+    "bounds": null,
+    "measure": {
+     "actual": 11,
+     "required": 24,
+     "unit": "pages",
+     "comparison": "at_least"
+    }
+   },
+   {
+    "rule": "kdp_full_font_embedding",
+    "severity": "warning",
+    "scope": "kdp",
+    "category": "font",
+    "message": "3 font(s) are subset-embedded. Review against KDP's wording; subsets contain every glyph the interior uses.",
+    "physical_page": null,
+    "logical_page": null,
+    "page_kind": null,
+    "side": null,
+    "folio": null,
+    "subject": null,
+    "region": "fonts",
+    "bounds": null,
+    "measure": {
+     "actual": "subset",
+     "required": "fully embedded",
+     "unit": null,
+     "comparison": "equal"
+    }
+   }
+  ],
+  "rules": [
+   {
+    "code": "interior_artifacts",
+    "scope": "structural",
+    "category": "artifact",
+    "severity": "error",
+    "title": "Interior files present",
+    "description": "interior.pdf and interior.json exist as regular files in the output directory.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#interior-artifacts",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Both build artifacts are present.",
+    "measure": null
+   },
+   {
+    "code": "manifest_format",
+    "scope": "structural",
+    "category": "artifact",
+    "severity": "error",
+    "title": "Manifest readable",
+    "description": "interior.json is a supported manifest version with every required field.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#manifest-format",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Manifest version 1 with all required fields.",
+    "measure": null
+   },
+   {
+    "code": "manifest_book",
+    "scope": "structural",
+    "category": "integrity",
+    "severity": "error",
+    "title": "Manifest names this book",
+    "description": "The manifest's book ID equals the project's book ID.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#manifest-book",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Book composition-demo.",
+    "measure": null
+   },
+   {
+    "code": "manifest_pdf_digest",
+    "scope": "structural",
+    "category": "integrity",
+    "severity": "error",
+    "title": "PDF matches its manifest",
+    "description": "The PDF's SHA-256 and byte size equal the values recorded in interior.json.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#manifest-pdf-digest",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "SHA-256 and size match the manifest.",
+    "measure": null
+   },
+   {
+    "code": "interior_identity",
+    "scope": "structural",
+    "category": "integrity",
+    "severity": "error",
+    "title": "Interior identity consistent",
+    "description": "The manifest's interior identity recomputes from the inputs it records.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#interior-identity",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Identity recomputes from source, plan, profile and toolchain.",
+    "measure": null
+   },
+   {
+    "code": "source_current",
+    "scope": "structural",
+    "category": "integrity",
+    "severity": "error",
+    "title": "Built from current source",
+    "description": "The interior was built from the project source as it is now (build identity).",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#source-current",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Manifest identity equals the current source identity.",
+    "measure": null
+   },
+   {
+    "code": "print_profile_current",
+    "scope": "structural",
+    "category": "integrity",
+    "severity": "error",
+    "title": "Print profile current",
+    "description": "The recorded print profile is a built-in profile with an unchanged definition.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#print-profile-current",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "paperback-8.5x11 v1.",
+    "measure": null
+   },
+   {
+    "code": "toolchain_current",
+    "scope": "structural",
+    "category": "integrity",
+    "severity": "error",
+    "title": "Renderer and fonts current",
+    "description": "Renderer, engine, PDF library and pinned font digests equal the running toolchain.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#toolchain-current",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Renderer, engine, ReportLab and fonts unchanged.",
+    "measure": null
+   },
+   {
+    "code": "source_buildable",
+    "scope": "structural",
+    "category": "integrity",
+    "severity": "error",
+    "title": "Current source builds",
+    "description": "The current source plans, binds puzzle digests and lays out without diagnostics.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#source-buildable",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Plan verified, digests bound, layout validated.",
+    "measure": null
+   },
+   {
+    "code": "plan_current",
+    "scope": "structural",
+    "category": "integrity",
+    "severity": "error",
+    "title": "Plan current",
+    "description": "The manifest's plan digest equals the digest of the current verified plan.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#plan-current",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Plan digest unchanged.",
+    "measure": null
+   },
+   {
+    "code": "pdf_matches_layout",
+    "scope": "structural",
+    "category": "integrity",
+    "severity": "error",
+    "title": "PDF equals deterministic render",
+    "description": "The PDF's bytes equal a fresh render of the current verified layout. Geometry rules apply to the PDF only when this holds.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#pdf-matches-layout",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Byte-identical to the deterministic render.",
+    "measure": null
+   },
+   {
+    "code": "pdf_readable",
+    "scope": "structural",
+    "category": "artifact",
+    "severity": "error",
+    "title": "PDF parses",
+    "description": "An independent parser (pypdf, strict) reads the PDF; it is not encrypted.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#pdf-readable",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Parsed strictly by pypdf.",
+    "measure": null
+   },
+   {
+    "code": "page_count",
+    "scope": "structural",
+    "category": "page",
+    "severity": "error",
+    "title": "Page count matches",
+    "description": "PDF pages equal the manifest's page count and the plan's logical pages.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#page-count",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "11 pages.",
+    "measure": {
+     "actual": 11,
+     "required": null,
+     "unit": "pages",
+     "comparison": null
+    }
+   },
+   {
+    "code": "page_boxes",
+    "scope": "structural",
+    "category": "page",
+    "severity": "error",
+    "title": "Page boxes match profile",
+    "description": "Every page's MediaBox and TrimBox equal the profile's trim; no larger BleedBox.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#page-boxes",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Every page is exactly the trim size.",
+    "measure": null
+   },
+   {
+    "code": "page_rotation",
+    "scope": "structural",
+    "category": "page",
+    "severity": "error",
+    "title": "Pages unrotated",
+    "description": "No page carries a /Rotate entry.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#page-rotation",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "No rotated pages.",
+    "measure": null
+   },
+   {
+    "code": "pdf_interactive_features",
+    "scope": "structural",
+    "category": "content",
+    "severity": "error",
+    "title": "No interactive features",
+    "description": "No annotations, links, forms, open actions, name trees or bookmarks.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#pdf-interactive-features",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "No annotations, forms, actions or bookmarks.",
+    "measure": null
+   },
+   {
+    "code": "fonts_bundled",
+    "scope": "structural",
+    "category": "font",
+    "severity": "error",
+    "title": "Bundled fonts only",
+    "description": "Every font is an embedded subset of the bundled, digest-pinned Vera Sans faces.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#fonts-bundled",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Only embedded bundled Vera Sans subsets.",
+    "measure": null
+   },
+   {
+    "code": "raster_images",
+    "scope": "structural",
+    "category": "content",
+    "severity": "error",
+    "title": "No raster images",
+    "description": "The renderer draws no images; any raster image is foreign to the interior.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#raster-images",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "No raster images.",
+    "measure": null
+   },
+   {
+    "code": "blank_pages",
+    "scope": "structural",
+    "category": "content",
+    "severity": "error",
+    "title": "Intentional blanks are blank",
+    "description": "Plan blank pages carry no text or painting operators in the PDF.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#blank-pages",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "1 intentional blank page(s) are empty.",
+    "measure": null
+   },
+   {
+    "code": "folios_printed",
+    "scope": "structural",
+    "category": "content",
+    "severity": "error",
+    "title": "Page numbers printed",
+    "description": "Every page number the plan displays appears in the page's PDF text.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#folios-printed",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Every displayed page number is present.",
+    "measure": null
+   },
+   {
+    "code": "kdp_minimum_page_count",
+    "scope": "kdp",
+    "category": "page",
+    "severity": "error",
+    "title": "Minimum page count",
+    "description": "A KDP paperback has at least 24 pages. PuzzlePress never pads.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-minimum-page-count",
+    "outcome": "failed",
+    "findings": 1,
+    "note": null,
+    "measure": null
+   },
+   {
+    "code": "kdp_maximum_page_count",
+    "scope": "kdp",
+    "category": "page",
+    "severity": "error",
+    "title": "Maximum page count",
+    "description": "Page count is within KDP's black-ink maximum for the trim. KDP's current table omits the 8.5 x 11 in row; the lower indexed value (550, cream) is used.",
+    "basis": "kdp_ambiguous",
+    "source": "KDP help: Print Options",
+    "help": "docs/preflight.md#kdp-maximum-page-count",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "11 of at most 550 pages.",
+    "measure": {
+     "actual": 11,
+     "required": 550,
+     "unit": "pages",
+     "comparison": "at_most"
+    }
+   },
+   {
+    "code": "kdp_trim_size",
+    "scope": "kdp",
+    "category": "geometry",
+    "severity": "error",
+    "title": "Supported trim size",
+    "description": "The trim is within KDP's paperback trim range (4-8.5 in wide, 6-11.69 in tall).",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Print Options",
+    "help": "docs/preflight.md#kdp-trim-size",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "8.5 x 11 in.",
+    "measure": {
+     "actual": "8.5 x 11",
+     "required": "4-8.5 x 6-11.69",
+     "unit": "in",
+     "comparison": "within"
+    }
+   },
+   {
+    "code": "kdp_page_size",
+    "scope": "kdp",
+    "category": "geometry",
+    "severity": "error",
+    "title": "Single trim-size pages",
+    "description": "Each PDF page is one page at the trim size: no spreads or 2-up pages.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-page-size",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Every page is a single trim-size page.",
+    "measure": null
+   },
+   {
+    "code": "kdp_no_bleed",
+    "scope": "kdp",
+    "category": "geometry",
+    "severity": "error",
+    "title": "No-bleed setup",
+    "description": "The profile is no-bleed, so pages must not be enlarged for bleed (no BleedBox beyond the trim) and outside margins of at least 0.25 in apply.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Set Trim Size, Bleed, and Margins",
+    "help": "docs/preflight.md#kdp-no-bleed",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "No-bleed interior; page size equals trim size.",
+    "measure": null
+   },
+   {
+    "code": "kdp_gutter",
+    "scope": "kdp",
+    "category": "geometry",
+    "severity": "error",
+    "title": "Inside margin (gutter)",
+    "description": "Content clears the binding edge by KDP's gutter for the page count: 24-150 0.375 in, 151-300 0.5, 301-500 0.625, 501-700 0.75, 701-828 0.875.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Set Trim Size, Bleed, and Margins",
+    "help": "docs/preflight.md#kdp-gutter",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Smallest inside clearance 0.75 in on page 11.",
+    "measure": {
+     "actual": 0.75,
+     "required": 0.375,
+     "unit": "in",
+     "comparison": "at_least"
+    }
+   },
+   {
+    "code": "kdp_outside_margins",
+    "scope": "kdp",
+    "category": "geometry",
+    "severity": "error",
+    "title": "Outside, top and bottom margins",
+    "description": "Content clears the outside, top and bottom trim edges by at least 0.25 in (no bleed).",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Set Trim Size, Bleed, and Margins",
+    "help": "docs/preflight.md#kdp-outside-margins",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Smallest outside clearance 0.5 in on page 11.",
+    "measure": {
+     "actual": 0.5,
+     "required": 0.25,
+     "unit": "in",
+     "comparison": "at_least"
+    }
+   },
+   {
+    "code": "kdp_minimum_font_size",
+    "scope": "kdp",
+    "category": "typography",
+    "severity": "error",
+    "title": "Minimum font size",
+    "description": "All text, including grid letters, is at least 7 pt.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-minimum-font-size",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Smallest text size 9.5 pt.",
+    "measure": {
+     "actual": 9.5,
+     "required": 7.0,
+     "unit": "pt",
+     "comparison": "at_least"
+    }
+   },
+   {
+    "code": "kdp_minimum_line_weight",
+    "scope": "kdp",
+    "category": "geometry",
+    "severity": "error",
+    "title": "Minimum line weight",
+    "description": "Rules, grid frames and solution marks are at least 0.75 pt (KDP also states 0.01 in, which is 0.72 pt; the stricter value applies).",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-minimum-line-weight",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Smallest line weight 0.75 pt.",
+    "measure": {
+     "actual": 0.75,
+     "required": 0.75,
+     "unit": "pt",
+     "comparison": "at_least"
+    }
+   },
+   {
+    "code": "kdp_fonts_embedded",
+    "scope": "kdp",
+    "category": "font",
+    "severity": "error",
+    "title": "Fonts embedded",
+    "description": "Every font used by a page has an embedded font program.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-fonts-embedded",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Every font program is embedded.",
+    "measure": null
+   },
+   {
+    "code": "kdp_full_font_embedding",
+    "scope": "kdp",
+    "category": "font",
+    "severity": "warning",
+    "title": "Full font embedding",
+    "description": "KDP's formatting help says fonts should be 'fully embedded'; its submission guidelines say 'embedded'. PuzzlePress embeds subsets, which carry every glyph used.",
+    "basis": "kdp_ambiguous",
+    "source": "KDP help: Fix Paperback and Hardcover Formatting Issues",
+    "help": "docs/preflight.md#kdp-full-font-embedding",
+    "outcome": "failed",
+    "findings": 1,
+    "note": null,
+    "measure": null
+   },
+   {
+    "code": "kdp_no_annotations",
+    "scope": "kdp",
+    "category": "content",
+    "severity": "error",
+    "title": "No comments, annotations or bookmarks",
+    "description": "The file contains no annotations, comments, form fields or bookmarks.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-no-annotations",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "None present.",
+    "measure": null
+   },
+   {
+    "code": "kdp_not_encrypted",
+    "scope": "kdp",
+    "category": "artifact",
+    "severity": "error",
+    "title": "Not locked or encrypted",
+    "description": "The file is not locked or encrypted.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-not-encrypted",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Not encrypted.",
+    "measure": null
+   },
+   {
+    "code": "kdp_flattened",
+    "scope": "kdp",
+    "category": "content",
+    "severity": "error",
+    "title": "Flattened transparency and layers",
+    "description": "No transparency groups, soft masks, blend modes, partial opacity or layers.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-flattened",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "No transparency or layers.",
+    "measure": null
+   },
+   {
+    "code": "kdp_no_printer_marks",
+    "scope": "kdp",
+    "category": "content",
+    "severity": "error",
+    "title": "No crop or trim marks",
+    "description": "Pages have no area beyond the trim where marks could print, and every layout element lies inside the live area.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-no-printer-marks",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "No slug area; all content inside the live area.",
+    "measure": null
+   },
+   {
+    "code": "kdp_image_resolution",
+    "scope": "kdp",
+    "category": "content",
+    "severity": "error",
+    "title": "Image resolution",
+    "description": "Raster images are at least 300 DPI. Not applicable without images.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-image-resolution",
+    "outcome": "not_applicable",
+    "findings": 0,
+    "note": "The interior contains no raster images.",
+    "measure": null
+   },
+   {
+    "code": "kdp_blank_page_runs",
+    "scope": "kdp",
+    "category": "page",
+    "severity": "error",
+    "title": "Consecutive blank pages",
+    "description": "At most 4 consecutive blank pages at the beginning or middle, and at most 10 at the end.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Fix Paperback and Hardcover Formatting Issues",
+    "help": "docs/preflight.md#kdp-blank-page-runs",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Longest blank run: 1 page(s).",
+    "measure": null
+   },
+   {
+    "code": "kdp_page_number_parity",
+    "scope": "kdp",
+    "category": "page",
+    "severity": "error",
+    "title": "Even numbers on left pages",
+    "description": "Printed page numbers are even on left (verso) pages and odd on right (recto) pages.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-page-number-parity",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "7 printed page numbers match their sides.",
+    "measure": null
+   },
+   {
+    "code": "kdp_no_metadata",
+    "scope": "kdp",
+    "category": "content",
+    "severity": "warning",
+    "title": "No descriptive metadata",
+    "description": "KDP asks for files without metadata. Descriptive fields (title, author, subject, keywords) are checked; producer tool names are not interpreted as metadata.",
+    "basis": "kdp_ambiguous",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-no-metadata",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Title, author, subject and keywords are empty.",
+    "measure": null
+   }
+  ],
+  "pages": [
+   {
+    "physical_page": 1,
+    "logical_page": 1,
+    "kind": "title_page",
+    "side": "recto",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 2,
+    "logical_page": 2,
+    "kind": "copyright_page",
+    "side": "verso",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 3,
+    "logical_page": 3,
+    "kind": "instructions",
+    "side": "recto",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 4,
+    "logical_page": 4,
+    "kind": "blank",
+    "side": "verso",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 5,
+    "logical_page": 5,
+    "kind": "puzzle",
+    "side": "recto",
+    "folio": "1",
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 6,
+    "logical_page": 6,
+    "kind": "puzzle",
+    "side": "verso",
+    "folio": "2",
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 7,
+    "logical_page": 7,
+    "kind": "puzzle",
+    "side": "recto",
+    "folio": "3",
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 8,
+    "logical_page": 8,
+    "kind": "puzzle",
+    "side": "verso",
+    "folio": "4",
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 9,
+    "logical_page": 9,
+    "kind": "solutions",
+    "side": "recto",
+    "folio": "5",
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 10,
+    "logical_page": 10,
+    "kind": "solutions",
+    "side": "verso",
+    "folio": "6",
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 11,
+    "logical_page": 11,
+    "kind": "notes",
+    "side": "recto",
+    "folio": "7",
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   }
+  ]
+ },
+ "preview": {
+  "pdf_sha256": "19d5bd5af6f2b381af7d2bad5b0daca57534b4a2f1139c46f23bfba0137bfecf",
+  "page_count": 11,
+  "scales": {
+   "thumb": 0.5,
+   "page": 2.0,
+   "detail": 4.0
+  },
+  "pages": [
+   {
+    "physical_page": 1,
+    "logical_page": 1,
+    "kind": "title_page",
+    "side": "recto",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    },
+    "description": "Title page: Seaside Word Searches"
+   },
+   {
+    "physical_page": 2,
+    "logical_page": 2,
+    "kind": "copyright_page",
+    "side": "verso",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    },
+    "description": "Copyright page"
+   },
+   {
+    "physical_page": 3,
+    "logical_page": 3,
+    "kind": "instructions",
+    "side": "recto",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    },
+    "description": "Instructions: How to Play"
+   },
+   {
+    "physical_page": 4,
+    "logical_page": 4,
+    "kind": "blank",
+    "side": "verso",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    },
+    "description": "Blank: puzzles start on recto"
+   },
+   {
+    "physical_page": 5,
+    "logical_page": 5,
+    "kind": "puzzle",
+    "side": "recto",
+    "folio": "1",
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    },
+    "description": "Puzzle 1: Along the Shoreline [shoreline]; solution p. 5"
+   },
+   {
+    "physical_page": 6,
+    "logical_page": 6,
+    "kind": "puzzle",
+    "side": "verso",
+    "folio": "2",
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    },
+    "description": "Puzzle 2: In the Rock Pool [rockpool]; solution p. 5"
+   },
+   {
+    "physical_page": 7,
+    "logical_page": 7,
+    "kind": "puzzle",
+    "side": "recto",
+    "folio": "3",
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    },
+    "description": "Puzzle 3: By the Harbour [harbour]; solution p. 6"
+   },
+   {
+    "physical_page": 8,
+    "logical_page": 8,
+    "kind": "puzzle",
+    "side": "verso",
+    "folio": "4",
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    },
+    "description": "Puzzle 4: Over the Dunes [dunes]; solution p. 6"
+   },
+   {
+    "physical_page": 9,
+    "logical_page": 9,
+    "kind": "solutions",
+    "side": "recto",
+    "folio": "5",
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    },
+    "description": "Solutions for puzzle 1 (p. 1), 2 (p. 2) | heading: Solutions"
+   },
+   {
+    "physical_page": 10,
+    "logical_page": 10,
+    "kind": "solutions",
+    "side": "verso",
+    "folio": "6",
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    },
+    "description": "Solutions for puzzle 3 (p. 3), 4 (p. 4)"
+   },
+   {
+    "physical_page": 11,
+    "logical_page": 11,
+    "kind": "notes",
+    "side": "recto",
+    "folio": "7",
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    },
+    "description": "Notes: Notes"
+   }
+  ],
+  "geometry": [
+   {
+    "physical_page": 1,
+    "trim": {
+     "x": 0.0,
+     "y": 0.0,
+     "width": 612.0,
+     "height": 792
+    },
+    "live": {
+     "x": 54.0,
+     "y": 45.0,
+     "width": 522.0,
+     "height": 702.0
+    },
+    "kdp_safe": {
+     "x": 27.0,
+     "y": 18.0,
+     "width": 567.0,
+     "height": 756.0
+    },
+    "elements": [
+     {
+      "role": "title",
+      "box": {
+       "x": 116.323,
+       "y": 562.918,
+       "width": 397.354,
+       "height": 34.922
+      }
+     },
+     {
+      "role": "title_rule",
+      "box": {
+       "x": 279.0,
+       "y": 544.543,
+       "width": 72,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "subtitle",
+      "box": {
+       "x": 173.238,
+       "y": 508.293,
+       "width": 283.523,
+       "height": 18.625
+      }
+     },
+     {
+      "role": "author",
+      "box": {
+       "x": 237.802,
+       "y": 455.996,
+       "width": 154.396,
+       "height": 16.297
+      }
+     }
+    ]
+   },
+   {
+    "physical_page": 2,
+    "trim": {
+     "x": 0.0,
+     "y": 0.0,
+     "width": 612.0,
+     "height": 792
+    },
+    "live": {
+     "x": 36.0,
+     "y": 45.0,
+     "width": 522.0,
+     "height": 702.0
+    },
+    "kdp_safe": {
+     "x": 18.0,
+     "y": 18.0,
+     "width": 567.0,
+     "height": 756.0
+    },
+    "elements": [
+     {
+      "role": "copyright",
+      "box": {
+       "x": 99.0,
+       "y": 82.3,
+       "width": 367.044,
+       "height": 11.059
+      }
+     },
+     {
+      "role": "copyright",
+      "box": {
+       "x": 99.0,
+       "y": 69.0,
+       "width": 85.843,
+       "height": 11.059
+      }
+     }
+    ]
+   },
+   {
+    "physical_page": 3,
+    "trim": {
+     "x": 0.0,
+     "y": 0.0,
+     "width": 612.0,
+     "height": 792
+    },
+    "live": {
+     "x": 54.0,
+     "y": 45.0,
+     "width": 522.0,
+     "height": 702.0
+    },
+    "kdp_safe": {
+     "x": 27.0,
+     "y": 18.0,
+     "width": 567.0,
+     "height": 756.0
+    },
+    "elements": [
+     {
+      "role": "heading",
+      "box": {
+       "x": 241.174,
+       "y": 721.391,
+       "width": 147.651,
+       "height": 25.609
+      }
+     },
+     {
+      "role": "body",
+      "box": {
+       "x": 117.0,
+       "y": 684.004,
+       "width": 391.898,
+       "height": 13.387
+      }
+     },
+     {
+      "role": "body",
+      "box": {
+       "x": 117.0,
+       "y": 667.329,
+       "width": 216.681,
+       "height": 13.387
+      }
+     }
+    ]
+   },
+   {
+    "physical_page": 4,
+    "trim": {
+     "x": 0.0,
+     "y": 0.0,
+     "width": 612.0,
+     "height": 792
+    },
+    "live": {
+     "x": 36.0,
+     "y": 45.0,
+     "width": 522.0,
+     "height": 702.0
+    },
+    "kdp_safe": {
+     "x": 18.0,
+     "y": 18.0,
+     "width": 567.0,
+     "height": 756.0
+    },
+    "elements": []
+   },
+   {
+    "physical_page": 5,
+    "trim": {
+     "x": 0.0,
+     "y": 0.0,
+     "width": 612.0,
+     "height": 792
+    },
+    "live": {
+     "x": 54.0,
+     "y": 45.0,
+     "width": 522.0,
+     "height": 702.0
+    },
+    "kdp_safe": {
+     "x": 27.0,
+     "y": 18.0,
+     "width": 567.0,
+     "height": 756.0
+    },
+    "elements": [
+     {
+      "role": "puzzle_title",
+      "box": {
+       "x": 192.217,
+       "y": 721.391,
+       "width": 245.566,
+       "height": 25.609
+      }
+     },
+     {
+      "role": "theme",
+      "box": {
+       "x": 283.655,
+       "y": 701.422,
+       "width": 62.689,
+       "height": 13.969
+      }
+     },
+     {
+      "role": "puzzle_grid",
+      "box": {
+       "x": 123.429,
+       "y": 235.92,
+       "width": 383.143,
+       "height": 311.714
+      }
+     },
+     {
+      "role": "word_list",
+      "box": {
+       "x": 217.91,
+       "y": 199.287,
+       "width": 40.727,
+       "height": 15.133
+      }
+     },
+     {
+      "role": "word_list",
+      "box": {
+       "x": 294.637,
+       "y": 199.287,
+       "width": 38.854,
+       "height": 15.133
+      }
+     },
+     {
+      "role": "word_list",
+      "box": {
+       "x": 371.363,
+       "y": 199.287,
+       "width": 36.88,
+       "height": 15.133
+      }
+     },
+     {
+      "role": "folio",
+      "box": {
+       "x": 311.819,
+       "y": 45.0,
+       "width": 6.362,
+       "height": 11.641
+      }
+     }
+    ]
+   },
+   {
+    "physical_page": 6,
+    "trim": {
+     "x": 0.0,
+     "y": 0.0,
+     "width": 612.0,
+     "height": 792
+    },
+    "live": {
+     "x": 36.0,
+     "y": 45.0,
+     "width": 522.0,
+     "height": 702.0
+    },
+    "kdp_safe": {
+     "x": 18.0,
+     "y": 18.0,
+     "width": 567.0,
+     "height": 756.0
+    },
+    "elements": [
+     {
+      "role": "puzzle_title",
+      "box": {
+       "x": 196.228,
+       "y": 721.391,
+       "width": 201.545,
+       "height": 25.609
+      }
+     },
+     {
+      "role": "theme",
+      "box": {
+       "x": 249.855,
+       "y": 701.422,
+       "width": 94.289,
+       "height": 13.969
+      }
+     },
+     {
+      "role": "puzzle_grid",
+      "box": {
+       "x": 105.429,
+       "y": 235.92,
+       "width": 383.143,
+       "height": 311.714
+      }
+     },
+     {
+      "role": "word_list",
+      "box": {
+       "x": 207.118,
+       "y": 199.287,
+       "width": 35.921,
+       "height": 15.133
+      }
+     },
+     {
+      "role": "word_list",
+      "box": {
+       "x": 279.039,
+       "y": 199.287,
+       "width": 31.821,
+       "height": 15.133
+      }
+     },
+     {
+      "role": "word_list",
+      "box": {
+       "x": 350.961,
+       "y": 199.287,
+       "width": 29.999,
+       "height": 15.133
+      }
+     },
+     {
+      "role": "folio",
+      "box": {
+       "x": 293.819,
+       "y": 45.0,
+       "width": 6.362,
+       "height": 11.641
+      }
+     }
+    ]
+   },
+   {
+    "physical_page": 7,
+    "trim": {
+     "x": 0.0,
+     "y": 0.0,
+     "width": 612.0,
+     "height": 792
+    },
+    "live": {
+     "x": 54.0,
+     "y": 45.0,
+     "width": 522.0,
+     "height": 702.0
+    },
+    "kdp_safe": {
+     "x": 27.0,
+     "y": 18.0,
+     "width": 567.0,
+     "height": 756.0
+    },
+    "elements": [
+     {
+      "role": "puzzle_title",
+      "box": {
+       "x": 220.496,
+       "y": 721.391,
+       "width": 189.009,
+       "height": 25.609
+      }
+     },
+     {
+      "role": "theme",
+      "box": {
+       "x": 254.897,
+       "y": 701.422,
+       "width": 120.205,
+       "height": 13.969
+      }
+     },
+     {
+      "role": "puzzle_grid",
+      "box": {
+       "x": 123.429,
+       "y": 200.206,
+       "width": 383.143,
+       "height": 383.143
+      }
+     },
+     {
+      "role": "word_list",
+      "box": {
+       "x": 224.09,
+       "y": 163.573,
+       "width": 28.92,
+       "height": 15.133
+      }
+     },
+     {
+      "role": "word_list",
+      "box": {
+       "x": 296.697,
+       "y": 163.573,
+       "width": 36.607,
+       "height": 15.133
+      }
+     },
+     {
+      "role": "word_list",
+      "box": {
+       "x": 369.303,
+       "y": 163.573,
+       "width": 34.074,
+       "height": 15.133
+      }
+     },
+     {
+      "role": "folio",
+      "box": {
+       "x": 311.819,
+       "y": 45.0,
+       "width": 6.362,
+       "height": 11.641
+      }
+     }
+    ]
+   },
+   {
+    "physical_page": 8,
+    "trim": {
+     "x": 0.0,
+     "y": 0.0,
+     "width": 612.0,
+     "height": 792
+    },
+    "live": {
+     "x": 36.0,
+     "y": 45.0,
+     "width": 522.0,
+     "height": 702.0
+    },
+    "kdp_safe": {
+     "x": 18.0,
+     "y": 18.0,
+     "width": 567.0,
+     "height": 756.0
+    },
+    "elements": [
+     {
+      "role": "puzzle_title",
+      "box": {
+       "x": 200.583,
+       "y": 721.391,
+       "width": 192.833,
+       "height": 25.609
+      }
+     },
+     {
+      "role": "theme",
+      "box": {
+       "x": 242.177,
+       "y": 701.422,
+       "width": 109.646,
+       "height": 13.969
+      }
+     },
+     {
+      "role": "puzzle_grid",
+      "box": {
+       "x": 105.429,
+       "y": 200.206,
+       "width": 383.143,
+       "height": 383.143
+      }
+     },
+     {
+      "role": "word_list",
+      "box": {
+       "x": 204.804,
+       "y": 163.573,
+       "width": 37.464,
+       "height": 15.133
+      }
+     },
+     {
+      "role": "word_list",
+      "box": {
+       "x": 278.268,
+       "y": 163.573,
+       "width": 32.938,
+       "height": 15.133
+      }
+     },
+     {
+      "role": "word_list",
+      "box": {
+       "x": 351.732,
+       "y": 163.573,
+       "width": 36.417,
+       "height": 15.133
+      }
+     },
+     {
+      "role": "folio",
+      "box": {
+       "x": 293.819,
+       "y": 45.0,
+       "width": 6.362,
+       "height": 11.641
+      }
+     }
+    ]
+   },
+   {
+    "physical_page": 9,
+    "trim": {
+     "x": 0.0,
+     "y": 0.0,
+     "width": 612.0,
+     "height": 792
+    },
+    "live": {
+     "x": 54.0,
+     "y": 45.0,
+     "width": 522.0,
+     "height": 702.0
+    },
+    "kdp_safe": {
+     "x": 27.0,
+     "y": 18.0,
+     "width": 567.0,
+     "height": 756.0
+    },
+    "elements": [
+     {
+      "role": "heading",
+      "box": {
+       "x": 256.955,
+       "y": 721.391,
+       "width": 116.091,
+       "height": 25.609
+      }
+     },
+     {
+      "role": "solution_caption",
+      "box": {
+       "x": 255.958,
+       "y": 692.332,
+       "width": 106.04,
+       "height": 11.059
+      }
+     },
+     {
+      "role": "solution_page_ref",
+      "box": {
+       "x": 367.998,
+       "y": 692.332,
+       "width": 6.044,
+       "height": 11.059
+      }
+     },
+     {
+      "role": "solution_grid",
+      "box": {
+       "x": 180.75,
+       "y": 468.332,
+       "width": 268.5,
+       "height": 218.5
+      }
+     },
+     {
+      "role": "solution_caption",
+      "box": {
+       "x": 265.463,
+       "y": 365.137,
+       "width": 87.031,
+       "height": 11.059
+      }
+     },
+     {
+      "role": "solution_page_ref",
+      "box": {
+       "x": 358.493,
+       "y": 365.137,
+       "width": 6.044,
+       "height": 11.059
+      }
+     },
+     {
+      "role": "solution_grid",
+      "box": {
+       "x": 180.75,
+       "y": 141.137,
+       "width": 268.5,
+       "height": 218.5
+      }
+     },
+     {
+      "role": "folio",
+      "box": {
+       "x": 311.819,
+       "y": 45.0,
+       "width": 6.362,
+       "height": 11.641
+      }
+     }
+    ]
+   },
+   {
+    "physical_page": 10,
+    "trim": {
+     "x": 0.0,
+     "y": 0.0,
+     "width": 612.0,
+     "height": 792
+    },
+    "live": {
+     "x": 36.0,
+     "y": 45.0,
+     "width": 522.0,
+     "height": 702.0
+    },
+    "kdp_safe": {
+     "x": 18.0,
+     "y": 18.0,
+     "width": 567.0,
+     "height": 756.0
+    },
+    "elements": [
+     {
+      "role": "solution_caption",
+      "box": {
+       "x": 250.169,
+       "y": 735.941,
+       "width": 81.617,
+       "height": 11.059
+      }
+     },
+     {
+      "role": "solution_page_ref",
+      "box": {
+       "x": 337.787,
+       "y": 735.941,
+       "width": 6.044,
+       "height": 11.059
+      }
+     },
+     {
+      "role": "solution_grid",
+      "box": {
+       "x": 162.75,
+       "y": 461.941,
+       "width": 268.5,
+       "height": 268.5
+      }
+     },
+     {
+      "role": "solution_caption",
+      "box": {
+       "x": 249.344,
+       "y": 386.941,
+       "width": 83.269,
+       "height": 11.059
+      }
+     },
+     {
+      "role": "solution_page_ref",
+      "box": {
+       "x": 338.612,
+       "y": 386.941,
+       "width": 6.044,
+       "height": 11.059
+      }
+     },
+     {
+      "role": "solution_grid",
+      "box": {
+       "x": 162.75,
+       "y": 112.941,
+       "width": 268.5,
+       "height": 268.5
+      }
+     },
+     {
+      "role": "folio",
+      "box": {
+       "x": 293.819,
+       "y": 45.0,
+       "width": 6.362,
+       "height": 11.641
+      }
+     }
+    ]
+   },
+   {
+    "physical_page": 11,
+    "trim": {
+     "x": 0.0,
+     "y": 0.0,
+     "width": 612.0,
+     "height": 792
+    },
+    "live": {
+     "x": 54.0,
+     "y": 45.0,
+     "width": 522.0,
+     "height": 702.0
+    },
+    "kdp_safe": {
+     "x": 27.0,
+     "y": 18.0,
+     "width": 567.0,
+     "height": 756.0
+    },
+    "elements": [
+     {
+      "role": "heading",
+      "box": {
+       "x": 278.971,
+       "y": 721.391,
+       "width": 72.059,
+       "height": 25.609
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 670.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 643.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 616.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 589.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 562.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 535.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 508.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 481.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 454.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 427.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 400.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 373.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 346.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 319.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 292.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 265.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 238.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 211.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 184.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 157.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 130.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 103.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "notes_line",
+      "box": {
+       "x": 54.0,
+       "y": 76.016,
+       "width": 522.0,
+       "height": 0.75
+      }
+     },
+     {
+      "role": "folio",
+      "box": {
+       "x": 311.819,
+       "y": 45.0,
+       "width": 6.362,
+       "height": 11.641
+      }
+     }
+    ]
+   }
+  ]
+ }
+}

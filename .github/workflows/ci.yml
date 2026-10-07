@@ -61,6 +61,31 @@ jobs:
           EOF
       - run: puzzlepress book build books/composition-demo --output interior-again
       - run: cmp interior-out/interior.pdf interior-again/interior.pdf
+      - name: Preflight is structurally valid but not KDP ready (11 < 24 pages)
+        run: |
+          set +e
+          puzzlepress book preflight books/composition-demo --output interior-out --json > preflight-stdout.json
+          status=$?
+          set -e
+          test "$status" -eq 1
+          cmp preflight-stdout.json interior-out/preflight.json
+          python - <<'EOF'
+          import hashlib, json, pathlib
+          out = pathlib.Path("interior-out")
+          report = json.loads((out / "preflight.json").read_text())
+          assert report["structural"]["status"] == "valid"
+          assert report["kdp"]["status"] == "not_ready"
+          errors = [f["rule"] for f in report["findings"] if f["severity"] == "error"]
+          assert errors == ["kdp_minimum_page_count"], errors
+          pdf = hashlib.sha256((out / "interior.pdf").read_bytes()).hexdigest()
+          assert report["artifacts"]["pdf"]["sha256"] == pdf
+          EOF
+      - name: Preflight is read-only apart from its report and deterministic
+        run: |
+          sha256sum interior-out/interior.pdf interior-out/interior.json > before.txt
+          puzzlepress book preflight books/composition-demo --output interior-out --json --no-write > again.json || true
+          sha256sum -c before.txt
+          cmp again.json interior-out/preflight.json
 
   studio:
     runs-on: ubuntu-latest

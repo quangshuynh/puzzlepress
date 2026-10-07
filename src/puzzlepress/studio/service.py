@@ -139,8 +139,14 @@ class StudioService:
         return self.generate_project(project)
 
     @contextmanager
-    def _exclusive(self) -> Iterator[None]:
-        if not self._generation_lock.acquire(blocking=False):
+    def exclusive(self, wait: float = 0) -> Iterator[None]:
+        """Run alone. Drafts fail fast when busy; print reads may `wait` seconds."""
+        acquired = (
+            self._generation_lock.acquire(timeout=wait)
+            if wait > 0
+            else self._generation_lock.acquire(blocking=False)
+        )
+        if not acquired:
             raise StudioError(409, "generation_busy", "Generation is running. Try again shortly.")
         try:
             yield
@@ -149,7 +155,7 @@ class StudioService:
 
     def plan_project(self, project: Project) -> dict[str, object]:
         """Generate and plan the given source; the verified plan is the only result."""
-        with self._exclusive():
+        with self.exclusive():
             if project.composition is None:
                 raise StudioError(422, "no_composition", "This project has no book composition.")
             report, plan = build_publication(project)
@@ -159,7 +165,7 @@ class StudioService:
             return publication_payload(report, plan, verification)
 
     def generate_project(self, project: Project) -> dict[str, object]:
-        with self._exclusive():
+        with self.exclusive():
             if project.word_search is None:
                 raise StudioError(422, "no_puzzles", "This project has no word-search definitions.")
             report = generate_batch(project)

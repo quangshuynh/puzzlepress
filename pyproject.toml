@@ -24,7 +24,7 @@ dev = [
     "types-PyYAML>=6,<7",
     "types-reportlab>=5,<6",
 ]
-studio = ["fastapi>=0.135,<0.136", "uvicorn>=0.34,<1"]
+studio = ["fastapi>=0.135,<0.136", "uvicorn>=0.34,<1", "pypdfium2>=5.14,<6"]
 web-test = ["httpx>=0.28,<1"]
 
 [project.scripts]
@@ -52,3 +52,8 @@ select = ["E", "F", "I", "UP", "B"]
 python_version = "3.11"
 strict = true
 files = ["src/puzzlepress"]
+
+[[tool.mypy.overrides]]
+# pypdfium2 ships no type information; it is used only for Studio page previews.
+module = ["pypdfium2", "pypdfium2.*"]
+ignore_missing_imports = true

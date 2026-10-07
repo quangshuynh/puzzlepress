@@ -1,4 +1,4 @@
-import { Component, useEffect, useRef, useState, type ReactNode } from 'react';
+import { Component, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { ApiError, request } from './api';
 import { Library } from './Library';
 import { Overview } from './Overview';
@@ -7,6 +7,7 @@ import type { Generation, Project } from './types';
 import { Empty, ErrorState, Loading } from './ui';
 import { Editor } from './Editor';
 import { Composer } from './Composer';
+import { Print } from './Print';
 import { useDraft } from './draft';
 
 function usePath(allow: (next: string, current: string) => boolean) {
@@ -86,6 +87,14 @@ function ProjectWorkspace({
   const [generationError, setGenerationError] = useState<Error>();
   const [loadingGeneration, setLoadingGeneration] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [dirty, setDirty] = useState(false);
+  const trackDirty = useCallback(
+    (next: boolean) => {
+      setDirty(next);
+      onDirty(next);
+    },
+    [onDirty],
+  );
   const generationController = useRef<AbortController | null>(null);
   useEffect(() => {
     const controller = new AbortController();
@@ -100,7 +109,7 @@ function ProjectWorkspace({
       generationController.current?.abort();
     };
   }, [projectKey, attempt]);
-  const needsGeneration = !['overview', 'edit', 'book'].includes(section);
+  const needsGeneration = !['overview', 'edit', 'book', 'print'].includes(section);
   useEffect(() => {
     if (
       !needsGeneration ||
@@ -160,6 +169,9 @@ function ProjectWorkspace({
         <a href={`${base}/book`} aria-current={section === 'book' ? 'page' : undefined}>
           Book
         </a>
+        <a href={`${base}/print`} aria-current={section === 'print' ? 'page' : undefined}>
+          Print
+        </a>
         <a href={base} aria-current={section === 'overview' ? 'page' : undefined}>
           Overview
         </a>
@@ -174,7 +186,7 @@ function ProjectWorkspace({
         <DraftWorkspace
           project={project}
           section={section}
-          onDirty={onDirty}
+          onDirty={trackDirty}
           onSaved={(next) => {
             setProject(next);
             setGeneration(undefined);
@@ -182,7 +194,9 @@ function ProjectWorkspace({
           }}
         />
       )}
-      {section === 'edit' || section === 'book' ? null : section === 'overview' ? (
+      {section === 'edit' || section === 'book' ? null : section === 'print' ? (
+        <Print project={project} dirty={dirty} />
+      ) : section === 'overview' ? (
         <Overview project={project} />
       ) : !project.source?.word_search ? (
         <Empty title="No puzzle definitions">
@@ -264,7 +278,9 @@ export function App() {
     }
     first.current = false;
   }, [path]);
-  const match = path.match(/^\/books\/([^/]+)(?:\/(puzzles|quality|edit|book)(?:\/([^/]+))?)?\/?$/);
+  const match = path.match(
+    /^\/books\/([^/]+)(?:\/(puzzles|quality|edit|book|print)(?:\/([^/]+))?)?\/?$/,
+  );
   const isLibrary = path === '/' || path === '/books' || path === '/books/';
   return (
     <div className="app-shell">
@@ -318,7 +334,7 @@ export function App() {
           <RenderBoundary>
             {isLibrary ? (
               <Library />
-            ) : match && !(['quality', 'edit', 'book'].includes(match[2]) && match[3]) ? (
+            ) : match && !(['quality', 'edit', 'book', 'print'].includes(match[2]) && match[3]) ? (
               <ProjectWorkspace
                 key={match[1]}
                 projectKey={match[1]}

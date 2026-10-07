@@ -120,6 +120,12 @@ Small status marks differ in shape as well as color. The supplied logo is preser
   semantic table grouped by section, with side and number as text, uncounted
   numbers in parentheses and blanks on canvas with their reason. It is a logical
   list, never a simulated page spread or print preview.
+- Print proof: the rasterized PDF page is the dominant artifact on a neutral
+  canvas, flanked by page thumbnails and a ruled findings column. Structural and
+  KDP verdicts are separate text statuses, never one badge. Findings state what,
+  where, measured and required values, and what they block. Overlays are thin
+  dashed SVG lines over the raster, labeled and off by default; the binding edge
+  is marked. Passed checks are secondary disclosures.
 - States: text and recovery actions for errors, meaningful empty states, polite
   loading status. A single loading-line animation respects reduced motion.
 
@@ -136,3 +142,4 @@ Small status marks differ in shape as well as color. The supplied logo is preser
 - Don't introduce gradients, glass effects, decorative charts or nested cards.
 - Don't imply that no quality findings means publication readiness.
 - Don't present future workflows as working navigation.
+- Don't imply preflight readiness means Amazon will accept a book.

@@ -29,4 +29,11 @@ with tempfile.TemporaryDirectory(prefix="puzzlepress-browser-") as directory:
     target = books / "composer-demo"
     target.mkdir()
     shutil.copyfile(ROOT / "books/composition-demo/book.yaml", target / "book.yaml")
+    # Print builds write only inside this temporary directory, never to build/.
+    target = books / "print-demo"
+    target.mkdir()
+    source = (ROOT / "books/composition-demo/book.yaml").read_text(encoding="utf-8")
+    (target / "book.yaml").write_text(
+        source.replace("../../build/composition-demo", "../../build/print-demo"), encoding="utf-8"
+    )
     uvicorn.run(create_app(books, ROOT / "studio/dist"), host="127.0.0.1", port=8015)

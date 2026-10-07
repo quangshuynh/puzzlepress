@@ -32,6 +32,7 @@ from .validation import validate_layout
 MANIFEST_VERSION = 1
 PDF_NAME = "interior.pdf"
 MANIFEST_NAME = "interior.json"
+PREFLIGHT_NAME = "preflight.json"
 
 
 @dataclass(frozen=True)
@@ -72,6 +73,34 @@ def build_interior(project: Project, spec: PrintSpecification) -> InteriorBuild:
     return InteriorBuild(report, plan, layout, pdf, interior_manifest(layout, pdf))
 
 
+# Manifest fields that, together, are the interior identity's inputs.
+IDENTITY_INPUTS = (
+    "identity",
+    "plan_digest",
+    "print_profile",
+    "renderer_version",
+    "engine_version",
+    "pdf_library",
+    "fonts",
+)
+
+
+def toolchain() -> dict[str, object]:
+    """Output-affecting renderer inputs other than source, plan and profile."""
+    return {
+        "renderer_version": RENDERER_VERSION,
+        "engine_version": __version__,
+        "pdf_library": f"reportlab {REPORTLAB_VERSION}",
+        "fonts": font_manifest(),
+    }
+
+
+def interior_identity(inputs: dict[str, object]) -> str:
+    material = {key: inputs[key] for key in IDENTITY_INPUTS}
+    digest = hashlib.sha256(_canonical(material)).hexdigest()
+    return f"pp{IDENTITY_VERSION}-interior-sha256-{digest}"
+
+
 def interior_manifest(layout: InteriorLayout, pdf: bytes) -> dict[str, object]:
     """Deterministic traceability record. It contains no timestamps or paths."""
     spec = layout.spec
@@ -79,18 +108,12 @@ def interior_manifest(layout: InteriorLayout, pdf: bytes) -> dict[str, object]:
         "identity": layout.identity,
         "plan_digest": layout.plan_digest,
         "print_profile": spec.to_dict(),
-        "renderer_version": RENDERER_VERSION,
-        "engine_version": __version__,
-        "pdf_library": f"reportlab {REPORTLAB_VERSION}",
-        "fonts": font_manifest(),
+        **toolchain(),
     }
-    interior_identity = (
-        f"pp{IDENTITY_VERSION}-interior-sha256-{hashlib.sha256(_canonical(inputs)).hexdigest()}"
-    )
     return {
         "manifest_version": MANIFEST_VERSION,
         "book_id": layout.book_id,
-        "interior_identity": interior_identity,
+        "interior_identity": interior_identity(inputs),
         **inputs,
         "trim": {
             "name": spec.trim.name,
@@ -198,3 +221,29 @@ def write_interior(build: InteriorBuild, output: Path, source_directory: Path) -
     if hashlib.sha256(pdf.read_bytes()).hexdigest() != hashlib.sha256(build.pdf).hexdigest():
         raise _output_issue("write_failed", "Written PDF does not match the verified bytes.")
     return InteriorOutput(pdf, manifest)
+
+
+def write_preflight_report(data: bytes, book_id: str, output: Path, source_directory: Path) -> Path:
+    """Atomically replace preflight.json beside an interior this book owns.
+
+    The report is written only next to an existing manifest naming the same
+    book; it never creates an output directory or touches the PDF or manifest.
+    """
+    directory = check_output_directory(output, source_directory)
+    manifest, target = directory / MANIFEST_NAME, directory / PREFLIGHT_NAME
+    if not directory.is_dir() or not manifest.is_file() or manifest.is_symlink():
+        raise _output_issue("output_missing", "No interior manifest to report beside.")
+    _check_ownership(directory, book_id)
+    if target.is_symlink() or (target.exists() and not target.is_file()):
+        raise _output_issue("output_collision", f"Refusing to replace {PREFLIGHT_NAME}.")
+    staged: Path | None = None
+    try:
+        staged = _stage(directory, data, ".preflight.tmp")
+        os.replace(staged, target)
+        staged = None
+    except OSError as error:
+        raise _output_issue("write_failed", f"Cannot write preflight report: {error}") from error
+    finally:
+        if staged is not None:
+            staged.unlink(missing_ok=True)
+    return target

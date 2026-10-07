@@ -15,6 +15,9 @@ and local Web Studio share the same core. Read `CONTEXT.md` for current scope.
 - Solutions come from authoritative placements. Verify them independently.
 - Keep quality findings separate from generation failures. Report incomplete
   screening explicitly. Never silently regenerate or change authored policy.
+- Preflight observes: it never mutates the plan, layout, PDF, manifest or source
+  to make a check pass. Keep structural validity separate from KDP readiness;
+  unevaluated rules never count as passing. KDP values need official provenance.
 - Preserve per-puzzle seed derivation across batch reordering. Serialize 64-bit
   report seeds as decimal strings so web clients retain exact values.
 - Publication plans stay renderer-independent. Layout consumes a verified plan

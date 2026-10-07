@@ -64,6 +64,10 @@ Size, Bleed, and Margins"; "Paperback Manuscript File Requirements"):
   bookmarks or printer's marks.
 - At least 24 pages. A shorter book still builds with warning
   `kdp_minimum_page_count`: the plan owns page count and the renderer never pads.
+  [Preflight](preflight.md) reports it as a KDP readiness failure.
+
+The full KDP rule set, its provenance and documented ambiguities (maximum page
+count, full embedding) are in [preflight](preflight.md).
 
 Physical page count equals the plan's logical page count. The gutter is fixed by
 the profile and validated against that count; it is never enlarged automatically.
@@ -151,7 +155,8 @@ PDF inspection codes (`pdf_*`, `font_not_embedded`) and output codes.
    folios equal to plan labels, empty blanks, grids equal to generated rows, word
    lists, exact solution groups and marks, minimum sizes and strokes, containment
    in the live area and no overlapping elements.
-4. After rendering, pypdf reopens the bytes and checks page count, media and trim
+4. After rendering, pypdf reopens the bytes (`inspection.read_pdf_facts`, the
+   same observation layer preflight uses) and checks page count, media and trim
    boxes, rotation, annotations, outline, forms, embedded font programs
    (`FontFile2`), empty blank pages and printed folios.
 
@@ -194,7 +199,8 @@ previous manifest, which the manifest's PDF SHA-256 reveals.
 output gives paths, page count, trim, profile, interior identity and PDF
 SHA-256; warnings go to stderr. JSON: `{success, output{pdf, manifest},
 manifest}` or `{success: false, stage, diagnostics}`. Exit 0 success, 1 expected
-failure (nothing written), 2 usage. Studio does not build interiors yet.
+failure (nothing written), 2 usage. Studio's **Print** tab runs the same build
+for saved source; `book preflight` inspects the result ([preflight](preflight.md)).
 
 ## Limitations
 
@@ -202,5 +208,6 @@ One profile (8.5 x 11 in, no bleed, black ink). Fonts are subset-embedded (KDP
 recommends, but does not require, full embedding). One sans family with Latin-1
 coverage. No PDF/X conformance, color management, images, hyphenation, running
 heads, table of contents or per-book typography settings. The KDP page minimum
-is a warning. Layout never repaginates, so overflow must be fixed in source or
-composition. Print preview and full KDP preflight are Interval 8 work.
+is a build warning and a preflight readiness failure. Layout never repaginates, so
+overflow must be fixed in source or composition. Covers and KDP packaging are not
+implemented.

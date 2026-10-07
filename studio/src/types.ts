@@ -182,3 +182,116 @@ export interface PlanResult {
   verification: { valid: boolean; issues: Issue[] };
   generation: { success: boolean; clean: boolean; quality_findings: number };
 }
+// Print preview and preflight. Verdicts, geometry and page meaning come from Python.
+export interface PtBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+export interface Measure {
+  actual: number | string;
+  required: number | string | null;
+  unit: string | null;
+  comparison: string | null;
+}
+export interface PreflightFinding {
+  rule: string;
+  severity: 'error' | 'warning' | 'info';
+  scope: 'structural' | 'kdp';
+  category: string;
+  message: string;
+  physical_page: number | null;
+  logical_page: number | null;
+  page_kind: string | null;
+  side: 'recto' | 'verso' | null;
+  folio: string | null;
+  subject: string | null;
+  region: string | null;
+  bounds: PtBox | null;
+  measure: Measure | null;
+}
+export interface PreflightRule {
+  code: string;
+  scope: 'structural' | 'kdp';
+  category: string;
+  severity: 'error' | 'warning' | 'info';
+  title: string;
+  description: string;
+  basis: string;
+  source: string;
+  help: string;
+  outcome: 'passed' | 'failed' | 'not_applicable' | 'not_evaluated';
+  findings: number;
+  note: string | null;
+  measure: Measure | null;
+}
+export interface PreviewPage {
+  physical_page: number;
+  logical_page: number | null;
+  kind: string | null;
+  side: 'recto' | 'verso' | null;
+  folio: string | null;
+  description?: string;
+  findings: { error: number; warning: number; info: number };
+}
+export interface PageGeometry {
+  physical_page: number;
+  trim: PtBox;
+  live: PtBox;
+  kdp_safe: PtBox | null;
+  elements: { role: string; box: PtBox }[];
+}
+export interface PreflightReport {
+  report_version: number;
+  ruleset: { id: string; version: number; kdp_rules_checked: string };
+  book_id: string;
+  source_identity: string;
+  profile: {
+    id: string;
+    version: number;
+    description: string;
+    trim: { name: string; width_in: number; height_in: number };
+    bleed: boolean;
+  } | null;
+  artifacts: {
+    pdf: { sha256: string; bytes: number } | null;
+    manifest: { sha256: string; bytes: number } | null;
+    interior_identity: string | null;
+    expected_interior_identity: string | null;
+    matches_layout: boolean;
+  };
+  page_count: number | null;
+  structural: { status: 'valid' | 'invalid' };
+  kdp: { status: 'ready' | 'not_ready' };
+  counts: { severity: Record<string, number>; outcome: Record<string, number> };
+  findings: PreflightFinding[];
+  rules: PreflightRule[];
+  pages: PreviewPage[];
+}
+export interface BuildDiagnostic {
+  code: string;
+  message: string;
+  page: number | null;
+  physical_page: number | null;
+  kind: string | null;
+  subject: string | null;
+  region: string | null;
+  actual: string | null;
+  required: string | null;
+}
+export interface InteriorStatus {
+  key: string;
+  revision: string;
+  ruleset: number;
+  state: 'missing' | 'current' | 'stale' | 'invalid';
+  report: PreflightReport | null;
+  preview: {
+    pdf_sha256: string;
+    page_count: number;
+    scales: Record<string, number>;
+    pages: PreviewPage[];
+    geometry: PageGeometry[] | null;
+  } | null;
+  build?: { success: boolean; stage?: string; diagnostics?: BuildDiagnostic[] };
+}

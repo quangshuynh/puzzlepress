@@ -19,8 +19,9 @@ Expose the same deterministic engine used by the CLI through a visual publishing
 Local library, source overview, visual puzzle and word-bank entry editing, shared
 profile settings, book composition (matter, puzzle order, solution and numbering
 policy), Python draft validation, deterministic preview, verified logical
-publication-plan preview, quality review, and deliberate revision-checked source
-saves. No PDF, print layout, cover, KDP, cloud or accounts.
+publication-plan preview, quality review, deliberate revision-checked source
+saves, saved-source interior builds, and a print proof of the real PDF with
+structural and modeled-KDP preflight. No cover, KDP packaging, cloud or accounts.
 
 ## Brand Commitments
 Preserve docs/images/puzzlepress-logo.png. Editorial, calm, professional, precise,

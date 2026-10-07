@@ -28,6 +28,19 @@ def add_book_command(commands: "argparse._SubParsersAction[argparse.ArgumentPars
     )
     build.add_argument("--profile", help="Print profile (default: paperback-8.5x11)")
     build.add_argument("--json", action="store_true", help="Print a structured build result")
+    preflight = actions.add_parser(
+        "preflight", help="Inspect a built interior: structural validity and KDP readiness"
+    )
+    preflight.add_argument("project", help="YAML file or directory containing book.yaml")
+    preflight.add_argument(
+        "--output",
+        metavar="DIR",
+        help="Interior directory (default: the project's output.directory)",
+    )
+    preflight.add_argument("--json", action="store_true", help="Print the preflight report JSON")
+    preflight.add_argument(
+        "--no-write", action="store_true", help="Do not write preflight.json beside the interior"
+    )
 
 
 def describe(page: PlanPage, plan: PublicationPlan) -> str:
@@ -55,6 +68,8 @@ def describe(page: PlanPage, plan: PublicationPlan) -> str:
 def run_book_command(args: argparse.Namespace) -> int:
     if args.book_command == "build":
         return run_build_command(args)
+    if args.book_command == "preflight":
+        return run_preflight_command(args)
     project = load_project(args.project).project
     report, plan = build_publication(project)
     verification = verify_publication_plan(plan, project, report)
@@ -166,6 +181,81 @@ def run_build_command(args: argparse.Namespace) -> int:
     for warning in build.layout.warnings:
         print(f"Warning: {_describe_issue(warning)}", file=sys.stderr)
     return 0
+
+
+def run_preflight_command(args: argparse.Namespace) -> int:
+    """Exit 0 only when structurally valid and KDP ready; 1 otherwise; 2 usage."""
+    from .interior import InteriorError
+    from .interior.build import check_output_directory, write_preflight_report
+    from .preflight import Severity, preflight_interior, read_interior_artifacts, report_bytes
+
+    loaded = load_project(args.project)
+    source = loaded.source_path.parent
+    try:
+        directory = check_output_directory(
+            Path(args.output) if args.output else loaded.output_directory, source
+        )
+    except InteriorError as error:
+        for issue in error.issues:
+            print(f"Preflight failed: {_describe_issue(issue)}", file=sys.stderr)
+        return 1
+    result = preflight_interior(loaded.project, read_interior_artifacts(directory))
+    report = result.report
+    data = report_bytes(report)
+    written: Path | None = None
+    write_failed = False
+    if not args.no_write:
+        try:
+            written = write_preflight_report(data, report.book_id, directory, source)
+        except InteriorError as error:
+            write_failed = error.issues[0].code == "write_failed"
+            print(f"preflight.json not written: {error.issues[0].message}", file=sys.stderr)
+    if args.json:
+        # Exactly the bytes of preflight.json, without platform newline translation.
+        binary = getattr(sys.stdout, "buffer", None)
+        if binary is None:
+            sys.stdout.write(data.decode("ascii"))
+        else:
+            sys.stdout.flush()
+            binary.write(data)
+            binary.flush()
+    else:
+        profile = report.profile or {}
+        print(f"Preflight: {report.book_id} (ruleset {_ruleset()})")
+        print(f"Interior: {directory}")
+        if report.page_count is not None:
+            print(f"Pages: {report.page_count} | profile {profile.get('id', 'unknown')}")
+        pdf = report.to_dict()["artifacts"]
+        assert isinstance(pdf, dict)
+        if pdf["pdf"]:
+            print(f"PDF SHA-256: {pdf['pdf']['sha256']}")
+        print(f"Structural: {'VALID' if report.structurally_valid else 'INVALID'}")
+        print(f"KDP readiness: {'READY' if report.kdp_ready else 'NOT READY'}")
+        for severity, heading in ((Severity.ERROR, "Blocking"), (Severity.WARNING, "Warnings")):
+            found = [f for f in report.findings if f.severity is severity]
+            print(f"{heading}: {len(found) or 'none'}")
+            for finding in found:
+                where = f" [pdf page {finding.page.physical_page}]" if finding.page else ""
+                print(
+                    f"  {finding.rule.scope.value} [{finding.rule.code}] {finding.message}{where}"
+                )
+        outcomes = report.to_dict()["counts"]
+        assert isinstance(outcomes, dict)
+        tally = outcomes["outcome"]
+        print(
+            f"Rules: {tally['passed']} passed, {tally['failed']} with findings, "
+            f"{tally['not_applicable']} not applicable, {tally['not_evaluated']} not evaluated"
+        )
+        if written:
+            print(f"Report: {written}")
+        print("Preflight checks the constraints PuzzlePress models; Amazon KDP decides acceptance.")
+    return 0 if report.kdp_ready and not write_failed else 1
+
+
+def _ruleset() -> str:
+    from .preflight import RULESET_ID, RULESET_VERSION
+
+    return f"{RULESET_ID} v{RULESET_VERSION}"
 
 
 def _describe_issue(issue: "LayoutIssue") -> str:

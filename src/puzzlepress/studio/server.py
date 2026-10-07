@@ -17,6 +17,7 @@ from starlette.staticfiles import StaticFiles
 from puzzlepress.errors import ProjectError
 
 from .editing import DraftStore
+from .printing import PrintService
 from .service import ProjectStore, StudioError, StudioService, issue_dicts, project_detail
 
 LOGGER = logging.getLogger(__name__)
@@ -36,6 +37,11 @@ class SaveRequest(DraftRequest):
     revision: str
 
 
+class BuildRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    revision: str
+
+
 def error_response(status: int, code: str, message: str) -> JSONResponse:
     return JSONResponse({"error": {"code": code, "message": message, "issues": []}}, status)
 
@@ -43,6 +49,7 @@ def error_response(status: int, code: str, message: str) -> JSONResponse:
 def create_app(books: Path, frontend: Path) -> FastAPI:
     service = StudioService(ProjectStore(books.resolve()))
     drafts = DraftStore(service.store)
+    printing = PrintService(service)
     app = FastAPI(title="PuzzlePress Studio", docs_url=None, redoc_url=None, openapi_url=None)
     app.add_middleware(
         TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"]
@@ -59,7 +66,8 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
             return error_response(403, "origin_rejected", "Use Studio on this local server.")
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["Cache-Control"] = "no-store"
+        # Digest-addressed page previews may be cached; everything else is no-store.
+        response.headers.setdefault("Cache-Control", "no-store")
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; img-src 'self'; style-src 'self'; font-src 'self'; "
             "script-src 'self'; connect-src 'self'; object-src 'none'; "
@@ -131,6 +139,23 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
     def save_draft(key: str, body: SaveRequest) -> dict[str, object]:
         return drafts.save(key, body.source, body.revision)
 
+    @app.get("/api/projects/{key}/interior")
+    def interior(key: str) -> dict[str, object]:
+        return printing.status(key)
+
+    @app.post("/api/projects/{key}/interior/build")
+    def build_interior(key: str, body: BuildRequest) -> dict[str, object]:
+        return printing.build(key, body.revision)
+
+    @app.get("/api/projects/{key}/interior/pages/{page}")
+    def interior_page(key: str, page: int, size: str, pdf: str) -> Response:
+        image = printing.page_image(key, page, size, pdf)
+        return Response(
+            image,
+            media_type="image/png",
+            headers={"Cache-Control": "private, max-age=31536000, immutable"},
+        )
+
     if (frontend / "assets").is_dir():
         app.mount("/assets", StaticFiles(directory=frontend / "assets"), name="assets")
 
@@ -148,6 +173,7 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
     @app.get("/books/{key}/quality")
     @app.get("/books/{key}/edit")
     @app.get("/books/{key}/book")
+    @app.get("/books/{key}/print")
     @app.get("/books/{key}/puzzles/{puzzle_id}")
     def shell() -> FileResponse:
         index = frontend / "index.html"

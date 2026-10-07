@@ -1,6 +1,7 @@
 ﻿# PuzzlePress Studio
 
-Studio is a local visual editor for word-search projects and their book composition. Python remains the
+Studio is a local visual editor for word-search projects, their book composition
+and a print proof of the built interior. Python remains the
 single authority for schema validation, normalization, generation, identity and
 quality. The browser keeps drafts and displays authoritative results.
 
@@ -100,6 +101,14 @@ Validation errors attach to their composer fields. Failed and stale saves keep t
 draft, exactly as in Edit. Drag-and-drop is not used: buttons work for pointer and
 keyboard and avoid accidental moves.
 
+## Print proof
+
+Choose **Print** to build the saved source's interior, run preflight and proof the
+real PDF page by page: thumbnails, single pages, facing spreads, zoom, geometry
+overlays and findings linked to their pages. Builds use the saved revision only;
+unsaved drafts disable **Build interior**. Stale and mismatched interiors are
+labeled. Details, caching and endpoints: [preflight](preflight.md#studio-print-proof).
+
 ## Conflict and failure recovery
 
 A save includes the revision loaded with the authoritative source. A competing
@@ -154,6 +163,8 @@ produce identical YAML bytes. No YAML dependency or schema change was added.
 
 - `studio/service.py`: scoped snapshots, byte revisions, core report presentation.
 - `studio/editing.py`: explicit adapter-level persistence, keeping core APIs pure.
+- `studio/printing.py`, `studio/preview.py`: interior build/preflight adapter and the
+  PDFium page rasterizer with its digest-keyed cache.
 - `studio/server.py`: thin HTTP handlers, expected errors, static assets and launcher.
 - `studio/src/draft.tsx`: shared draft lifecycle and toolbar; `Editor.tsx`,
   `ContentEditor.tsx`, `Composer.tsx`, `editor-fields.tsx`: visual inputs and
@@ -168,6 +179,9 @@ produce identical YAML bytes. No YAML dependency or schema change was added.
 | `POST /api/projects/{key}/draft/preview` | `{source}`; core batch, verification and authoritative solution cells |
 | `POST /api/projects/{key}/draft/plan` | `{source}`; verified publication plan, verification and generation summary |
 | `POST /api/projects/{key}/draft/save` | `{source, revision}`; reloaded authoritative state and new revision |
+| `GET /api/projects/{key}/interior` | Saved interior state (`missing`, `current`, `stale`, `invalid`), preflight report, preview pages and overlay geometry |
+| `POST /api/projects/{key}/interior/build` | `{revision}`; builds saved source, writes interior and `preflight.json`, returns state or `{build: {success: false, stage, diagnostics}}` |
+| `GET /api/projects/{key}/interior/pages/{n}` | `?size=thumb\|page\|detail&pdf=<sha256>`; PNG raster of page `n` of that exact PDF |
 
 Revision is `sha256-<digest of exact source bytes>`. It detects cosmetic changes
 and output edits that semantic identity intentionally excludes. Identical bytes
@@ -184,7 +198,7 @@ HTTP 200 batch report. Closing a page does not interrupt already-running Python.
 JSON POSTs require same-origin Origin when supplied, local Host and JSON content
 type. CSP and no-store response headers remain enabled; no CORS, auth or telemetry.
 
-Routes: `/books`, `/books/{key}`, `/books/{key}/edit`, `/books/{key}/book`, `/books/{key}/puzzles`,
+Routes: `/books`, `/books/{key}`, `/books/{key}/edit`, `/books/{key}/book`, `/books/{key}/print`, `/books/{key}/puzzles`,
 `/books/{key}/puzzles/{id}`, `/books/{key}/quality`. Deep links serve the shell.
 
 ## Design, accessibility and screenshots
@@ -239,7 +253,8 @@ npm run test:browser
 server, and verify the repository fixtures' bytes remain unchanged. API writes
 also use pytest temporary projects. Browser checks cover real edit/preview/save/
 reload, deterministic preview, conflict, simulated HTTP save failure, field errors,
-keyboard operation, responsive layouts and axe, for both Edit and the Book composer. For installed Chrome on Windows,
+keyboard operation, responsive layouts and axe, for Edit, the Book composer and the
+Print proof (real build, preflight, rasterized pages, overlays, spreads). For installed Chrome on Windows,
 set `$env:STUDIO_BROWSER_CHANNEL='chrome'` before running browser tests.
 The Python Windows/Linux 3.11/3.13/3.14 CI matrix and separate Linux browser job
 remain unchanged; local results do not establish remote CI status.
@@ -249,6 +264,9 @@ remain unchanged; local results do not establish remote CI status.
 Existing ASCII/size/search limits apply. No extra schema fields, calibrated
 scores, automatic content repair, persisted previews, collaboration or cloud.
 Only Chrome/Chromium is exercised; axe is not screen-reader certification.
-Starlette warns about its deprecated httpx test client. No new dependencies.
-Studio stops at a logical plan: no PDF build, print preview, cover creation, KDP or
-publishing functionality. Interiors are built with the CLI (`book build`).
+Starlette warns about its deprecated httpx test client. Page previews need
+`pypdfium2` (in the `studio` extra). No cover creation, KDP packaging or publishing.
+Print captures: [overview](images/studio/print.png), [puzzle](images/studio/print-puzzle.png),
+[spread](images/studio/print-spread.png), [overlays](images/studio/print-overlays.png),
+[findings](images/studio/print-findings.png), [status](images/studio/print-kdp-not-ready.png),
+[390](images/studio/print-390.png).

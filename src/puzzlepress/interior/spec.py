@@ -25,18 +25,33 @@ def to_inches(points: float) -> float:
 
 @dataclass(frozen=True)
 class KdpConstraints:
-    """KDP paperback manuscript rules, verified against KDP help pages (2026-10).
+    """The one home of KDP paperback values. Provenance: docs/preflight.md.
 
-    Sources: "Set Trim Size, Bleed, and Margins" (gutter table, outside margins,
-    bleed size) and "Paperback Manuscript File Requirements" (7 pt text, 0.75 pt
-    lines, embedded fonts, no marks/annotations). 24 pages is the paperback minimum.
+    Checked 2026-10-07 against KDP help: "Set Trim Size, Bleed, and Margins"
+    (gutter table, outside margins), "Paperback Submission Guidelines" (24-page
+    minimum, 7 pt text, 0.75 pt lines, 300 DPI, embedded fonts, single pages, no
+    marks/annotations/bookmarks/encryption, flattened transparency, even folios
+    on left pages), "Fix Paperback and Hardcover Formatting Issues" (consecutive
+    blank pages, "fully embedded" fonts) and "Print Options" (custom trim range).
     """
 
     min_font_size: float = 7.0
+    # KDP states "0.75 point or 0.01 in (0.3 mm)"; 0.01 in is 0.72 pt, so the
+    # stricter stated value is enforced.
     min_line_weight: float = 0.75
     min_pages: int = 24
     min_outside_margin: float = inches(0.25)
     min_outside_margin_with_bleed: float = inches(0.375)
+    min_image_dpi: float = 300.0
+    max_blank_run: int = 4  # Consecutive blank pages at the beginning or middle.
+    max_trailing_blank_run: int = 10  # Consecutive blank pages at the end.
+    # Paperback custom trim range (width, height) in points, inclusive.
+    custom_trim_width: tuple[float, float] = (inches(4), inches(8.5))
+    custom_trim_height: tuple[float, float] = (inches(6), inches(11.69))
+    # Maximum black-ink page count per trim. The rendered official table omits the
+    # 8.5 x 11 row (2026-10-07); a search-indexed copy lists 24-590 white and
+    # 24-550 cream. Paper is not modeled, so the lower value applies. Re-verify.
+    max_pages_by_trim: tuple[tuple[str, int], ...] = (("8.5x11", 550),)
     # (maximum page count, minimum inside margin) in ascending order.
     gutter_table: tuple[tuple[int, float], ...] = (
         (150, inches(0.375)),
@@ -60,6 +75,16 @@ class KdpConstraints:
             if page_count <= maximum:
                 return gutter
         return None
+
+    def max_pages_for_trim(self, trim_name: str) -> int | None:
+        return dict(self.max_pages_by_trim).get(trim_name)
+
+    def trim_supported(self, width: float, height: float) -> bool:
+        (low_w, high_w), (low_h, high_h) = self.custom_trim_width, self.custom_trim_height
+        return (
+            low_w - TOLERANCE <= width <= high_w + TOLERANCE
+            and low_h - TOLERANCE <= height <= high_h + TOLERANCE
+        )
 
 
 KDP = KdpConstraints()

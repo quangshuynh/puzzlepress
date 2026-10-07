@@ -1,0 +1,1060 @@
+{
+ "key": "composition-demo",
+ "revision": "sha256-1ee2ff4a88fbeabf0fceb4902570df15f40ca10285e5a577e0ecc612c10ec96d",
+ "ruleset": 1,
+ "state": "stale",
+ "report": {
+  "report_version": 1,
+  "ruleset": {
+   "id": "puzzlepress-kdp-paperback",
+   "version": 1,
+   "kdp_rules_checked": "2026-10-07"
+  },
+  "book_id": "composition-demo",
+  "source_identity": "pp1-sha256-38f867a7287b320240b11472333b87b6a45c7d5b47eb7e86c79128bdc0ec0e8e",
+  "profile": {
+   "id": "paperback-8.5x11",
+   "version": 1,
+   "description": "8.5 x 11 in paperback interior, black ink, no bleed",
+   "trim": {
+    "name": "8.5x11",
+    "width_in": 8.5,
+    "height_in": 11.0
+   },
+   "bleed": false
+  },
+  "artifacts": {
+   "pdf": {
+    "sha256": "19d5bd5af6f2b381af7d2bad5b0daca57534b4a2f1139c46f23bfba0137bfecf",
+    "bytes": 76622
+   },
+   "manifest": {
+    "sha256": "7504866377a23d099e7d7d01c8b054e3500eceec1fe281f73768bafe186ff1a2",
+    "bytes": 2481
+   },
+   "interior_identity": "pp1-interior-sha256-47abfe739d7818a5e5183e6037492e0933a8a713ecebec2d82e5cbbfb1b9ee2e",
+   "expected_interior_identity": "pp1-interior-sha256-f2f8a7d5cec250b70cda2715c5888060752149eb70b454ef0c3de3c148591bd5",
+   "matches_layout": false
+  },
+  "page_count": 11,
+  "structural": {
+   "status": "invalid"
+  },
+  "kdp": {
+   "status": "not_ready"
+  },
+  "counts": {
+   "severity": {
+    "error": 4,
+    "warning": 1,
+    "info": 0
+   },
+   "scope": {
+    "structural": 3,
+    "kdp": 2
+   },
+   "category": {
+    "artifact": 0,
+    "integrity": 3,
+    "page": 1,
+    "geometry": 0,
+    "typography": 0,
+    "font": 1,
+    "content": 0
+   },
+   "outcome": {
+    "passed": 25,
+    "failed": 5,
+    "not_applicable": 1,
+    "not_evaluated": 8
+   }
+  },
+  "findings": [
+   {
+    "rule": "pdf_matches_layout",
+    "severity": "error",
+    "scope": "structural",
+    "category": "integrity",
+    "message": "The PDF differs from a fresh render of the current source.",
+    "physical_page": null,
+    "logical_page": null,
+    "page_kind": null,
+    "side": null,
+    "folio": null,
+    "subject": null,
+    "region": "pdf",
+    "bounds": null,
+    "measure": {
+     "actual": "19d5bd5af6f2b381af7d2bad5b0daca57534b4a2f1139c46f23bfba0137bfecf",
+     "required": "5158a4edc0ad1e38810973e1a9c548851753499d0e4486050c967d7d28ea7b9a",
+     "unit": null,
+     "comparison": "equal"
+    }
+   },
+   {
+    "rule": "plan_current",
+    "severity": "error",
+    "scope": "structural",
+    "category": "integrity",
+    "message": "The book's composition or puzzles changed after this interior was built.",
+    "physical_page": null,
+    "logical_page": null,
+    "page_kind": null,
+    "side": null,
+    "folio": null,
+    "subject": null,
+    "region": "plan_digest",
+    "bounds": null,
+    "measure": {
+     "actual": "sha256-8cd408c8e06b1b53fc9cc49a9a42b900f0e17713441e9ba1c81d4bde675faf95",
+     "required": "sha256-176ae275764fe836c91ed3661e5bbeb124bb140de2bf8e66940a4bb84ae54979",
+     "unit": null,
+     "comparison": "equal"
+    }
+   },
+   {
+    "rule": "source_current",
+    "severity": "error",
+    "scope": "structural",
+    "category": "integrity",
+    "message": "The project source changed after this interior was built. Rebuild it.",
+    "physical_page": null,
+    "logical_page": null,
+    "page_kind": null,
+    "side": null,
+    "folio": null,
+    "subject": null,
+    "region": "identity",
+    "bounds": null,
+    "measure": {
+     "actual": "pp1-sha256-4bd3089c4209be27a02cf588c9955e750058e1da449d8de2b20e107a1ac1b980",
+     "required": "pp1-sha256-38f867a7287b320240b11472333b87b6a45c7d5b47eb7e86c79128bdc0ec0e8e",
+     "unit": null,
+     "comparison": "equal"
+    }
+   },
+   {
+    "rule": "kdp_minimum_page_count",
+    "severity": "error",
+    "scope": "kdp",
+    "category": "page",
+    "message": "11 pages. The supported KDP paperback minimum is 24 pages.",
+    "physical_page": null,
+    "logical_page": null,
+    "page_kind": null,
+    "side": null,
+    "folio": null,
+    "subject": null,
+    "region": null,
+    "bounds": null,
+    "measure": {
+     "actual": 11,
+     "required": 24,
+     "unit": "pages",
+     "comparison": "at_least"
+    }
+   },
+   {
+    "rule": "kdp_full_font_embedding",
+    "severity": "warning",
+    "scope": "kdp",
+    "category": "font",
+    "message": "3 font(s) are subset-embedded. Review against KDP's wording; subsets contain every glyph the interior uses.",
+    "physical_page": null,
+    "logical_page": null,
+    "page_kind": null,
+    "side": null,
+    "folio": null,
+    "subject": null,
+    "region": "fonts",
+    "bounds": null,
+    "measure": {
+     "actual": "subset",
+     "required": "fully embedded",
+     "unit": null,
+     "comparison": "equal"
+    }
+   }
+  ],
+  "rules": [
+   {
+    "code": "interior_artifacts",
+    "scope": "structural",
+    "category": "artifact",
+    "severity": "error",
+    "title": "Interior files present",
+    "description": "interior.pdf and interior.json exist as regular files in the output directory.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#interior-artifacts",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Both build artifacts are present.",
+    "measure": null
+   },
+   {
+    "code": "manifest_format",
+    "scope": "structural",
+    "category": "artifact",
+    "severity": "error",
+    "title": "Manifest readable",
+    "description": "interior.json is a supported manifest version with every required field.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#manifest-format",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Manifest version 1 with all required fields.",
+    "measure": null
+   },
+   {
+    "code": "manifest_book",
+    "scope": "structural",
+    "category": "integrity",
+    "severity": "error",
+    "title": "Manifest names this book",
+    "description": "The manifest's book ID equals the project's book ID.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#manifest-book",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Book composition-demo.",
+    "measure": null
+   },
+   {
+    "code": "manifest_pdf_digest",
+    "scope": "structural",
+    "category": "integrity",
+    "severity": "error",
+    "title": "PDF matches its manifest",
+    "description": "The PDF's SHA-256 and byte size equal the values recorded in interior.json.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#manifest-pdf-digest",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "SHA-256 and size match the manifest.",
+    "measure": null
+   },
+   {
+    "code": "interior_identity",
+    "scope": "structural",
+    "category": "integrity",
+    "severity": "error",
+    "title": "Interior identity consistent",
+    "description": "The manifest's interior identity recomputes from the inputs it records.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#interior-identity",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Identity recomputes from source, plan, profile and toolchain.",
+    "measure": null
+   },
+   {
+    "code": "source_current",
+    "scope": "structural",
+    "category": "integrity",
+    "severity": "error",
+    "title": "Built from current source",
+    "description": "The interior was built from the project source as it is now (build identity).",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#source-current",
+    "outcome": "failed",
+    "findings": 1,
+    "note": null,
+    "measure": null
+   },
+   {
+    "code": "print_profile_current",
+    "scope": "structural",
+    "category": "integrity",
+    "severity": "error",
+    "title": "Print profile current",
+    "description": "The recorded print profile is a built-in profile with an unchanged definition.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#print-profile-current",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "paperback-8.5x11 v1.",
+    "measure": null
+   },
+   {
+    "code": "toolchain_current",
+    "scope": "structural",
+    "category": "integrity",
+    "severity": "error",
+    "title": "Renderer and fonts current",
+    "description": "Renderer, engine, PDF library and pinned font digests equal the running toolchain.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#toolchain-current",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Renderer, engine, ReportLab and fonts unchanged.",
+    "measure": null
+   },
+   {
+    "code": "source_buildable",
+    "scope": "structural",
+    "category": "integrity",
+    "severity": "error",
+    "title": "Current source builds",
+    "description": "The current source plans, binds puzzle digests and lays out without diagnostics.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#source-buildable",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Plan verified, digests bound, layout validated.",
+    "measure": null
+   },
+   {
+    "code": "plan_current",
+    "scope": "structural",
+    "category": "integrity",
+    "severity": "error",
+    "title": "Plan current",
+    "description": "The manifest's plan digest equals the digest of the current verified plan.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#plan-current",
+    "outcome": "failed",
+    "findings": 1,
+    "note": null,
+    "measure": null
+   },
+   {
+    "code": "pdf_matches_layout",
+    "scope": "structural",
+    "category": "integrity",
+    "severity": "error",
+    "title": "PDF equals deterministic render",
+    "description": "The PDF's bytes equal a fresh render of the current verified layout. Geometry rules apply to the PDF only when this holds.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#pdf-matches-layout",
+    "outcome": "failed",
+    "findings": 1,
+    "note": null,
+    "measure": null
+   },
+   {
+    "code": "pdf_readable",
+    "scope": "structural",
+    "category": "artifact",
+    "severity": "error",
+    "title": "PDF parses",
+    "description": "An independent parser (pypdf, strict) reads the PDF; it is not encrypted.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#pdf-readable",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Parsed strictly by pypdf.",
+    "measure": null
+   },
+   {
+    "code": "page_count",
+    "scope": "structural",
+    "category": "page",
+    "severity": "error",
+    "title": "Page count matches",
+    "description": "PDF pages equal the manifest's page count and the plan's logical pages.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#page-count",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "11 pages.",
+    "measure": {
+     "actual": 11,
+     "required": null,
+     "unit": "pages",
+     "comparison": null
+    }
+   },
+   {
+    "code": "page_boxes",
+    "scope": "structural",
+    "category": "page",
+    "severity": "error",
+    "title": "Page boxes match profile",
+    "description": "Every page's MediaBox and TrimBox equal the profile's trim; no larger BleedBox.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#page-boxes",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Every page is exactly the trim size.",
+    "measure": null
+   },
+   {
+    "code": "page_rotation",
+    "scope": "structural",
+    "category": "page",
+    "severity": "error",
+    "title": "Pages unrotated",
+    "description": "No page carries a /Rotate entry.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#page-rotation",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "No rotated pages.",
+    "measure": null
+   },
+   {
+    "code": "pdf_interactive_features",
+    "scope": "structural",
+    "category": "content",
+    "severity": "error",
+    "title": "No interactive features",
+    "description": "No annotations, links, forms, open actions, name trees or bookmarks.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#pdf-interactive-features",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "No annotations, forms, actions or bookmarks.",
+    "measure": null
+   },
+   {
+    "code": "fonts_bundled",
+    "scope": "structural",
+    "category": "font",
+    "severity": "error",
+    "title": "Bundled fonts only",
+    "description": "Every font is an embedded subset of the bundled, digest-pinned Vera Sans faces.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#fonts-bundled",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Only embedded bundled Vera Sans subsets.",
+    "measure": null
+   },
+   {
+    "code": "raster_images",
+    "scope": "structural",
+    "category": "content",
+    "severity": "error",
+    "title": "No raster images",
+    "description": "The renderer draws no images; any raster image is foreign to the interior.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#raster-images",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "No raster images.",
+    "measure": null
+   },
+   {
+    "code": "blank_pages",
+    "scope": "structural",
+    "category": "content",
+    "severity": "error",
+    "title": "Intentional blanks are blank",
+    "description": "Plan blank pages carry no text or painting operators in the PDF.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#blank-pages",
+    "outcome": "not_evaluated",
+    "findings": 0,
+    "note": "The PDF is not the rendering of the current verified layout.",
+    "measure": null
+   },
+   {
+    "code": "folios_printed",
+    "scope": "structural",
+    "category": "content",
+    "severity": "error",
+    "title": "Page numbers printed",
+    "description": "Every page number the plan displays appears in the page's PDF text.",
+    "basis": "puzzlepress_contract",
+    "source": "PuzzlePress interior contract (docs/print-interior.md)",
+    "help": "docs/preflight.md#folios-printed",
+    "outcome": "not_evaluated",
+    "findings": 0,
+    "note": "The PDF is not the rendering of the current verified layout.",
+    "measure": null
+   },
+   {
+    "code": "kdp_minimum_page_count",
+    "scope": "kdp",
+    "category": "page",
+    "severity": "error",
+    "title": "Minimum page count",
+    "description": "A KDP paperback has at least 24 pages. PuzzlePress never pads.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-minimum-page-count",
+    "outcome": "failed",
+    "findings": 1,
+    "note": null,
+    "measure": null
+   },
+   {
+    "code": "kdp_maximum_page_count",
+    "scope": "kdp",
+    "category": "page",
+    "severity": "error",
+    "title": "Maximum page count",
+    "description": "Page count is within KDP's black-ink maximum for the trim. KDP's current table omits the 8.5 x 11 in row; the lower indexed value (550, cream) is used.",
+    "basis": "kdp_ambiguous",
+    "source": "KDP help: Print Options",
+    "help": "docs/preflight.md#kdp-maximum-page-count",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "11 of at most 550 pages.",
+    "measure": {
+     "actual": 11,
+     "required": 550,
+     "unit": "pages",
+     "comparison": "at_most"
+    }
+   },
+   {
+    "code": "kdp_trim_size",
+    "scope": "kdp",
+    "category": "geometry",
+    "severity": "error",
+    "title": "Supported trim size",
+    "description": "The trim is within KDP's paperback trim range (4-8.5 in wide, 6-11.69 in tall).",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Print Options",
+    "help": "docs/preflight.md#kdp-trim-size",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "8.5 x 11 in.",
+    "measure": {
+     "actual": "8.5 x 11",
+     "required": "4-8.5 x 6-11.69",
+     "unit": "in",
+     "comparison": "within"
+    }
+   },
+   {
+    "code": "kdp_page_size",
+    "scope": "kdp",
+    "category": "geometry",
+    "severity": "error",
+    "title": "Single trim-size pages",
+    "description": "Each PDF page is one page at the trim size: no spreads or 2-up pages.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-page-size",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Every page is a single trim-size page.",
+    "measure": null
+   },
+   {
+    "code": "kdp_no_bleed",
+    "scope": "kdp",
+    "category": "geometry",
+    "severity": "error",
+    "title": "No-bleed setup",
+    "description": "The profile is no-bleed, so pages must not be enlarged for bleed (no BleedBox beyond the trim) and outside margins of at least 0.25 in apply.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Set Trim Size, Bleed, and Margins",
+    "help": "docs/preflight.md#kdp-no-bleed",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "No-bleed interior; page size equals trim size.",
+    "measure": null
+   },
+   {
+    "code": "kdp_gutter",
+    "scope": "kdp",
+    "category": "geometry",
+    "severity": "error",
+    "title": "Inside margin (gutter)",
+    "description": "Content clears the binding edge by KDP's gutter for the page count: 24-150 0.375 in, 151-300 0.5, 301-500 0.625, 501-700 0.75, 701-828 0.875.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Set Trim Size, Bleed, and Margins",
+    "help": "docs/preflight.md#kdp-gutter",
+    "outcome": "not_evaluated",
+    "findings": 0,
+    "note": "The PDF is not the rendering of the current verified layout.",
+    "measure": null
+   },
+   {
+    "code": "kdp_outside_margins",
+    "scope": "kdp",
+    "category": "geometry",
+    "severity": "error",
+    "title": "Outside, top and bottom margins",
+    "description": "Content clears the outside, top and bottom trim edges by at least 0.25 in (no bleed).",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Set Trim Size, Bleed, and Margins",
+    "help": "docs/preflight.md#kdp-outside-margins",
+    "outcome": "not_evaluated",
+    "findings": 0,
+    "note": "The PDF is not the rendering of the current verified layout.",
+    "measure": null
+   },
+   {
+    "code": "kdp_minimum_font_size",
+    "scope": "kdp",
+    "category": "typography",
+    "severity": "error",
+    "title": "Minimum font size",
+    "description": "All text, including grid letters, is at least 7 pt.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-minimum-font-size",
+    "outcome": "not_evaluated",
+    "findings": 0,
+    "note": "The PDF is not the rendering of the current verified layout.",
+    "measure": null
+   },
+   {
+    "code": "kdp_minimum_line_weight",
+    "scope": "kdp",
+    "category": "geometry",
+    "severity": "error",
+    "title": "Minimum line weight",
+    "description": "Rules, grid frames and solution marks are at least 0.75 pt (KDP also states 0.01 in, which is 0.72 pt; the stricter value applies).",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-minimum-line-weight",
+    "outcome": "not_evaluated",
+    "findings": 0,
+    "note": "The PDF is not the rendering of the current verified layout.",
+    "measure": null
+   },
+   {
+    "code": "kdp_fonts_embedded",
+    "scope": "kdp",
+    "category": "font",
+    "severity": "error",
+    "title": "Fonts embedded",
+    "description": "Every font used by a page has an embedded font program.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-fonts-embedded",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Every font program is embedded.",
+    "measure": null
+   },
+   {
+    "code": "kdp_full_font_embedding",
+    "scope": "kdp",
+    "category": "font",
+    "severity": "warning",
+    "title": "Full font embedding",
+    "description": "KDP's formatting help says fonts should be 'fully embedded'; its submission guidelines say 'embedded'. PuzzlePress embeds subsets, which carry every glyph used.",
+    "basis": "kdp_ambiguous",
+    "source": "KDP help: Fix Paperback and Hardcover Formatting Issues",
+    "help": "docs/preflight.md#kdp-full-font-embedding",
+    "outcome": "failed",
+    "findings": 1,
+    "note": null,
+    "measure": null
+   },
+   {
+    "code": "kdp_no_annotations",
+    "scope": "kdp",
+    "category": "content",
+    "severity": "error",
+    "title": "No comments, annotations or bookmarks",
+    "description": "The file contains no annotations, comments, form fields or bookmarks.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-no-annotations",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "None present.",
+    "measure": null
+   },
+   {
+    "code": "kdp_not_encrypted",
+    "scope": "kdp",
+    "category": "artifact",
+    "severity": "error",
+    "title": "Not locked or encrypted",
+    "description": "The file is not locked or encrypted.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-not-encrypted",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Not encrypted.",
+    "measure": null
+   },
+   {
+    "code": "kdp_flattened",
+    "scope": "kdp",
+    "category": "content",
+    "severity": "error",
+    "title": "Flattened transparency and layers",
+    "description": "No transparency groups, soft masks, blend modes, partial opacity or layers.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-flattened",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "No transparency or layers.",
+    "measure": null
+   },
+   {
+    "code": "kdp_no_printer_marks",
+    "scope": "kdp",
+    "category": "content",
+    "severity": "error",
+    "title": "No crop or trim marks",
+    "description": "Pages have no area beyond the trim where marks could print, and every layout element lies inside the live area.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-no-printer-marks",
+    "outcome": "not_evaluated",
+    "findings": 0,
+    "note": "The PDF is not the rendering of the current verified layout.",
+    "measure": null
+   },
+   {
+    "code": "kdp_image_resolution",
+    "scope": "kdp",
+    "category": "content",
+    "severity": "error",
+    "title": "Image resolution",
+    "description": "Raster images are at least 300 DPI. Not applicable without images.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-image-resolution",
+    "outcome": "not_applicable",
+    "findings": 0,
+    "note": "The interior contains no raster images.",
+    "measure": null
+   },
+   {
+    "code": "kdp_blank_page_runs",
+    "scope": "kdp",
+    "category": "page",
+    "severity": "error",
+    "title": "Consecutive blank pages",
+    "description": "At most 4 consecutive blank pages at the beginning or middle, and at most 10 at the end.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Fix Paperback and Hardcover Formatting Issues",
+    "help": "docs/preflight.md#kdp-blank-page-runs",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Longest blank run: 1 page(s).",
+    "measure": null
+   },
+   {
+    "code": "kdp_page_number_parity",
+    "scope": "kdp",
+    "category": "page",
+    "severity": "error",
+    "title": "Even numbers on left pages",
+    "description": "Printed page numbers are even on left (verso) pages and odd on right (recto) pages.",
+    "basis": "kdp_requirement",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-page-number-parity",
+    "outcome": "not_evaluated",
+    "findings": 0,
+    "note": "The PDF is not the rendering of the current verified layout.",
+    "measure": null
+   },
+   {
+    "code": "kdp_no_metadata",
+    "scope": "kdp",
+    "category": "content",
+    "severity": "warning",
+    "title": "No descriptive metadata",
+    "description": "KDP asks for files without metadata. Descriptive fields (title, author, subject, keywords) are checked; producer tool names are not interpreted as metadata.",
+    "basis": "kdp_ambiguous",
+    "source": "KDP help: Paperback Submission Guidelines",
+    "help": "docs/preflight.md#kdp-no-metadata",
+    "outcome": "passed",
+    "findings": 0,
+    "note": "Title, author, subject and keywords are empty.",
+    "measure": null
+   }
+  ],
+  "pages": [
+   {
+    "physical_page": 1,
+    "logical_page": null,
+    "kind": null,
+    "side": "recto",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 2,
+    "logical_page": null,
+    "kind": null,
+    "side": "verso",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 3,
+    "logical_page": null,
+    "kind": null,
+    "side": "recto",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 4,
+    "logical_page": null,
+    "kind": null,
+    "side": "verso",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 5,
+    "logical_page": null,
+    "kind": null,
+    "side": "recto",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 6,
+    "logical_page": null,
+    "kind": null,
+    "side": "verso",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 7,
+    "logical_page": null,
+    "kind": null,
+    "side": "recto",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 8,
+    "logical_page": null,
+    "kind": null,
+    "side": "verso",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 9,
+    "logical_page": null,
+    "kind": null,
+    "side": "recto",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 10,
+    "logical_page": null,
+    "kind": null,
+    "side": "verso",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 11,
+    "logical_page": null,
+    "kind": null,
+    "side": "recto",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   }
+  ]
+ },
+ "preview": {
+  "pdf_sha256": "19d5bd5af6f2b381af7d2bad5b0daca57534b4a2f1139c46f23bfba0137bfecf",
+  "page_count": 11,
+  "scales": {
+   "thumb": 0.5,
+   "page": 2.0,
+   "detail": 4.0
+  },
+  "pages": [
+   {
+    "physical_page": 1,
+    "logical_page": null,
+    "kind": null,
+    "side": "recto",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 2,
+    "logical_page": null,
+    "kind": null,
+    "side": "verso",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 3,
+    "logical_page": null,
+    "kind": null,
+    "side": "recto",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 4,
+    "logical_page": null,
+    "kind": null,
+    "side": "verso",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 5,
+    "logical_page": null,
+    "kind": null,
+    "side": "recto",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 6,
+    "logical_page": null,
+    "kind": null,
+    "side": "verso",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 7,
+    "logical_page": null,
+    "kind": null,
+    "side": "recto",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 8,
+    "logical_page": null,
+    "kind": null,
+    "side": "verso",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 9,
+    "logical_page": null,
+    "kind": null,
+    "side": "recto",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 10,
+    "logical_page": null,
+    "kind": null,
+    "side": "verso",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   },
+   {
+    "physical_page": 11,
+    "logical_page": null,
+    "kind": null,
+    "side": "recto",
+    "folio": null,
+    "findings": {
+     "error": 0,
+     "warning": 0,
+     "info": 0
+    }
+   }
+  ],
+  "geometry": null
+ }
+}
