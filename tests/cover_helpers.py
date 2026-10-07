@@ -72,3 +72,49 @@ def photo_bytes(
     buffer = io.BytesIO()
     stored.save(buffer, fmt, **params)
     return buffer.getvalue()
+
+
+def cover_project(
+    root,
+    data: bytes | None = None,
+    cover: dict | None = None,
+    mutate=None,
+    puzzles: int | None = None,
+    profile: str = "paperback-8.5x11",
+    build_interior: bool = True,
+):
+    """A disposable composed project with an imported photo and a cover section.
+
+    Returns (source directory, output directory). The interior is built into the
+    output directory unless `build_interior` is false.
+    """
+    from pathlib import Path
+
+    from puzzlepress.cover.assets import import_photo
+    from puzzlepress.interior import build_interior as build
+    from puzzlepress.interior import print_profile, write_interior
+    from puzzlepress.validation import validate_project
+    from puzzlepress.yaml_io import dump_project
+    from tests.helpers import demo_variant
+
+    source = Path(root) / "book"
+    output = Path(root) / "out"
+    source.mkdir(parents=True)
+    imported = import_photo(source, data or photo_bytes(5400, 3600), "harbour.jpg")
+    project = demo_variant(puzzles=puzzles).to_dict()
+    project["output"] = {"directory": "../out"}
+    project["book"]["imprint"] = "Harbour Press"
+    project["cover"] = {
+        "version": 1,
+        "image": {"path": imported.path, "sha256": imported.info.sha256},
+        "back_text": "Quiet seaside puzzles.",
+        **(cover or {}),
+    }
+    if mutate is not None:
+        mutate(project)
+    valid = validate_project(project).require_project()
+    (source / "book.yaml").write_text(dump_project(valid), encoding="utf-8")
+    if build_interior:
+        spec = print_profile(profile)
+        write_interior(build(valid, spec), output, source)  # type: ignore[arg-type]
+    return source, output
