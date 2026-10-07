@@ -108,6 +108,44 @@ class Paper(StrEnum):
 
 
 @dataclass(frozen=True)
+class KdpCoverConstraints:
+    """The one home of KDP paperback cover values. Provenance: docs/cover.md.
+
+    Checked 2026-10-07 against KDP help "Create a Paperback Cover" (wrap formula,
+    0.125 in bleed, spine multipliers, spine text page count and 0.0625 in spine
+    clearance, text 0.125 in inside trim, 300 DPI, 7 pt, embedded fonts, flattened,
+    no marks, CMYK recommended, 650 MB limit, 40 MB recommended), "Low-Content
+    Book Barcode Details" (2 x 1.2 in barcode box, lower right of the back cover)
+    and "Paperback Submission Guidelines" (24-page minimum).
+    """
+
+    bleed: float = inches(0.125)
+    # Inches of spine per interior page for black ink. KDP lists no groundwood value.
+    spine_per_page: tuple[tuple[Paper, float], ...] = (
+        (Paper.WHITE, 0.002252),
+        (Paper.CREAM, 0.0025),
+    )
+    # The page says both "more than 79 pages" and "at least 79 pages"; the stricter
+    # reading (80 or more) applies. Ambiguity recorded in docs/cover.md.
+    spine_text_min_pages: int = 80
+    spine_text_clearance: float = inches(0.0625)
+    text_safe_inset: float = inches(0.125)
+    barcode_width: float = inches(2)
+    barcode_height: float = inches(1.2)
+    min_image_dpi: float = 300.0
+    min_font_size: float = 7.0
+    max_file_bytes: int = 650_000_000
+    recommended_file_bytes: int = 40_000_000
+
+    def spine_width(self, page_count: int, paper: Paper) -> float:
+        """Spine width in points: page count times the paper's per-page thickness."""
+        return inches(page_count * dict(self.spine_per_page)[paper])
+
+
+KDP_COVER = KdpCoverConstraints()
+
+
+@dataclass(frozen=True)
 class TrimSize:
     name: str
     width: float
