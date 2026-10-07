@@ -180,8 +180,8 @@ export function DraftToolbar({
 }: {
   d: Draft;
   title: string;
-  preview: 'preview' | 'plan';
-  previewLabel: string;
+  preview?: 'preview' | 'plan';
+  previewLabel?: string;
   previewDisabled?: boolean;
   jump: { href: string; label: string };
 }) {
@@ -199,13 +199,15 @@ export function DraftToolbar({
           <button type="button" disabled={d.busy} onClick={() => void d.run('validate')}>
             Validate draft
           </button>
-          <button
-            type="button"
-            disabled={d.busy || previewDisabled}
-            onClick={() => void d.run(preview)}
-          >
-            {previewLabel}
-          </button>
+          {preview && (
+            <button
+              type="button"
+              disabled={d.busy || previewDisabled}
+              onClick={() => void d.run(preview)}
+            >
+              {previewLabel}
+            </button>
+          )}
           <button
             type="button"
             className="primary"

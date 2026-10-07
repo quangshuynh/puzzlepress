@@ -50,7 +50,8 @@ class KdpConstraints:
     custom_trim_height: tuple[float, float] = (inches(6), inches(11.69))
     # Maximum black-ink page count per trim. The rendered official table omits the
     # 8.5 x 11 row (2026-10-07); a search-indexed copy lists 24-590 white and
-    # 24-550 cream. Paper is not modeled, so the lower value applies. Re-verify.
+    # 24-550 cream. Profiles now state paper, but the white value is unverified on
+    # the official table, so the lower value applies to both papers. Re-verify.
     max_pages_by_trim: tuple[tuple[str, int], ...] = (("8.5x11", 550),)
     # (maximum page count, minimum inside margin) in ascending order.
     gutter_table: tuple[tuple[int, float], ...] = (
@@ -93,6 +94,55 @@ KDP = KdpConstraints()
 class FolioPlacement(StrEnum):
     CENTER = "center"
     OUTSIDE = "outside"
+
+
+class Ink(StrEnum):
+    BLACK = "black"
+
+
+class Paper(StrEnum):
+    """Interior paper stock. It sets cover spine width; it is never inferred."""
+
+    WHITE = "white"
+    CREAM = "cream"
+
+
+@dataclass(frozen=True)
+class KdpCoverConstraints:
+    """The one home of KDP paperback cover values. Provenance: docs/cover.md.
+
+    Checked 2026-10-07 against KDP help "Create a Paperback Cover" (wrap formula,
+    0.125 in bleed, spine multipliers, spine text page count and 0.0625 in spine
+    clearance, text 0.125 in inside trim, 300 DPI, 7 pt, embedded fonts, flattened,
+    no marks, CMYK recommended, 650 MB limit, 40 MB recommended), "Low-Content
+    Book Barcode Details" (2 x 1.2 in barcode box, lower right of the back cover)
+    and "Paperback Submission Guidelines" (24-page minimum).
+    """
+
+    bleed: float = inches(0.125)
+    # Inches of spine per interior page for black ink. KDP lists no groundwood value.
+    spine_per_page: tuple[tuple[Paper, float], ...] = (
+        (Paper.WHITE, 0.002252),
+        (Paper.CREAM, 0.0025),
+    )
+    # The page says both "more than 79 pages" and "at least 79 pages"; the stricter
+    # reading (80 or more) applies. Ambiguity recorded in docs/cover.md.
+    spine_text_min_pages: int = 80
+    spine_text_clearance: float = inches(0.0625)
+    text_safe_inset: float = inches(0.125)
+    barcode_width: float = inches(2)
+    barcode_height: float = inches(1.2)
+    min_image_dpi: float = 300.0
+    min_font_size: float = 7.0
+    max_file_bytes: int = 650_000_000
+    recommended_file_bytes: int = 40_000_000
+
+    def spine_width(self, page_count: int, paper: Paper) -> float:
+        """Spine width in points: page count times the paper's per-page thickness."""
+        return inches(page_count * dict(self.spine_per_page)[paper])
+
+
+KDP_COVER = KdpCoverConstraints()
 
 
 @dataclass(frozen=True)
@@ -151,6 +201,8 @@ class PrintSpecification:
     description: str
     trim: TrimSize
     margins: Margins
+    ink: Ink
+    paper: Paper
     bleed: bool = False
     folio_placement: FolioPlacement = FolioPlacement.CENTER
     typography: Typography = field(default_factory=Typography)
@@ -159,25 +211,41 @@ class PrintSpecification:
     def to_dict(self) -> dict[str, object]:
         data = asdict(self)
         data["folio_placement"] = self.folio_placement.value
+        data["ink"] = self.ink.value
+        data["paper"] = self.paper.value
         return data
 
 
 # Trim sizes the renderer has templates for. More sizes are added here, not in layout.
 SUPPORTED_TRIMS = (TrimSize("8.5x11", inches(8.5), inches(11)),)
 
+# Fixed, explicit margins. The 0.75 in inside margin meets KDP gutters up to 700
+# pages; it is validated against the final page count, never enlarged.
+_LETTER_MARGINS = Margins(
+    inside=inches(0.75), outside=inches(0.5), top=inches(0.625), bottom=inches(0.625)
+)
+# Version 2 states ink and paper explicitly (version 1 left paper unmodeled). The
+# page layout is unchanged; paper matters to the cover's spine width.
 PAPERBACK_LETTER = PrintSpecification(
     profile_id="paperback-8.5x11",
-    profile_version=1,
-    description="8.5 x 11 in paperback interior, black ink, no bleed",
+    profile_version=2,
+    description="8.5 x 11 in paperback interior, black ink on white paper, no bleed",
     trim=SUPPORTED_TRIMS[0],
-    # Fixed, explicit margins. The 0.75 in inside margin meets KDP gutters up to
-    # 700 pages; it is validated against the final page count, never enlarged.
-    margins=Margins(
-        inside=inches(0.75), outside=inches(0.5), top=inches(0.625), bottom=inches(0.625)
-    ),
+    margins=_LETTER_MARGINS,
+    ink=Ink.BLACK,
+    paper=Paper.WHITE,
+)
+PAPERBACK_LETTER_CREAM = PrintSpecification(
+    profile_id="paperback-8.5x11-cream",
+    profile_version=1,
+    description="8.5 x 11 in paperback interior, black ink on cream paper, no bleed",
+    trim=SUPPORTED_TRIMS[0],
+    margins=_LETTER_MARGINS,
+    ink=Ink.BLACK,
+    paper=Paper.CREAM,
 )
 
-PROFILES = {PAPERBACK_LETTER.profile_id: PAPERBACK_LETTER}
+PROFILES = {spec.profile_id: spec for spec in (PAPERBACK_LETTER, PAPERBACK_LETTER_CREAM)}
 DEFAULT_PROFILE = PAPERBACK_LETTER.profile_id
 # Content boxes narrower or shorter than this cannot hold any supported template.
 MIN_CONTENT_EXTENT = inches(3)

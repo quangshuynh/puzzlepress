@@ -1,0 +1,21 @@
+{
+  "assets": [
+    {
+      "bytes": 1223516,
+      "color": "srgb_assumed",
+      "format": "jpeg",
+      "orientation": 1,
+      "path": "cover-assets/harbour-dusk-34b4d3b99667.jpg",
+      "pixels": [
+        5600,
+        3600
+      ],
+      "problem": null,
+      "sha256": "34b4d3b99667a8361dbed0eb299622ba9c3231a6cde69a55888faca7347ac786",
+      "stored_pixels": [
+        5600,
+        3600
+      ]
+    }
+  ]
+}

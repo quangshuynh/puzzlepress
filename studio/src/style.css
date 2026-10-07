@@ -1997,3 +1997,254 @@ summary:hover {
     display: none;
   }
 }
+/* Cover Studio: the rendered wrap dominates; controls and readiness flank it. */
+.print-profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.print-profile select {
+  min-height: 44px;
+}
+.cover-workspace {
+  display: grid;
+  grid-template-columns: minmax(250px, 290px) minmax(0, 1fr);
+  grid-template-areas: 'controls main' 'controls readiness';
+  gap: 28px;
+  margin-top: 16px;
+  align-items: start;
+}
+.cover-controls {
+  grid-area: controls;
+  min-width: 0;
+  border-top: 1px solid var(--ink);
+}
+.cover-controls > fieldset,
+.cover-controls > .editor-field,
+.cover-controls > .cover-copy {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.cover-main {
+  grid-area: main;
+  min-width: 0;
+}
+#cover-readiness {
+  grid-area: readiness;
+  min-width: 0;
+}
+#cover-readiness:focus {
+  outline: none;
+}
+.cover-source {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.cover-source button,
+.cover-stage .print-toolbar button {
+  min-height: 40px;
+  padding: 6px 12px;
+}
+.cover-studio .cover-source button[aria-pressed='true'],
+.cover-studio .cover-stage button[aria-pressed='true'] {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--paper);
+}
+.cover-size {
+  margin: 0;
+  align-self: center;
+  font-variant-numeric: tabular-nums;
+}
+.cover-canvas {
+  margin-top: 12px;
+  padding: 16px;
+  background: #e6e3da;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  touch-action: none;
+}
+.cover-canvas.croppable {
+  cursor: grab;
+}
+.cover-canvas.croppable:active {
+  cursor: grabbing;
+}
+.cover-window {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  outline: 1px solid #c9c6bb;
+  flex: none;
+}
+.cover-window img {
+  position: absolute;
+  display: block;
+  max-width: none;
+  user-select: none;
+}
+.cover-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.cover-overlay rect,
+.cover-overlay line {
+  fill: none;
+  stroke-width: 1.5px;
+}
+.overlay-trim {
+  stroke: #fffef9;
+  stroke-dasharray: 6 3;
+}
+.overlay-fold {
+  stroke: #fffef9;
+  stroke-dasharray: 2 3;
+}
+.overlay-bleed {
+  fill: rgba(145, 60, 50, 0.38);
+  stroke: none;
+}
+.overlay-barcode-zone {
+  stroke: #fffef9;
+  fill: rgba(37, 45, 40, 0.35) !important;
+  stroke-dasharray: 4 3;
+}
+.overlay-barcode {
+  stroke: #fffef9;
+  fill: rgba(255, 254, 249, 0.7) !important;
+}
+.cover-overlay .overlay-kdp {
+  stroke: #f2b36b;
+}
+.cover-overlay .overlay-live {
+  stroke: #9fe0bb;
+}
+.cover-overlay .overlay-element {
+  stroke: #9cc4f0;
+}
+.overlay-key.cover-trim,
+.overlay-key.cover-design {
+  color: var(--green);
+}
+.overlay-key.cover-bleed {
+  color: var(--fail);
+  border-top-style: solid;
+  border-top-width: 6px;
+}
+.overlay-key.cover-safe {
+  color: #9b5925;
+  border-top-style: dotted;
+}
+.overlay-key.cover-barcode {
+  color: var(--ink);
+}
+.overlay-key.cover-text {
+  color: #3d6a9e;
+  border-top-style: solid;
+}
+.cover-slider-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.cover-slider output {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  font-weight: 400;
+}
+.cover-slider input[type='range'] {
+  width: 100%;
+  min-height: 32px;
+  accent-color: var(--green);
+}
+.cover-color > div {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.cover-color input[type='color'] {
+  width: 52px;
+  min-height: 44px;
+  padding: 2px;
+}
+.cover-color input:not([type='color']) {
+  width: 7.5em;
+}
+.cover-copy h3,
+.cover-readiness h3 {
+  font-family: 'Newsreader Variable', Georgia, serif;
+  font-size: 20px;
+  font-weight: 450;
+  margin: 18px 0 6px;
+}
+.cover-readiness {
+  border-top: 1px solid var(--ink);
+}
+.cover-readiness .facts > div {
+  grid-template-columns: 1fr;
+}
+.cover-readiness > button {
+  margin-top: 14px;
+  width: 100%;
+}
+.cover-dpi-detail {
+  display: block;
+  margin-top: 2px;
+}
+.cover-checks li {
+  display: grid;
+  gap: 2px;
+}
+.cover-findings {
+  margin-top: 18px;
+}
+.cover-start {
+  max-width: 640px;
+  margin-top: 16px;
+  border-top: 1px solid var(--ink);
+}
+.cover-photos label {
+  overflow-wrap: anywhere;
+}
+@media (min-width: 1600px) {
+  .cover-workspace {
+    grid-template-columns: minmax(250px, 290px) minmax(0, 1fr) minmax(260px, 300px);
+    grid-template-areas: 'controls main readiness';
+  }
+}
+@media (max-width: 900px) {
+  .cover-workspace {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'main' 'controls' 'readiness';
+  }
+  .cover-canvas {
+    padding: 8px;
+  }
+}
+.editor .cover-photos input[type='file'] {
+  appearance: auto;
+  width: 100%;
+  height: auto;
+  min-height: 44px;
+  margin: 4px 0 0;
+  padding: 8px 0;
+  font-size: 13px;
+}
+.cover-stage {
+  margin-top: 0;
+}
+.cover-readiness > button {
+  width: auto;
+  min-width: 220px;
+}
+@media (min-width: 1600px), (max-width: 900px) {
+  .cover-readiness > button {
+    width: 100%;
+  }
+}

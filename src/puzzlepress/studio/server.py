@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import re
 from pathlib import Path
 
 import uvicorn
@@ -14,8 +15,10 @@ from starlette.middleware.base import RequestResponseEndpoint
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.staticfiles import StaticFiles
 
+from puzzlepress.cover.assets import MAX_ASSET_BYTES
 from puzzlepress.errors import ProjectError
 
+from .covering import CoverService
 from .editing import DraftStore
 from .printing import PrintService
 from .service import ProjectStore, StudioError, StudioService, issue_dicts, project_detail
@@ -42,6 +45,16 @@ class BuildRequest(BaseModel):
     revision: str
 
 
+class InteriorBuildRequest(BuildRequest):
+    profile: str | None = None
+
+
+# The only non-JSON POST: a photograph upload. Image content types are not
+# CORS-safelisted, so another site cannot send one without a refused preflight.
+UPLOAD_PATH = re.compile(r"/api/projects/[^/]+/cover/assets")
+UPLOAD_TYPES = ("image/jpeg", "image/png")
+
+
 def error_response(status: int, code: str, message: str) -> JSONResponse:
     return JSONResponse({"error": {"code": code, "message": message, "issues": []}}, status)
 
@@ -50,6 +63,7 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
     service = StudioService(ProjectStore(books.resolve()))
     drafts = DraftStore(service.store)
     printing = PrintService(service)
+    covers = CoverService(service, drafts)
     app = FastAPI(title="PuzzlePress Studio", docs_url=None, redoc_url=None, openapi_url=None)
     app.add_middleware(
         TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"]
@@ -59,9 +73,11 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
     async def local_boundary(request: Request, call_next: RequestResponseEndpoint) -> Response:
         # A JSON POST and same-origin check prevent other sites driving local generation.
         origin = request.headers.get("origin")
+        kind = request.headers.get("content-type", "").split(";")[0]
+        upload = UPLOAD_PATH.fullmatch(request.url.path) is not None
         if request.method == "POST" and (
             (origin is not None and origin != str(request.base_url).rstrip("/"))
-            or request.headers.get("content-type", "").split(";")[0] != "application/json"
+            or (kind not in UPLOAD_TYPES if upload else kind != "application/json")
         ):
             return error_response(403, "origin_rejected", "Use Studio on this local server.")
         response = await call_next(request)
@@ -144,12 +160,52 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
         return printing.status(key)
 
     @app.post("/api/projects/{key}/interior/build")
-    def build_interior(key: str, body: BuildRequest) -> dict[str, object]:
-        return printing.build(key, body.revision)
+    def build_interior(key: str, body: InteriorBuildRequest) -> dict[str, object]:
+        return printing.build(key, body.revision, body.profile)
 
     @app.get("/api/projects/{key}/interior/pages/{page}")
     def interior_page(key: str, page: int, size: str, pdf: str) -> Response:
         image = printing.page_image(key, page, size, pdf)
+        return Response(
+            image,
+            media_type="image/png",
+            headers={"Cache-Control": "private, max-age=31536000, immutable"},
+        )
+
+    @app.get("/api/projects/{key}/cover")
+    def cover(key: str) -> dict[str, object]:
+        return covers.status(key)
+
+    @app.post("/api/projects/{key}/draft/cover")
+    def draft_cover(key: str, body: DraftRequest) -> dict[str, object]:
+        return covers.draft(key, body.source)
+
+    @app.post("/api/projects/{key}/cover/build")
+    def build_cover(key: str, body: BuildRequest) -> dict[str, object]:
+        return covers.build(key, body.revision)
+
+    @app.get("/api/projects/{key}/cover/assets")
+    def cover_assets(key: str) -> dict[str, object]:
+        return covers.assets(key)
+
+    @app.post("/api/projects/{key}/cover/assets")
+    async def import_cover_photo(key: str, request: Request, name: str = "photo") -> JSONResponse:
+        limit = MAX_ASSET_BYTES
+        declared = request.headers.get("content-length")
+        if declared is not None and (not declared.isdigit() or int(declared) > limit):
+            raise StudioError(413, "image_unsupported", "The photograph file is too large.")
+        chunks: list[bytes] = []
+        size = 0
+        async for chunk in request.stream():
+            size += len(chunk)
+            if size > limit:
+                raise StudioError(413, "image_unsupported", "The photograph file is too large.")
+            chunks.append(chunk)
+        return JSONResponse(covers.import_photo(key, b"".join(chunks), name[:200]))
+
+    @app.get("/api/projects/{key}/cover/preview")
+    def cover_preview(key: str, size: str, pdf: str) -> Response:
+        image = covers.image(key, pdf, size)
         return Response(
             image,
             media_type="image/png",
@@ -174,6 +230,7 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
     @app.get("/books/{key}/edit")
     @app.get("/books/{key}/book")
     @app.get("/books/{key}/print")
+    @app.get("/books/{key}/cover")
     @app.get("/books/{key}/puzzles/{puzzle_id}")
     def shell() -> FileResponse:
         index = frontend / "index.html"

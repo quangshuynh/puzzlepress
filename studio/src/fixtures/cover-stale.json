@@ -1,0 +1,875 @@
+{
+  "key": "cover-demo",
+  "layout": {
+    "geometry": {
+      "bleed_in": 0.125,
+      "height_in": 11.25,
+      "page_count": 35,
+      "paper": "white",
+      "regions": {
+        "back": {
+          "height": 792,
+          "width": 612.0,
+          "x": 9.0,
+          "y": 9.0
+        },
+        "back_design": {
+          "height": 720.0,
+          "width": 540.0,
+          "x": 45.0,
+          "y": 45.0
+        },
+        "back_safe": {
+          "height": 774.0,
+          "width": 594.0,
+          "x": 18.0,
+          "y": 18.0
+        },
+        "barcode": {
+          "height": 86.4,
+          "width": 144,
+          "x": 459.0,
+          "y": 27.0
+        },
+        "barcode_keep_clear": {
+          "height": 113.4,
+          "width": 171.0,
+          "x": 450.0,
+          "y": 9.0
+        },
+        "front": {
+          "height": 792,
+          "width": 612.0,
+          "x": 626.675,
+          "y": 9.0
+        },
+        "front_design": {
+          "height": 720.0,
+          "width": 540.0,
+          "x": 662.675,
+          "y": 45.0
+        },
+        "front_safe": {
+          "height": 774.0,
+          "width": 594.0,
+          "x": 635.675,
+          "y": 18.0
+        },
+        "media": {
+          "height": 810.0,
+          "width": 1247.675,
+          "x": 0.0,
+          "y": 0.0
+        },
+        "spine": {
+          "height": 792,
+          "width": 5.675,
+          "x": 621.0,
+          "y": 9.0
+        },
+        "spine_safe": {
+          "height": 774.0,
+          "width": -3.325,
+          "x": 625.5,
+          "y": 18.0
+        },
+        "trim": {
+          "height": 792,
+          "width": 1229.675,
+          "x": 9.0,
+          "y": 9.0
+        }
+      },
+      "spine_text_allowed": false,
+      "spine_width_in": 0.07882,
+      "spine_width_pt": 5.675,
+      "width_in": 17.32882
+    },
+    "panels": [],
+    "photo": {
+      "center": [
+        0.4951091428571429,
+        0.5
+      ],
+      "pixels": [
+        0,
+        0,
+        5546,
+        3600
+      ],
+      "region": {
+        "height": 810.0,
+        "width": 1247.675,
+        "x": 0.0,
+        "y": 0.0
+      },
+      "window": {
+        "bottom": 1.0,
+        "left": 0.0,
+        "right": 0.9902182857142858,
+        "top": 0.0
+      }
+    },
+    "resolution": {
+      "effective_dpi": 320.0,
+      "max_dpi": 320.0,
+      "minimum_dpi": 300.0,
+      "printed_inches": [
+        17.3288,
+        11.25
+      ],
+      "source_pixels": [
+        5600,
+        3600
+      ],
+      "status": "ok",
+      "used_pixels": [
+        5545.22,
+        3600.0
+      ]
+    },
+    "spine_text": {
+      "allowed_by_page_count": false,
+      "reason": "page_count",
+      "rendered": false,
+      "size": null
+    },
+    "texts": [
+      {
+        "box": {
+          "height": 62.0,
+          "width": 399.59,
+          "x": 732.88,
+          "y": 703.0
+        },
+        "panel": "front",
+        "role": "title",
+        "rotated": false,
+        "size": 62,
+        "text": "Harbour Light"
+      },
+      {
+        "box": {
+          "height": 62.0,
+          "width": 418.221,
+          "x": 723.565,
+          "y": 639.76
+        },
+        "panel": "front",
+        "role": "title",
+        "rotated": false,
+        "size": 62,
+        "text": "Word Searches"
+      },
+      {
+        "box": {
+          "height": 20.0,
+          "width": 225.09,
+          "x": 820.13,
+          "y": 591.86
+        },
+        "panel": "front",
+        "role": "subtitle",
+        "rotated": false,
+        "size": 20,
+        "text": "Twenty puzzles from the coast"
+      },
+      {
+        "box": {
+          "height": 17.0,
+          "width": 150.756,
+          "x": 857.297,
+          "y": 45.0
+        },
+        "panel": "front",
+        "role": "author",
+        "rotated": false,
+        "size": 17,
+        "text": "PuzzlePress Examples"
+      },
+      {
+        "box": {
+          "height": 12.5,
+          "width": 377.575,
+          "x": 126.212,
+          "y": 752.5
+        },
+        "panel": "back",
+        "role": "back_text",
+        "rotated": false,
+        "size": 12.5,
+        "text": "Twenty word searches from harbour walls, tide pools and lighthouse paths."
+      },
+      {
+        "box": {
+          "height": 12.5,
+          "width": 348.338,
+          "x": 140.831,
+          "y": 734.75
+        },
+        "panel": "back",
+        "role": "back_text",
+        "rotated": false,
+        "size": 12.5,
+        "text": "Every grid is generated deterministically and independently verified;"
+      },
+      {
+        "box": {
+          "height": 12.5,
+          "width": 123.919,
+          "x": 253.041,
+          "y": 717.0
+        },
+        "panel": "back",
+        "role": "back_text",
+        "rotated": false,
+        "size": 12.5,
+        "text": "solutions are at the back."
+      },
+      {
+        "box": {
+          "height": 10.5,
+          "width": 108.644,
+          "x": 45.0,
+          "y": 45.0
+        },
+        "panel": "back",
+        "role": "imprint",
+        "rotated": false,
+        "size": 10.5,
+        "text": "PuzzlePress Demonstration"
+      }
+    ]
+  },
+  "preview": {
+    "pdf_sha256": "5dcaf42d430cac877dd7acf1ba5ed99d393e7ab377f34d7d76e22b18c6ce5ba2",
+    "scales": {
+      "detail": 2.5,
+      "preview": 1.0
+    }
+  },
+  "report": {
+    "artifacts": {
+      "manifest": {
+        "bytes": 6323,
+        "sha256": "6e6d1f462d40b07e9fea4d3aadf0814266f57d455affef475fc83d2aea105dea"
+      },
+      "matches_render": false,
+      "pdf": {
+        "bytes": 1795988,
+        "sha256": "5dcaf42d430cac877dd7acf1ba5ed99d393e7ab377f34d7d76e22b18c6ce5ba2"
+      }
+    },
+    "book_id": "cover-demo",
+    "counts": {
+      "outcome": {
+        "failed": 3,
+        "not_applicable": 0,
+        "not_evaluated": 7,
+        "passed": 15
+      },
+      "scope": {
+        "kdp": 1,
+        "structural": 2
+      },
+      "severity": {
+        "error": 2,
+        "info": 0,
+        "warning": 1
+      }
+    },
+    "cover_identity": {
+      "expected": "pp1-cover-sha256-994a89adb487400a065ddbfcbe6176ef1d18a596e520e1e0b8c9527bacafe0aa",
+      "recorded": "pp1-cover-sha256-01167bf7db435f269eb2150cf64075b311bf15addd212e575296623c896b7660"
+    },
+    "findings": [
+      {
+        "bounds": null,
+        "category": "integrity",
+        "folio": null,
+        "logical_page": null,
+        "measure": {
+          "actual": "pp1-cover-sha256-01167bf7db435f269eb2150cf64075b311bf15addd212e575296623c896b7660",
+          "comparison": "equal",
+          "required": "pp1-cover-sha256-994a89adb487400a065ddbfcbe6176ef1d18a596e520e1e0b8c9527bacafe0aa",
+          "unit": null
+        },
+        "message": "[cover_stale] The cover is out of date: crop changed.",
+        "page_kind": null,
+        "physical_page": null,
+        "region": "cover_identity",
+        "rule": "cover_current",
+        "scope": "structural",
+        "severity": "error",
+        "side": null,
+        "subject": null
+      },
+      {
+        "bounds": null,
+        "category": "integrity",
+        "folio": null,
+        "logical_page": null,
+        "measure": null,
+        "message": "cover.pdf differs from a fresh render of the current layout.",
+        "page_kind": null,
+        "physical_page": null,
+        "region": null,
+        "rule": "cover_matches_render",
+        "scope": "structural",
+        "severity": "error",
+        "side": null,
+        "subject": null
+      },
+      {
+        "bounds": null,
+        "category": "content",
+        "folio": null,
+        "logical_page": null,
+        "measure": null,
+        "message": "The photograph is RGB; KDP recommends CMYK and converts RGB itself. Review color in a printed proof.",
+        "page_kind": null,
+        "physical_page": null,
+        "region": "cover.photo",
+        "rule": "kdp_cover_color_space",
+        "scope": "kdp",
+        "severity": "warning",
+        "side": null,
+        "subject": null
+      }
+    ],
+    "geometry": {
+      "bleed_in": 0.125,
+      "height_in": 11.25,
+      "page_count": 35,
+      "paper": "white",
+      "regions": {
+        "back": {
+          "height": 792,
+          "width": 612.0,
+          "x": 9.0,
+          "y": 9.0
+        },
+        "back_design": {
+          "height": 720.0,
+          "width": 540.0,
+          "x": 45.0,
+          "y": 45.0
+        },
+        "back_safe": {
+          "height": 774.0,
+          "width": 594.0,
+          "x": 18.0,
+          "y": 18.0
+        },
+        "barcode": {
+          "height": 86.4,
+          "width": 144,
+          "x": 459.0,
+          "y": 27.0
+        },
+        "barcode_keep_clear": {
+          "height": 113.4,
+          "width": 171.0,
+          "x": 450.0,
+          "y": 9.0
+        },
+        "front": {
+          "height": 792,
+          "width": 612.0,
+          "x": 626.675,
+          "y": 9.0
+        },
+        "front_design": {
+          "height": 720.0,
+          "width": 540.0,
+          "x": 662.675,
+          "y": 45.0
+        },
+        "front_safe": {
+          "height": 774.0,
+          "width": 594.0,
+          "x": 635.675,
+          "y": 18.0
+        },
+        "media": {
+          "height": 810.0,
+          "width": 1247.675,
+          "x": 0.0,
+          "y": 0.0
+        },
+        "spine": {
+          "height": 792,
+          "width": 5.675,
+          "x": 621.0,
+          "y": 9.0
+        },
+        "spine_safe": {
+          "height": 774.0,
+          "width": -3.325,
+          "x": 625.5,
+          "y": 18.0
+        },
+        "trim": {
+          "height": 792,
+          "width": 1229.675,
+          "x": 9.0,
+          "y": 9.0
+        }
+      },
+      "spine_text_allowed": false,
+      "spine_width_in": 0.07882,
+      "spine_width_pt": 5.675,
+      "width_in": 17.32882
+    },
+    "interior": {
+      "ink": "black",
+      "interior_identity": "pp1-interior-sha256-c2d3869cd741df1540e2b19d2374620a6a7cabfa4c7a64fe6bcc7a7229dff438",
+      "page_count": 35,
+      "paper": "white",
+      "pdf_sha256": "9f907be3efd040676e4df7f1de8911ff25ff27a6143664b2712b8b833e95b082",
+      "profile_id": "paperback-8.5x11",
+      "profile_version": 2,
+      "trim_in": [
+        8.5,
+        11.0
+      ]
+    },
+    "kdp": {
+      "status": "not_ready"
+    },
+    "report_version": 1,
+    "resolution": {
+      "effective_dpi": 320.0,
+      "max_dpi": 320.0,
+      "minimum_dpi": 300.0,
+      "printed_inches": [
+        17.3288,
+        11.25
+      ],
+      "source_pixels": [
+        5600,
+        3600
+      ],
+      "status": "ok",
+      "used_pixels": [
+        5545.22,
+        3600.0
+      ]
+    },
+    "rules": [
+      {
+        "basis": "puzzlepress_contract",
+        "category": "artifact",
+        "code": "cover_configured",
+        "description": "The project has a valid cover section.",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": null,
+        "note": "Cover version 1, full_wrap.",
+        "outcome": "passed",
+        "scope": "structural",
+        "severity": "error",
+        "source": "PuzzlePress cover contract (docs/cover.md)",
+        "title": "Cover configured"
+      },
+      {
+        "basis": "puzzlepress_contract",
+        "category": "artifact",
+        "code": "cover_artifacts",
+        "description": "cover.pdf and cover.json exist as regular files beside the interior.",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": null,
+        "note": "Both cover artifacts are present.",
+        "outcome": "passed",
+        "scope": "structural",
+        "severity": "error",
+        "source": "PuzzlePress cover contract (docs/cover.md)",
+        "title": "Cover files present"
+      },
+      {
+        "basis": "puzzlepress_contract",
+        "category": "integrity",
+        "code": "cover_manifest",
+        "description": "cover.json is a supported manifest naming this book, its identity recomputes from its recorded inputs, and cover.pdf's SHA-256 and size equal its record.",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": null,
+        "note": "Manifest, identity and PDF digest agree.",
+        "outcome": "passed",
+        "scope": "structural",
+        "severity": "error",
+        "source": "PuzzlePress cover contract (docs/cover.md)",
+        "title": "Cover manifest describes this PDF"
+      },
+      {
+        "basis": "puzzlepress_contract",
+        "category": "integrity",
+        "code": "interior_current",
+        "description": "interior.pdf and interior.json exist, agree, and were built from the current source, print profile and toolchain; the page count is read from the PDF.",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": null,
+        "note": "35 pages, paperback-8.5x11, white paper.",
+        "outcome": "passed",
+        "scope": "structural",
+        "severity": "error",
+        "source": "PuzzlePress cover contract (docs/cover.md)",
+        "title": "Interior current"
+      },
+      {
+        "basis": "puzzlepress_contract",
+        "category": "content",
+        "code": "cover_photo",
+        "description": "The configured photograph is in cover-assets, matches its pinned SHA-256 and decodes.",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": null,
+        "note": "cover-assets/harbour-dusk-34b4d3b99667.jpg matches its digest.",
+        "outcome": "passed",
+        "scope": "structural",
+        "severity": "error",
+        "source": "PuzzlePress cover contract (docs/cover.md)",
+        "title": "Photograph available"
+      },
+      {
+        "basis": "puzzlepress_contract",
+        "category": "integrity",
+        "code": "cover_buildable",
+        "description": "The current cover configuration lays out, validates and renders.",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": null,
+        "note": "Current inputs render a verified cover.",
+        "outcome": "passed",
+        "scope": "structural",
+        "severity": "error",
+        "source": "PuzzlePress cover contract (docs/cover.md)",
+        "title": "Cover lays out"
+      },
+      {
+        "basis": "puzzlepress_contract",
+        "category": "integrity",
+        "code": "cover_current",
+        "description": "The recorded cover identity equals the identity of the current configuration, photograph, cover text, interior physical facts, cover rules and toolchain.",
+        "findings": 1,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": null,
+        "note": null,
+        "outcome": "failed",
+        "scope": "structural",
+        "severity": "error",
+        "source": "PuzzlePress cover contract (docs/cover.md)",
+        "title": "Cover current"
+      },
+      {
+        "basis": "puzzlepress_contract",
+        "category": "integrity",
+        "code": "cover_interior_provenance",
+        "description": "Warns when the interior was rebuilt after the cover with the same physical facts: the cover still fits, but its provenance names the earlier interior.",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": null,
+        "note": "Recorded against the current interior.",
+        "outcome": "passed",
+        "scope": "structural",
+        "severity": "warning",
+        "source": "PuzzlePress cover contract (docs/cover.md)",
+        "title": "Built against this interior"
+      },
+      {
+        "basis": "puzzlepress_contract",
+        "category": "integrity",
+        "code": "cover_matches_render",
+        "description": "cover.pdf's bytes equal a fresh deterministic render of the current layout.",
+        "findings": 1,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": null,
+        "note": null,
+        "outcome": "failed",
+        "scope": "structural",
+        "severity": "error",
+        "source": "PuzzlePress cover contract (docs/cover.md)",
+        "title": "PDF matches a fresh render"
+      },
+      {
+        "basis": "puzzlepress_contract",
+        "category": "artifact",
+        "code": "cover_pdf_structure",
+        "description": "One unrotated page with MediaBox and BleedBox equal to the wrap and TrimBox to the trim; bundled fonts; one metadata-free DeviceRGB JPEG; no strokes or metadata.",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": null,
+        "note": "cover.pdf is not the rendering of the current cover layout.",
+        "outcome": "not_evaluated",
+        "scope": "structural",
+        "severity": "error",
+        "source": "PuzzlePress cover contract (docs/cover.md)",
+        "title": "Cover PDF structure"
+      },
+      {
+        "basis": "kdp_requirement",
+        "category": "content",
+        "code": "kdp_cover_page_count",
+        "description": "The interior has at least 24 pages, KDP's paperback minimum.",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": {
+          "actual": 35,
+          "comparison": "at_least",
+          "required": 24,
+          "unit": "pages"
+        },
+        "note": "35 pages.",
+        "outcome": "passed",
+        "scope": "kdp",
+        "severity": "error",
+        "source": "KDP help: Paperback Submission Guidelines",
+        "title": "Paperback page count"
+      },
+      {
+        "basis": "kdp_requirement",
+        "category": "geometry",
+        "code": "kdp_cover_dimensions",
+        "description": "Page size equals bleed + back + spine + front + bleed by bleed + trim + bleed, with spine = page count x paper thickness, from the current interior.",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": {
+          "actual": "17.3288x11.2500",
+          "comparison": "equal",
+          "required": "17.3288x11.2500",
+          "unit": "in"
+        },
+        "note": "17.3288x11.2500 in.",
+        "outcome": "passed",
+        "scope": "kdp",
+        "severity": "error",
+        "source": "KDP help: Create a Paperback Cover",
+        "title": "Full-wrap size"
+      },
+      {
+        "basis": "kdp_requirement",
+        "category": "geometry",
+        "code": "kdp_cover_bleed",
+        "description": "Background and photograph extend 0.125 in beyond the trim on every outer edge.",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": null,
+        "note": "cover.pdf is not the rendering of the current cover layout.",
+        "outcome": "not_evaluated",
+        "scope": "kdp",
+        "severity": "error",
+        "source": "KDP help: Create a Paperback Cover",
+        "title": "Bleed"
+      },
+      {
+        "basis": "kdp_requirement",
+        "category": "content",
+        "code": "kdp_cover_image_resolution",
+        "description": "Effective resolution after cropping and scaling is at least 300 DPI.",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": null,
+        "note": "cover.pdf is not the rendering of the current cover layout.",
+        "outcome": "not_evaluated",
+        "scope": "kdp",
+        "severity": "error",
+        "source": "KDP help: Create a Paperback Cover",
+        "title": "Photo resolution"
+      },
+      {
+        "basis": "kdp_requirement",
+        "category": "geometry",
+        "code": "kdp_cover_text_safe_area",
+        "description": "Front and back text is at least 0.125 in inside the trim and fold lines.",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": null,
+        "note": "cover.pdf is not the rendering of the current cover layout.",
+        "outcome": "not_evaluated",
+        "scope": "kdp",
+        "severity": "error",
+        "source": "KDP help: Create a Paperback Cover",
+        "title": "Front and back text safe area"
+      },
+      {
+        "basis": "kdp_ambiguous",
+        "category": "geometry",
+        "code": "kdp_spine_text",
+        "description": "Spine text appears only from 80 pages and keeps 0.0625 in from each fold.",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": null,
+        "note": "cover.pdf is not the rendering of the current cover layout.",
+        "outcome": "not_evaluated",
+        "scope": "kdp",
+        "severity": "error",
+        "source": "KDP help: Create a Paperback Cover",
+        "title": "Spine text"
+      },
+      {
+        "basis": "kdp_ambiguous",
+        "category": "geometry",
+        "code": "kdp_barcode_area",
+        "description": "No text in the lower-right corner of the back cover where KDP prints a 2 x 1.2 in barcode (offsets are a PuzzlePress assumption).",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": null,
+        "note": "cover.pdf is not the rendering of the current cover layout.",
+        "outcome": "not_evaluated",
+        "scope": "kdp",
+        "severity": "error",
+        "source": "KDP help: Low-Content Book Barcode Details",
+        "title": "Barcode area clear"
+      },
+      {
+        "basis": "kdp_requirement",
+        "category": "typography",
+        "code": "kdp_cover_font_size",
+        "description": "All cover text is at least 7 pt.",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": null,
+        "note": "cover.pdf is not the rendering of the current cover layout.",
+        "outcome": "not_evaluated",
+        "scope": "kdp",
+        "severity": "error",
+        "source": "KDP help: Create a Paperback Cover",
+        "title": "Minimum type size"
+      },
+      {
+        "basis": "kdp_requirement",
+        "category": "font",
+        "code": "kdp_cover_fonts_embedded",
+        "description": "Every font program is embedded.",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": null,
+        "note": "All fonts embedded.",
+        "outcome": "passed",
+        "scope": "kdp",
+        "severity": "error",
+        "source": "KDP help: Create a Paperback Cover",
+        "title": "Fonts embedded"
+      },
+      {
+        "basis": "kdp_requirement",
+        "category": "content",
+        "code": "kdp_cover_flattened",
+        "description": "No transparency or layers.",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": null,
+        "note": "No transparency or layers.",
+        "outcome": "passed",
+        "scope": "kdp",
+        "severity": "error",
+        "source": "KDP help: Create a Paperback Cover",
+        "title": "Flattened"
+      },
+      {
+        "basis": "kdp_requirement",
+        "category": "content",
+        "code": "kdp_cover_no_marks",
+        "description": "No crop marks or other stroked guides, annotations, forms, actions or bookmarks.",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": null,
+        "note": "No marks, annotations, forms or bookmarks.",
+        "outcome": "passed",
+        "scope": "kdp",
+        "severity": "error",
+        "source": "KDP help: Create a Paperback Cover",
+        "title": "No marks or interactive features"
+      },
+      {
+        "basis": "kdp_requirement",
+        "category": "artifact",
+        "code": "kdp_cover_not_encrypted",
+        "description": "The cover is not locked or encrypted.",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": null,
+        "note": "Unlocked.",
+        "outcome": "passed",
+        "scope": "kdp",
+        "severity": "error",
+        "source": "KDP help: Paperback Submission Guidelines",
+        "title": "Not encrypted"
+      },
+      {
+        "basis": "kdp_requirement",
+        "category": "artifact",
+        "code": "kdp_cover_file_size",
+        "description": "cover.pdf is at most 650 MB.",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": {
+          "actual": 1795988,
+          "comparison": "at_most",
+          "required": 650000000,
+          "unit": "bytes"
+        },
+        "note": "1.8 MB.",
+        "outcome": "passed",
+        "scope": "kdp",
+        "severity": "error",
+        "source": "KDP help: Create a Paperback Cover",
+        "title": "File size limit"
+      },
+      {
+        "basis": "kdp_requirement",
+        "category": "artifact",
+        "code": "kdp_cover_file_size_recommended",
+        "description": "KDP recommends cover files of 40 MB or less.",
+        "findings": 0,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": {
+          "actual": 1795988,
+          "comparison": "at_most",
+          "required": 40000000,
+          "unit": "bytes"
+        },
+        "note": "1.8 MB.",
+        "outcome": "passed",
+        "scope": "kdp",
+        "severity": "warning",
+        "source": "KDP help: Create a Paperback Cover",
+        "title": "Recommended file size"
+      },
+      {
+        "basis": "kdp_ambiguous",
+        "category": "content",
+        "code": "kdp_cover_color_space",
+        "description": "KDP says cover images 'should be in CMYK'. PuzzlePress writes sRGB-normalized DeviceRGB and does not convert to CMYK; printed color may shift.",
+        "findings": 1,
+        "help": "docs/cover.md#cover-preflight",
+        "measure": null,
+        "note": null,
+        "outcome": "failed",
+        "scope": "kdp",
+        "severity": "warning",
+        "source": "KDP help: Create a Paperback Cover",
+        "title": "Color space"
+      }
+    ],
+    "ruleset": {
+      "id": "puzzlepress-kdp-cover",
+      "kdp_rules_checked": "2026-10-07",
+      "version": 1
+    },
+    "spine_text": {
+      "allowed_by_page_count": false,
+      "reason": "page_count",
+      "rendered": false,
+      "size": null
+    },
+    "state": "stale",
+    "structural": {
+      "status": "invalid"
+    }
+  },
+  "revision": "sha256-7d5b5bf5d8049a28c5c75d185c864aa71d87c1429a989dab0ea738856a35b9b6",
+  "ruleset": 1,
+  "state": "stale"
+}

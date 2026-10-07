@@ -35,14 +35,22 @@ physical enters the plan or `book.yaml`. Profiles are built in and selected by
 `--profile`. Adding a trim means adding a profile and its supported trim, not
 changing page templates. Specs are validated before layout.
 
-| Profile | `paperback-8.5x11` v1 |
+| Profile | `paperback-8.5x11` v2 (default) and `paperback-8.5x11-cream` v1 |
 | --- | --- |
+| Ink and paper | black ink; white paper (default) or cream paper |
 | Trim | 8.5 x 11 in (612 x 792 pt); media box = trim box |
 | Bleed | none (bleed specs are rejected) |
 | Margins | inside 0.75 in, outside 0.5 in, top 0.625 in, bottom 0.625 in |
 | Live area | 7.25 x 9.75 in, mirrored between recto and verso |
 | Ink | DeviceGray only, no transparency |
 | Folios | centered at the foot of the live area (`outside` also supported) |
+
+Paper is stated by the profile, never inferred: it does not change interior page
+geometry or PDF bytes, but it is part of the interior identity and sets the cover's
+spine width ([cover](cover.md)). Version 1 of `paperback-8.5x11` did not model
+paper; v2 states white paper explicitly, so v1 interiors report as stale and must
+be rebuilt. Groundwood and color papers are not offered: KDP publishes no
+groundwood spine multiplier, and interiors are black ink only.
 
 Units: PDF points (1 in = 72 pt), converted once in `spec.inches`. Every
 profile dimension is exact in binary floating point. Geometry comparisons use
@@ -204,10 +212,10 @@ for saved source; `book preflight` inspects the result ([preflight](preflight.md
 
 ## Limitations
 
-One profile (8.5 x 11 in, no bleed, black ink). Fonts are subset-embedded (KDP
+One trim (8.5 x 11 in, no bleed, black ink; white or cream paper). Fonts are subset-embedded (KDP
 recommends, but does not require, full embedding). One sans family with Latin-1
 coverage. No PDF/X conformance, color management, images, hyphenation, running
 heads, table of contents or per-book typography settings. The KDP page minimum
 is a build warning and a preflight readiness failure. Layout never repaginates, so
-overflow must be fixed in source or composition. Covers and KDP packaging are not
-implemented.
+overflow must be fixed in source or composition. Covers are built from the
+interior's facts ([cover](cover.md)); KDP packaging is not implemented.

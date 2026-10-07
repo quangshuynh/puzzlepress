@@ -174,8 +174,8 @@ def _check_ownership(directory: Path, book_id: str) -> None:
         )
 
 
-def _stage(directory: Path, data: bytes, suffix: str) -> Path:
-    handle, name = tempfile.mkstemp(prefix=".interior-", suffix=suffix, dir=directory)
+def _stage(directory: Path, data: bytes, suffix: str, prefix: str = ".interior-") -> Path:
+    handle, name = tempfile.mkstemp(prefix=prefix, suffix=suffix, dir=directory)
     path = Path(name)
     try:
         with os.fdopen(handle, "wb") as stream:

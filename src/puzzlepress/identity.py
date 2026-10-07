@@ -16,9 +16,12 @@ def canonical_build_inputs(project: Project) -> bytes:
 
     Output location is operational and excluded. Content order is meaningful.
     Engine version is included so future behavior changes invalidate identities.
+    The cover is excluded: it is identified by the cover identity, so editing a
+    crop never stales the interior.
     """
     data = project.to_dict()
     del data["output"]
+    data.pop("cover", None)
     envelope = {
         "identity_version": IDENTITY_VERSION,
         "engine_version": __version__,

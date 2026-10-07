@@ -26,7 +26,10 @@ def add_book_command(commands: "argparse._SubParsersAction[argparse.ArgumentPars
     build.add_argument(
         "--output", metavar="DIR", help="Output directory (default: the project's output.directory)"
     )
-    build.add_argument("--profile", help="Print profile (default: paperback-8.5x11)")
+    build.add_argument(
+        "--profile",
+        help="Print profile: paperback-8.5x11 (white paper, default) or paperback-8.5x11-cream",
+    )
     build.add_argument("--json", action="store_true", help="Print a structured build result")
     preflight = actions.add_parser(
         "preflight", help="Inspect a built interior: structural validity and KDP readiness"
@@ -173,6 +176,7 @@ def run_build_command(args: argparse.Namespace) -> int:
         print(f"Manifest: {written.manifest}")
         print(
             f"Pages: {manifest['page_count']} | trim {trim.name} in, no bleed | "
+            f"{spec.ink.value} ink on {spec.paper.value} paper | "
             f"profile {spec.profile_id} v{spec.profile_version}"
         )
         print(f"Interior identity: {manifest['interior_identity']}")

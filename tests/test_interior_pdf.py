@@ -15,7 +15,7 @@ from puzzlepress import load_project
 from puzzlepress.interior import InteriorError, build_interior, write_interior
 from puzzlepress.interior.inspection import inspect_pdf
 from puzzlepress.interior.render import render_pdf
-from puzzlepress.interior.spec import PAPERBACK_LETTER
+from puzzlepress.interior.spec import PAPERBACK_LETTER, PAPERBACK_LETTER_CREAM
 from tests.helpers import DEMO, demo_variant
 
 SPEC = PAPERBACK_LETTER
@@ -75,6 +75,15 @@ def test_identical_inputs_produce_identical_bytes(demo_build):
     assert manifest["trim"] == {"name": "8.5x11", "width_in": 8.5, "height_in": 11, "bleed": False}
     assert [f["face"] for f in manifest["fonts"]] == ["regular", "bold", "italic"]
     assert "time" not in json.dumps(manifest).lower()
+
+
+def test_paper_changes_identity_not_page_bytes(demo_build):
+    cream = build_interior(load_project(DEMO).project, PAPERBACK_LETTER_CREAM)
+    # Paper is a physical fact for the cover's spine; interior pages render identically.
+    assert cream.pdf == demo_build.pdf
+    assert cream.manifest["print_profile"]["paper"] == "cream"
+    assert demo_build.manifest["print_profile"]["paper"] == "white"
+    assert cream.manifest["interior_identity"] != demo_build.manifest["interior_identity"]
 
 
 def test_semantic_change_changes_bytes_and_identity(demo_build):

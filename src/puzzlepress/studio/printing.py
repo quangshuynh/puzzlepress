@@ -27,6 +27,7 @@ from puzzlepress.preflight import (
     read_interior_artifacts,
     report_bytes,
 )
+from puzzlepress.preflight.context import parse_manifest
 from puzzlepress.preflight.rules import ink_bounds, kdp_safe_area
 from puzzlepress.project import resolve_output_directory
 
@@ -95,7 +96,16 @@ class PrintService:
     def _status(self, key: str, built: PreflightResult | None = None) -> dict[str, object]:
         project, revision, _, directory = self._locate(key)
         artifacts = read_interior_artifacts(directory)
-        base: dict[str, object] = {"key": key, "revision": revision, "ruleset": RULESET_VERSION}
+        base: dict[str, object] = {
+            "key": key,
+            "revision": revision,
+            "ruleset": RULESET_VERSION,
+            "profiles": [
+                {"id": spec.profile_id, "description": spec.description, "paper": spec.paper.value}
+                for spec in PROFILES.values()
+            ],
+            "profile": _built_profile(artifacts.manifest) or DEFAULT_PROFILE,
+        }
         if artifacts.pdf is None and artifacts.manifest is None:
             return {**base, "state": "missing", "report": None, "preview": None}
         cache_key = (
@@ -139,15 +149,21 @@ class PrintService:
             "preview": preview,
         }
 
-    def build(self, key: str, revision: str) -> dict[str, object]:
-        """Build the saved source exactly at `revision`, then preflight what was written."""
+    def build(self, key: str, revision: str, profile: str | None = None) -> dict[str, object]:
+        """Build the saved source exactly at `revision`, then preflight what was written.
+
+        `profile` defaults to the built interior's profile, else the default profile.
+        """
         with self.service.exclusive(wait=LOCK_WAIT):
             project, current, source, directory = self._locate(key)
             if current != revision:
                 raise StudioError(
                     409, "source_changed", "Saved source changed. Reload before building."
                 )
-            spec = PROFILES[DEFAULT_PROFILE]
+            chosen = profile or _built_profile(read_interior_artifacts(directory).manifest)
+            if chosen is not None and chosen not in PROFILES:
+                raise StudioError(422, "unsupported_profile", "Unknown print profile.")
+            spec = PROFILES[chosen or DEFAULT_PROFILE]
             try:
                 build = build_interior(project, spec)
                 write_interior(build, directory, source)
@@ -191,6 +207,16 @@ class PrintService:
             raise StudioError(
                 503, "preview_unavailable", "Install the studio extra (pypdfium2) for previews."
             ) from error
+
+
+def _built_profile(manifest: bytes | None) -> str | None:
+    """The built-in profile a readable interior.json was built with, if any."""
+    if manifest is None:
+        return None
+    parsed, _ = parse_manifest(manifest)
+    profile = parsed.get("print_profile") if parsed else None
+    identifier = profile.get("profile_id") if isinstance(profile, dict) else None
+    return identifier if isinstance(identifier, str) and identifier in PROFILES else None
 
 
 def _digest(data: bytes | None) -> str:

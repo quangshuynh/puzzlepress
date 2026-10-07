@@ -1,7 +1,7 @@
 ﻿# PuzzlePress Studio
 
-Studio is a local visual editor for word-search projects, their book composition
-and a print proof of the built interior. Python remains the
+Studio is a local visual editor for word-search projects, their book composition,
+a print proof of the built interior and a photography-first cover studio. Python remains the
 single authority for schema validation, normalization, generation, identity and
 quality. The browser keeps drafts and displays authoritative results.
 
@@ -109,6 +109,41 @@ overlays and findings linked to their pages. Builds use the saved revision only;
 unsaved drafts disable **Build interior**. Stale and mismatched interiors are
 labeled. Details, caching and endpoints: [preflight](preflight.md#studio-print-proof).
 
+## Cover Studio
+
+Choose **Cover** to design the paperback cover around your own photograph
+([cover](cover.md)). The Cover tab edits the project's `cover` section in the same
+draft as Edit and Book: one revision, one validation, one save.
+
+1. Build the interior in **Print** first: the wrap is sized from its real page
+   count, trim and paper (Print offers white or cream paper). Without one, the
+   preview explains that the interior is missing.
+2. A book without a cover starts by choosing a photo already in `cover-assets` or
+   importing a JPEG or PNG. Import copies the original bytes into the project
+   immediately, never overwriting; choosing it only changes the draft.
+3. Edit the layout (full wrap or front photo), crop (focal point and zoom),
+   type preset, title position, alignment, tone, legibility treatment, fill
+   color, spine-text policy and back text. Title, subtitle, author and imprint
+   come from the book details (Edit and Book tabs).
+4. Each change renders the draft's real cover PDF in Python (debounced) and shows
+   a PDFium raster of it. Views: full wrap, front, spine and back crop the same
+   raster. Overlays drawn from Python geometry: trim and folds, bleed, KDP safe
+   areas, PuzzlePress type area, barcode corner, text bounds. None are in the PDF.
+5. Crop by dragging the photo, with the sliders, or with the keyboard on the
+   focused preview: arrows move the focal point (Shift for larger steps), `+`/`-`
+   zoom, `0` resets. All map to normalized values; Python clamps and reports the
+   applied focal point.
+6. The readiness column shows interior pages and paper, the calculated spine width
+   and wrap size, spine-text eligibility, effective DPI with its source pixels and
+   printed size, a stale-interior warning, and the built cover's separate
+   structural and KDP verdicts, stale reasons and findings.
+7. **Save changes**, then **Build cover** (saved revision only; disabled while the
+   draft is dirty). Switch between **Draft preview** and **Built cover.pdf**.
+
+A draft previews against the last built interior even when that interior is out
+of date for the draft, and says so; an interior whose files do not agree is
+refused. Decoded photos (two) and draft PDFs (160 MB) are cached in memory.
+
 ## Conflict and failure recovery
 
 A save includes the revision loaded with the authoritative source. A competing
@@ -164,7 +199,8 @@ produce identical YAML bytes. No YAML dependency or schema change was added.
 - `studio/service.py`: scoped snapshots, byte revisions, core report presentation.
 - `studio/editing.py`: explicit adapter-level persistence, keeping core APIs pure.
 - `studio/printing.py`, `studio/preview.py`: interior build/preflight adapter and the
-  PDFium page rasterizer with its digest-keyed cache.
+  PDFium page rasterizer with its digest-keyed cache (one process-wide PDFium lock).
+- `studio/covering.py`: cover status, draft render, photo import, build and rasters.
 - `studio/server.py`: thin HTTP handlers, expected errors, static assets and launcher.
 - `studio/src/draft.tsx`: shared draft lifecycle and toolbar; `Editor.tsx`,
   `ContentEditor.tsx`, `Composer.tsx`, `editor-fields.tsx`: visual inputs and
@@ -182,6 +218,12 @@ produce identical YAML bytes. No YAML dependency or schema change was added.
 | `GET /api/projects/{key}/interior` | Saved interior state (`missing`, `current`, `stale`, `invalid`), preflight report, preview pages and overlay geometry |
 | `POST /api/projects/{key}/interior/build` | `{revision}`; builds saved source, writes interior and `preflight.json`, returns state or `{build: {success: false, stage, diagnostics}}` |
 | `GET /api/projects/{key}/interior/pages/{n}` | `?size=thumb\|page\|detail&pdf=<sha256>`; PNG raster of page `n` of that exact PDF |
+| `GET /api/projects/{key}/cover` | Saved cover state (`no_config`, `missing`, `current`, `stale`, `invalid`), cover preflight report, layout geometry |
+| `POST /api/projects/{key}/draft/cover` | `{source}`; renders the draft's cover in memory; layout geometry, interior facts, checks, preview digest |
+| `GET /api/projects/{key}/cover/preview` | `?size=preview\|detail&pdf=<sha256>`; PNG of a draft PDF or `cover.pdf` (409 when gone) |
+| `GET /api/projects/{key}/cover/assets` | Photos in `cover-assets` with pixels, orientation and problems |
+| `POST /api/projects/{key}/cover/assets` | `?name=`; raw `image/jpeg` or `image/png` body (the only non-JSON POST); imports and returns the asset |
+| `POST /api/projects/{key}/cover/build` | `{revision}`; builds saved source, writes `cover.pdf`, `cover.json`, `cover-preflight.json` |
 
 Revision is `sha256-<digest of exact source bytes>`. It detects cosmetic changes
 and output edits that semantic identity intentionally excludes. Identical bytes
@@ -198,7 +240,7 @@ HTTP 200 batch report. Closing a page does not interrupt already-running Python.
 JSON POSTs require same-origin Origin when supplied, local Host and JSON content
 type. CSP and no-store response headers remain enabled; no CORS, auth or telemetry.
 
-Routes: `/books`, `/books/{key}`, `/books/{key}/edit`, `/books/{key}/book`, `/books/{key}/print`, `/books/{key}/puzzles`,
+Routes: `/books`, `/books/{key}`, `/books/{key}/edit`, `/books/{key}/book`, `/books/{key}/print`, `/books/{key}/cover`, `/books/{key}/puzzles`,
 `/books/{key}/puzzles/{id}`, `/books/{key}/quality`. Deep links serve the shell.
 
 ## Design, accessibility and screenshots
@@ -265,7 +307,12 @@ Existing ASCII/size/search limits apply. No extra schema fields, calibrated
 scores, automatic content repair, persisted previews, collaboration or cloud.
 Only Chrome/Chromium is exercised; axe is not screen-reader certification.
 Starlette warns about its deprecated httpx test client. Page previews need
-`pypdfium2` (in the `studio` extra). No cover creation, KDP packaging or publishing.
+`pypdfium2` (in the `studio` extra). No KDP packaging, metadata or publishing.
+Cover captures: [overview](images/studio/cover.png), [start](images/studio/cover-start.png),
+[front crop](images/studio/cover-crop.png), [full wrap](images/studio/cover-wrap.png),
+[overlays](images/studio/cover-overlays.png), [spine](images/studio/cover-spine.png),
+[readiness](images/studio/cover-readiness.png), [1440](images/studio/cover-1440.png),
+[390](images/studio/cover-390.png).
 Print captures: [overview](images/studio/print.png), [puzzle](images/studio/print-puzzle.png),
 [spread](images/studio/print-spread.png), [overlays](images/studio/print-overlays.png),
 [findings](images/studio/print-findings.png), [status](images/studio/print-kdp-not-ready.png),
