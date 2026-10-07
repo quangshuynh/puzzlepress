@@ -1,0 +1,718 @@
+# A photography-first cover demonstration: a KDP-length interior (35 pages) with
+# a full-wrap cover. Spine text needs 80+ pages, so it is omitted. The photograph
+# in cover-assets is a synthetic stand-in drawn by tests/cover_demo_photo.py.
+book:
+  author: PuzzlePress Examples
+  description: null
+  id: cover-demo
+  imprint: PuzzlePress Demonstration
+  language: en
+  subtitle: Twenty puzzles from the coast
+  title: Harbour Light Word Searches
+build:
+  seed: 909
+composition:
+  back_matter:
+  - kind: notes
+    title: Notes
+  front_matter:
+  - kind: title_page
+  - kind: copyright_page
+    text: Placeholder notice for a demonstration project. Replace it with your own
+      text before publishing.
+  - kind: instructions
+    text: 'Find each listed word hidden in the grid. Words run in straight lines.
+
+      Solutions are at the back of the book.'
+    title: How to Play
+  page_numbers:
+    scheme: roman_front_matter
+    show_back_matter: true
+    show_front_matter: false
+    show_solutions: true
+  puzzles:
+    start: recto
+  solutions:
+    per_page: 2
+    placement: end
+    start: recto
+    title: Solutions
+content:
+  items: []
+cover:
+  back_text: 'Twenty word searches from harbour walls, tide pools and lighthouse paths.
+
+    Every grid is generated deterministically and independently verified; solutions
+    are at the back.'
+  background: '#1f2a33'
+  crop:
+    x: 0.5
+    y: 0.45
+    zoom: 1.0
+  image:
+    path: cover-assets/harbour-dusk-34b4d3b99667.jpg
+    sha256: 34b4d3b99667a8361dbed0eb299622ba9c3231a6cde69a55888faca7347ac786
+  layout: full_wrap
+  legibility: shade
+  spine_text: auto
+  type:
+    align: center
+    position: top
+    style: editorial
+    tone: light
+  version: 1
+output:
+  directory: ../../build/cover-demo
+schema_version: 1
+word_search:
+  banks:
+  - entries:
+    - display: ANCHOR
+      id: anchor
+    - display: BOLLARD
+      id: bollard
+    - display: CRANE
+      id: crane
+    - display: DOCK
+      id: dock
+    - display: FERRY
+      id: ferry
+    - display: HULL
+      id: hull
+    - display: JETTY
+      id: jetty
+    - display: KEEL
+      id: keel
+    - display: MOORING
+      id: mooring
+    - display: PIER
+      id: pier
+    - display: QUAY
+      id: quay
+    - display: ROPE
+      id: rope
+    - display: SLIPWAY
+      id: slipway
+    - display: TUGBOAT
+      id: tugboat
+    - display: WHARF
+      id: wharf
+    - display: BUOY
+      id: buoy
+    id: harbour
+  - entries:
+    - display: ANEMONE
+      id: anemone
+    - display: BARNACLE
+      id: barnacle
+    - display: CRAB
+      id: crab
+    - display: KELP
+      id: kelp
+    - display: LIMPET
+      id: limpet
+    - display: MUSSEL
+      id: mussel
+    - display: PERIWINKLE
+      id: periwinkle
+    - display: PRAWN
+      id: prawn
+    - display: ROCKPOOL
+      id: rockpool
+    - display: SEAWEED
+      id: seaweed
+    - display: SHRIMP
+      id: shrimp
+    - display: STARFISH
+      id: starfish
+    - display: URCHIN
+      id: urchin
+    - display: WHELK
+      id: whelk
+    - display: COCKLE
+      id: cockle
+    - display: SPONGE
+      id: sponge
+    id: tidepools
+  - entries:
+    - display: BEACON
+      id: beacon
+    - display: BEAM
+      id: beam
+    - display: GALLERY
+      id: gallery
+    - display: KEEPER
+      id: keeper
+    - display: LAMP
+      id: lamp
+    - display: LANTERN
+      id: lantern
+    - display: LENS
+      id: lens
+    - display: SIGNAL
+      id: signal
+    - display: STAIRS
+      id: stairs
+    - display: TOWER
+      id: tower
+    - display: WARNING
+      id: warning
+    - display: FOGHORN
+      id: foghorn
+    - display: HEADLAND
+      id: headland
+    - display: ROCKS
+      id: rocks
+    - display: SHOAL
+      id: shoal
+    - display: FLASH
+      id: flash
+    id: lighthouses
+  - entries:
+    - display: BOOM
+      id: boom
+    - display: BOW
+      id: bow
+    - display: COMPASS
+      id: compass
+    - display: DINGHY
+      id: dinghy
+    - display: GALLEY
+      id: galley
+    - display: HALYARD
+      id: halyard
+    - display: JIB
+      id: jib
+    - display: MAST
+      id: mast
+    - display: RUDDER
+      id: rudder
+    - display: SAIL
+      id: sail
+    - display: SKIPPER
+      id: skipper
+    - display: STERN
+      id: stern
+    - display: TACK
+      id: tack
+    - display: TILLER
+      id: tiller
+    - display: WAKE
+      id: wake
+    - display: YACHT
+      id: yacht
+    id: sailing
+  - entries:
+    - display: BEACH
+      id: beach
+    - display: BREEZE
+      id: breeze
+    - display: DRIFT
+      id: drift
+    - display: DUNE
+      id: dune
+    - display: GRASS
+      id: grass
+    - display: HOLLOW
+      id: hollow
+    - display: MARRAM
+      id: marram
+    - display: RIDGE
+      id: ridge
+    - display: SAND
+      id: sand
+    - display: SHORE
+      id: shore
+    - display: SLOPE
+      id: slope
+    - display: STRAND
+      id: strand
+    - display: SUMMIT
+      id: summit
+    - display: TRACK
+      id: track
+    - display: WIND
+      id: wind
+    - display: RIPPLE
+      id: ripple
+    id: dunes
+  - entries:
+    - display: AUK
+      id: auk
+    - display: CORMORANT
+      id: cormorant
+    - display: CURLEW
+      id: curlew
+    - display: EGRET
+      id: egret
+    - display: FULMAR
+      id: fulmar
+    - display: GANNET
+      id: gannet
+    - display: GULL
+      id: gull
+    - display: HERON
+      id: heron
+    - display: KITTIWAKE
+      id: kittiwake
+    - display: OYSTERCATCHER
+      id: oystercatcher
+    - display: PETREL
+      id: petrel
+    - display: PUFFIN
+      id: puffin
+    - display: RAZORBILL
+      id: razorbill
+    - display: SANDPIPER
+      id: sandpiper
+    - display: SHAG
+      id: shag
+    - display: TERN
+      id: tern
+    id: seabirds
+  - entries:
+    - display: BREAKER
+      id: breaker
+    - display: CLOUD
+      id: cloud
+    - display: DRIZZLE
+      id: drizzle
+    - display: FOG
+      id: fog
+    - display: GALE
+      id: gale
+    - display: GUST
+      id: gust
+    - display: HAZE
+      id: haze
+    - display: MIST
+      id: mist
+    - display: SQUALL
+      id: squall
+    - display: STORM
+      id: storm
+    - display: SUNSET
+      id: sunset
+    - display: SWELL
+      id: swell
+    - display: TIDE
+      id: tide
+    - display: SPRAY
+      id: spray
+    - display: THUNDER
+      id: thunder
+    - display: CALM
+      id: calm
+    id: weather
+  - entries:
+    - display: BAIT
+      id: bait
+    - display: CATCH
+      id: catch
+    - display: COD
+      id: cod
+    - display: CREEL
+      id: creel
+    - display: HADDOCK
+      id: haddock
+    - display: HOOK
+      id: hook
+    - display: LINE
+      id: line
+    - display: LOBSTER
+      id: lobster
+    - display: MACKEREL
+      id: mackerel
+    - display: NET
+      id: net
+    - display: OYSTER
+      id: oyster
+    - display: PLAICE
+      id: plaice
+    - display: ROD
+      id: rod
+    - display: SARDINE
+      id: sardine
+    - display: TRAWLER
+      id: trawler
+    - display: HERRING
+      id: herring
+    id: fishing
+  - entries:
+    - display: AUGER
+      id: auger
+    - display: CONCH
+      id: conch
+    - display: COWRIE
+      id: cowrie
+    - display: MOONSHELL
+      id: moonshell
+    - display: NAUTILUS
+      id: nautilus
+    - display: PEARL
+      id: pearl
+    - display: RAZOR
+      id: razor
+    - display: SCALLOP
+      id: scallop
+    - display: SPIRAL
+      id: spiral
+    - display: TELLIN
+      id: tellin
+    - display: TOPSHELL
+      id: topshell
+    - display: TROUGH
+      id: trough
+    - display: TURRET
+      id: turret
+    - display: VENUS
+      id: venus
+    - display: WENTLETRAP
+      id: wentletrap
+    - display: CLAM
+      id: clam
+    id: shells
+  - entries:
+    - display: BENCH
+      id: bench
+    - display: BOARDWALK
+      id: boardwalk
+    - display: BRIDGE
+      id: bridge
+    - display: CLIFF
+      id: cliff
+    - display: COVE
+      id: cove
+    - display: FOOTPATH
+      id: footpath
+    - display: GATE
+      id: gate
+    - display: INLET
+      id: inlet
+    - display: MEADOW
+      id: meadow
+    - display: PROMENADE
+      id: promenade
+    - display: STILE
+      id: stile
+    - display: TRAIL
+      id: trail
+    - display: VIEWPOINT
+      id: viewpoint
+    - display: BAY
+      id: bay
+    - display: ESTUARY
+      id: estuary
+    - display: CAIRN
+      id: cairn
+    id: walks
+  profiles:
+  - directions:
+    - right
+    - down
+    - down-right
+    height: 13
+    id: gentle
+    max_attempts: 100000
+    max_restarts: 20
+    width: 13
+  - directions:
+    - right
+    - left
+    - down
+    - up
+    - down-right
+    - down-left
+    - up-right
+    - up-left
+    height: 14
+    id: varied
+    max_attempts: 100000
+    max_restarts: 20
+    width: 14
+  puzzles:
+  - bank: harbour
+    difficulty: gentle
+    id: harbour-1
+    target_ids:
+    - anchor
+    - bollard
+    - crane
+    - dock
+    - ferry
+    - hull
+    - jetty
+    - keel
+    theme: Harbour
+    title: Harbour I
+  - bank: harbour
+    difficulty: varied
+    id: harbour-2
+    target_ids:
+    - dock
+    - ferry
+    - hull
+    - jetty
+    - keel
+    - mooring
+    - pier
+    - quay
+    theme: Harbour
+    title: Harbour II
+  - bank: tidepools
+    difficulty: gentle
+    id: tidepools-1
+    target_ids:
+    - anemone
+    - barnacle
+    - crab
+    - kelp
+    - limpet
+    - mussel
+    - periwinkle
+    - prawn
+    theme: Tide Pools
+    title: Tide Pools I
+  - bank: tidepools
+    difficulty: varied
+    id: tidepools-2
+    target_ids:
+    - kelp
+    - limpet
+    - mussel
+    - periwinkle
+    - prawn
+    - rockpool
+    - seaweed
+    - shrimp
+    theme: Tide Pools
+    title: Tide Pools II
+  - bank: lighthouses
+    difficulty: gentle
+    id: lighthouses-1
+    target_ids:
+    - beacon
+    - beam
+    - gallery
+    - keeper
+    - lamp
+    - lantern
+    - lens
+    - signal
+    theme: Lighthouses
+    title: Lighthouses I
+  - bank: lighthouses
+    difficulty: varied
+    id: lighthouses-2
+    target_ids:
+    - keeper
+    - lamp
+    - lantern
+    - lens
+    - signal
+    - stairs
+    - tower
+    - warning
+    theme: Lighthouses
+    title: Lighthouses II
+  - bank: sailing
+    difficulty: gentle
+    id: sailing-1
+    target_ids:
+    - boom
+    - bow
+    - compass
+    - dinghy
+    - galley
+    - halyard
+    - jib
+    - mast
+    theme: Sailing
+    title: Sailing I
+  - bank: sailing
+    difficulty: varied
+    id: sailing-2
+    target_ids:
+    - dinghy
+    - galley
+    - halyard
+    - jib
+    - mast
+    - rudder
+    - sail
+    - skipper
+    theme: Sailing
+    title: Sailing II
+  - bank: dunes
+    difficulty: gentle
+    id: dunes-1
+    target_ids:
+    - beach
+    - breeze
+    - drift
+    - dune
+    - grass
+    - hollow
+    - marram
+    - ridge
+    theme: Dunes
+    title: Dunes I
+  - bank: dunes
+    difficulty: varied
+    id: dunes-2
+    target_ids:
+    - dune
+    - grass
+    - hollow
+    - marram
+    - ridge
+    - sand
+    - shore
+    - slope
+    theme: Dunes
+    title: Dunes II
+  - bank: seabirds
+    difficulty: gentle
+    id: seabirds-1
+    target_ids:
+    - auk
+    - cormorant
+    - curlew
+    - egret
+    - fulmar
+    - gannet
+    - gull
+    - heron
+    theme: Seabirds
+    title: Seabirds I
+  - bank: seabirds
+    difficulty: varied
+    id: seabirds-2
+    target_ids:
+    - egret
+    - fulmar
+    - gannet
+    - gull
+    - heron
+    - kittiwake
+    - oystercatcher
+    - petrel
+    theme: Seabirds
+    title: Seabirds II
+  - bank: weather
+    difficulty: gentle
+    id: weather-1
+    target_ids:
+    - breaker
+    - cloud
+    - drizzle
+    - fog
+    - gale
+    - gust
+    - haze
+    - mist
+    theme: Coastal Weather
+    title: Coastal Weather I
+  - bank: weather
+    difficulty: varied
+    id: weather-2
+    target_ids:
+    - fog
+    - gale
+    - gust
+    - haze
+    - mist
+    - squall
+    - storm
+    - sunset
+    theme: Coastal Weather
+    title: Coastal Weather II
+  - bank: fishing
+    difficulty: gentle
+    id: fishing-1
+    target_ids:
+    - bait
+    - catch
+    - cod
+    - creel
+    - haddock
+    - hook
+    - line
+    - lobster
+    theme: Fishing
+    title: Fishing I
+  - bank: fishing
+    difficulty: varied
+    id: fishing-2
+    target_ids:
+    - creel
+    - haddock
+    - hook
+    - line
+    - lobster
+    - mackerel
+    - net
+    - oyster
+    theme: Fishing
+    title: Fishing II
+  - bank: shells
+    difficulty: gentle
+    id: shells-1
+    target_ids:
+    - auger
+    - conch
+    - cowrie
+    - moonshell
+    - nautilus
+    - pearl
+    - razor
+    - scallop
+    theme: Shells
+    title: Shells I
+  - bank: shells
+    difficulty: varied
+    id: shells-2
+    target_ids:
+    - moonshell
+    - nautilus
+    - pearl
+    - razor
+    - scallop
+    - spiral
+    - tellin
+    - topshell
+    theme: Shells
+    title: Shells II
+  - bank: walks
+    difficulty: gentle
+    id: walks-1
+    target_ids:
+    - bench
+    - boardwalk
+    - bridge
+    - cliff
+    - cove
+    - footpath
+    - gate
+    - inlet
+    theme: Coastal Walks
+    title: Coastal Walks I
+  - bank: walks
+    difficulty: varied
+    id: walks-2
+    target_ids:
+    - cliff
+    - cove
+    - footpath
+    - gate
+    - inlet
+    - meadow
+    - promenade
+    - stile
+    theme: Coastal Walks
+    title: Coastal Walks II
+  quality:
+    grid_similarity_threshold: 0.9
+    max_word_reuse: 2
+    prohibited_words: []
+    target_similarity_threshold: 0.8

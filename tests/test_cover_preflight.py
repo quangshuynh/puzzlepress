@@ -269,3 +269,12 @@ def test_cli_import_copies_the_photo_and_prints_its_reference(tmp_path):
     bad = tmp_path / "notes.jpg"
     bad.write_text("not a photo")
     assert cli("import", source, bad).returncode == 1
+
+
+def test_cover_demo_fixture_is_valid_and_its_photo_matches_its_pin():
+    from tests.helpers import ROOT
+
+    project = load_project(ROOT / "books" / "cover-demo").project
+    assert project.cover is not None and project.cover.layout.value == "full_wrap"
+    photo = ROOT / "books" / "cover-demo" / project.cover.image.path
+    assert hashlib.sha256(photo.read_bytes()).hexdigest() == project.cover.image.sha256

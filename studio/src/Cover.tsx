@@ -411,13 +411,17 @@ function PhotoPicker({
   projectKey,
   current,
   onChoose,
+  message,
+  setMessage,
 }: {
   projectKey: string;
   current?: string;
   onChoose: (asset: CoverAsset) => void;
+  // Owned by Cover so the import result survives the switch from start to editor.
+  message: string;
+  setMessage: (message: string) => void;
 }) {
   const [assets, setAssets] = useState<CoverAsset[]>();
-  const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const base = `/api/projects/${encodeURIComponent(projectKey)}/cover/assets`;
   useEffect(() => {
@@ -426,7 +430,7 @@ function PhotoPicker({
       .then((data) => !controller.signal.aborted && setAssets(data.assets))
       .catch((err: Error) => !controller.signal.aborted && setMessage(err.message));
     return () => controller.abort();
-  }, [base]);
+  }, [base, setMessage]);
   const choose = async (file: File) => {
     if (!['image/jpeg', 'image/png'].includes(file.type)) {
       setMessage('Choose a JPEG or PNG photograph.');
@@ -518,12 +522,16 @@ function Controls({
   layout,
   issues,
   update,
+  notice,
+  setNotice,
 }: {
   d: Draft;
   cover: CoverConfig;
   layout?: CoverLayoutView;
   issues: Issue[];
   update: (next: Partial<CoverConfig>) => void;
+  notice: string;
+  setNotice: (message: string) => void;
 }) {
   const book = d.draft.book;
   const crop = cover.crop;
@@ -536,6 +544,8 @@ function Controls({
       <PhotoPicker
         projectKey={d.key}
         current={cover.image.path}
+        message={notice}
+        setMessage={setNotice}
         onChoose={(asset) =>
           asset.sha256 && update({ image: { path: asset.path, sha256: asset.sha256 } })
         }
@@ -1008,6 +1018,7 @@ export function Cover({ d }: { d: Draft }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [source, setSource] = useState<'draft' | 'built'>('draft');
+  const [notice, setNotice] = useState('');
   const [overlays, setOverlays] = useState<Set<Overlay>>(new Set());
   const base = `/api/projects/${encodeURIComponent(d.key)}`;
   const latest = useRef(d.draft);
@@ -1132,6 +1143,8 @@ export function Cover({ d }: { d: Draft }) {
           </p>
           <PhotoPicker
             projectKey={d.key}
+            message={notice}
+            setMessage={setNotice}
             onChoose={(asset) =>
               asset.sha256 &&
               d.change({
@@ -1159,7 +1172,15 @@ export function Cover({ d }: { d: Draft }) {
         {pending ? 'Rendering the draft cover…' : message}
       </p>
       <div className="cover-workspace">
-        <Controls d={d} cover={cover} layout={draft?.layout} issues={issues} update={update} />
+        <Controls
+          d={d}
+          cover={cover}
+          layout={draft?.layout}
+          issues={issues}
+          update={update}
+          notice={notice}
+          setNotice={setNotice}
+        />
         <div className="cover-main">
           <div className="cover-source" role="group" aria-label="Preview source">
             <button type="button" aria-pressed={!showBuilt} onClick={() => setSource('draft')}>

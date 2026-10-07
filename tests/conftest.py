@@ -23,9 +23,12 @@ def garden():
 
 
 def _fixture_digests() -> dict[str, str]:
+    """Every authored file of the canonical books, including cover photographs."""
     return {
-        name: hashlib.sha256((ROOT / "books" / name / "book.yaml").read_bytes()).hexdigest()
+        path.relative_to(ROOT).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
         for name in CANONICAL_BOOKS
+        for path in sorted((ROOT / "books" / name).rglob("*"))
+        if path.is_file()
     }
 
 

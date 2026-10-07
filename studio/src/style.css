@@ -2236,3 +2236,15 @@ summary:hover {
   padding: 8px 0;
   font-size: 13px;
 }
+.cover-stage {
+  margin-top: 0;
+}
+.cover-readiness > button {
+  width: auto;
+  min-width: 220px;
+}
+@media (min-width: 1600px), (max-width: 900px) {
+  .cover-readiness > button {
+    width: 100%;
+  }
+}

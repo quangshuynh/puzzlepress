@@ -14,7 +14,7 @@ def installed_puzzlepress() -> Path:
 
 ROOT = Path(__file__).resolve().parents[1]
 DEMO = ROOT / "books" / "composition-demo"
-CANONICAL_BOOKS = ("automotive", "composition-demo", "garden-demo")
+CANONICAL_BOOKS = ("automotive", "composition-demo", "cover-demo", "garden-demo")
 
 
 def demo_variant(mutate=None, puzzles: int | None = None):
