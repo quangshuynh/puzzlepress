@@ -6,6 +6,7 @@ from collections.abc import Sequence
 
 from . import __version__
 from .book_cli import add_book_command, run_book_command
+from .cover_cli import add_cover_command, run_cover_command
 from .identity import build_identity
 from .project import load_project
 from .puzzle_cli import add_puzzle_command, run_puzzle_command
@@ -16,7 +17,7 @@ from .wordsearch import WordSearchError
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="puzzlepress",
-        description="Validate book projects, generate word searches and plan books.",
+        description="Validate projects, generate word searches, build interiors and covers.",
     )
     parser.add_argument("--version", action="version", version=f"PuzzlePress {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -28,12 +29,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         command.add_argument("project", help="YAML file or directory containing book.yaml")
     add_puzzle_command(commands)
     add_book_command(commands)
+    add_cover_command(commands)
     args = parser.parse_args(argv)
     try:
         if args.command == "puzzle":
             return run_puzzle_command(args)
         if args.command == "book":
             return run_book_command(args)
+        if args.command == "cover":
+            return run_cover_command(args)
         loaded = load_project(args.project)
     except (ProjectError, WordSearchError) as error:
         for issue in error.issues:
