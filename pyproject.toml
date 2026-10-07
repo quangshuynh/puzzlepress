@@ -14,6 +14,7 @@ dependencies = [
     "PyYAML>=6.0.2,<7",
     "reportlab>=5.0.1,<5.1",
     "pypdf>=6.19,<7",
+    "pillow>=12,<13",
 ]
 
 [project.optional-dependencies]
@@ -35,7 +36,7 @@ puzzlepress-studio = "puzzlepress.studio.server:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-puzzlepress = ["py.typed", "interior/fonts/*"]
+puzzlepress = ["py.typed", "interior/fonts/*", "cover/fonts/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
