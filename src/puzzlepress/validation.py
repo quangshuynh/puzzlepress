@@ -7,6 +7,7 @@ from typing import cast
 
 from .composition_validation import validate_composition
 from .content_validation import validate_word_search_content
+from .cover_validation import validate_cover
 from .errors import MAX_SEED
 from .errors import ProjectError as ProjectError
 from .errors import ValidationIssue as ValidationIssue
@@ -73,7 +74,16 @@ def validate_project(data: object) -> ValidationResult:
     root = mapping(
         data,
         "",
-        {"schema_version", "book", "build", "content", "output", "word_search", "composition"},
+        {
+            "schema_version",
+            "book",
+            "build",
+            "content",
+            "output",
+            "word_search",
+            "composition",
+            "cover",
+        },
     )
     version = required(root, "schema_version", "schema_version")
     if type(version) is not int or version != SCHEMA_VERSION:
@@ -158,6 +168,10 @@ def validate_project(data: object) -> ValidationResult:
             root["composition"], "word_search" in root
         )
         issues.extend(composition_issues)
+    cover = None
+    if "cover" in root:
+        cover, cover_issues = validate_cover(root["cover"], "composition" in root)
+        issues.extend(cover_issues)
     if issues:
         return ValidationResult(None, tuple(issues))
     return ValidationResult(
@@ -177,6 +191,7 @@ def validate_project(data: object) -> ValidationResult:
             output=Output(cast(str, directory)),
             word_search=word_search,
             composition=composition,
+            cover=cover,
         ),
         (),
     )

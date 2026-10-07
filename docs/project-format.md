@@ -34,6 +34,7 @@ output:
 | `output.directory` | Relative path from the resolved YAML file's directory; defaults to `../build/<book.id>`. |
 | `word_search` | Optional banks, explicit difficulty profiles, themed puzzle definitions, and quality settings. See [batch schema](batch-quality.md). Omit for legacy projects; null is rejected. |
 | `composition` | Optional book composition: front/back matter, solution and page-number policy. Requires `word_search`. See [book composition](book-composition.md). |
+| `cover` | Optional versioned paperback cover: photograph, crop, type and fill. Requires `composition`. Excluded from build identity. See [cover](cover.md). |
 
 Unknown fields are errors, including nested typos. Text is trimmed at its edges;
 internal whitespace, case, and Unicode normalization form are preserved. Omitted
@@ -95,6 +96,10 @@ field `word_search_pipeline_version: 1`. This covers banks, profiles, themes,
 selection order, generation limits, similarity/reuse thresholds, and screening
 words. Declared unused banks/profiles also affect identity. Sequence order is
 preserved, except direction sets use enum order and prohibited search forms are sorted.
+
+A `cover` section is never part of canonical build inputs: it is presentation of
+the printed edition, identified by its own cover identity, so editing a crop never
+stales the interior. Its photograph lives in the project's `cover-assets/` folder.
 
 Absent `word_search` is omitted from canonical inputs, preserving all legacy
 identities. Likewise, a present `composition` is included in full with envelope
