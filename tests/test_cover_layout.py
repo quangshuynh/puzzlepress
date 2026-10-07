@@ -199,6 +199,7 @@ def test_legibility_treatments():
     title_band = shade.photo.shade[0]
     assert title_band.core[1] == shade.geometry.media.top and title_band.toward == (0, 0, 0)
     assert title_band.weight(title_band.core[0] - title_band.fade - 1) == 0
+    assert all((b.x0, b.x1) == (0, shade.geometry.media.right) for b in shade.photo.shade[:4])
     dark = lay(config=replace(CONFIG, type=CoverType(tone=TextTone.DARK)))
     assert dark.photo.shade[0].toward == (255, 255, 255)
     panel = lay(config=replace(CONFIG, legibility=Legibility.PANEL))
