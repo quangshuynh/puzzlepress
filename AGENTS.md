@@ -19,6 +19,9 @@ and local Web Studio share the same core. Read `CONTEXT.md` for current scope.
   report seeds as decimal strings so web clients retain exact values.
 - Publication plans stay renderer-independent. Layout consumes a verified plan
   and must reject, never silently regroup, repaginate or reorder, its pages.
+- Physical values live in print specifications, in points, with KDP limits in
+  one place. Rebind puzzle digests before drawing; reopen and inspect every PDF.
+  Use bundled, digest-pinned fonts only. Keep PDF bytes deterministic.
 - Keep authored source and disposable generated directories disjoint. Recheck
   filesystem boundaries before any future write or recursive cleanup.
 - Preserve versioned schema and identity contracts. Include output-affecting
@@ -45,6 +48,7 @@ python -m ruff format --check .
 python -m mypy
 python -m pip check
 puzzlepress validate books/automotive
+puzzlepress book build books/composition-demo --output .pytest_cache/interior
 puzzlepress puzzle generate --width 10 --height 8 --seed 2026 --word ENGINE --word PISTON --solution
 git diff --check
 git status --short

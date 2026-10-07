@@ -2,28 +2,54 @@
 
 ## Completed scope
 
-Interval 6 complete: renderer-independent book composition, a deterministic and
-independently verified logical publication plan, `book plan` CLI and Studio Book
-composer. No Interval 7 work (layout/PDF), commits, pushes or deployment.
-Engine/package 0.1.0; schema, identity and word-search pipeline remain version 1.
-Composition and plan versions are 1. Full contract: docs/book-composition.md.
+Interval 7 complete: print interior engine. `book build` turns a composed project
+into a verified 8.5 x 11 in interior PDF plus manifest. No Interval 8 work (print
+preview, KDP preflight UI, covers), commits, pushes or deployment. Engine/package
+0.1.0; schema, identity, pipeline, composition and plan versions unchanged (1);
+renderer version 1. Contracts: docs/book-composition.md, docs/print-interior.md.
 
 ## Architecture and launch
 
-- Python core is pure and authoritative. Runtime dependency remains PyYAML; Studio
-  extras FastAPI >=0.135,<0.136 and uvicorn; web tests use httpx. React/strict
-  TypeScript/Vite, locally bundled fonts. No dependencies added in Intervals 5-6.
-- Pipeline: project -> batch generation -> quality -> composition -> plan. Layout
-  is the Interval 7 boundary and must consume, never regroup or repaginate, plans.
-- Core: `composition.py` (frozen models/enums), `composition_validation.py`,
-  `publication.py` (planner, `build_publication`, `plan_publication`),
-  `publication_verification.py` (verifier, shared JSON payload), `book_cli.py`.
-  `batch.puzzle_digest` binds plan entries to generated puzzles.
-- Studio: `service.py`, `editing.py`, `server.py` as before plus `plan_project`.
-  Frontend `draft.tsx` holds the single whole-project draft shared by `Editor.tsx`
-  (Edit tab) and `Composer.tsx` (Book tab); `editor-fields.tsx` field helpers.
+- Python core is pure and authoritative. Runtime deps: PyYAML, ReportLab 5.0.x
+  (BSD; pulls Pillow, charset-normalizer), pypdf 6.x (BSD-3). Dev adds
+  types-reportlab. Studio extras FastAPI/uvicorn; web tests httpx. React/strict
+  TypeScript/Vite, locally bundled fonts.
+- Pipeline: project -> batch -> quality -> composition -> plan -> verification ->
+  digest binding -> layout -> layout validation -> PDF -> pypdf inspection -> write.
+- Core: `composition.py`, `composition_validation.py`, `publication.py`,
+  `publication_verification.py`, `book_cli.py` (plan, build). Print engine in
+  `interior/`: `spec` (profiles, points, `KdpConstraints`), `fonts` (bundled Vera
+  Sans, pinned SHA-256), `text` (wrap), `geometry`, `engine` (layout),
+  `validation`, `render` (ReportLab), `inspection` (pypdf), `build` (pipeline,
+  manifest, only writer), `issues`, `model`. CLI imports it lazily.
+- Studio: unchanged (`service.py`, `editing.py`, `server.py`; `draft.tsx`,
+  `Editor.tsx`, `Composer.tsx`). No interior build or preview in Studio.
 - Build `cd studio; npm ci; npm run build`; launch from root
   `.\.venv\Scripts\puzzlepress-studio.exe` (http://127.0.0.1:8000/books).
+
+## Print interior
+
+- Profile `paperback-8.5x11` v1 (only one): 612x792 pt, no bleed (rejected), margins
+  inside 0.75 / outside 0.5 / top+bottom 0.625 in, gray ink, centered folios
+  (`outside` supported). Spec is renderer-facing, not authored YAML; `--profile`.
+- KDP rules centralized (verified on KDP help 2026-10): gutter table to 828 pages,
+  0.25 in outer margins, 7 pt text, 0.75 pt lines, 24-page minimum (warning only;
+  renderer never pads). Physical pages = plan pages. Gutter fixed, validated
+  against count, never enlarged.
+- Layout: one PhysicalPage per plan entry; elements TextLine/Rule/LetterGrid
+  (with SolutionMark capsules); 24 pt folio band. Solution template from plan's
+  largest group: 1, 2 stacked, 2x2, 2x3. Puzzle letters 9-20 pt, solutions 7-14.
+- Failures are `InteriorError(stage, LayoutIssue...)` with page, physical page,
+  kind, subject, region, actual/required. Overflow, tiny grids, unbreakable words,
+  missing glyphs, digest mismatch, incomplete plan, foreign report, unknown kind,
+  bad order, density >6, bad spec: fail, never repaginate/regroup/shrink.
+- Determinism: ReportLab invariant mode, empty metadata, subset fonts. Same source,
+  profile, versions, fonts and ReportLab version give byte-identical PDF and
+  manifest (tested across process, cwd, PYTHONHASHSEED).
+- Output: `output.directory` or `--output`: `interior.pdf`, `interior.json` (interior
+  identity, plan digest, profile, versions, fonts, PDF SHA-256, warnings; no time).
+  Rechecks source disjointness at write; replaces only same-book manifests; staged,
+  fsynced, read back, `os.replace`; failed builds write nothing.
 
 ## Composition model
 
@@ -63,12 +89,13 @@ Composition and plan versions are 1. Full contract: docs/book-composition.md.
 
 ## CLI and API
 
-- `puzzlepress book plan PROJECT [--json]`: table or JSON `{plan, verification,
-  generation{success,clean,quality_findings}}`. Exit 0 complete, 1 invalid/missing
-  composition/generation failure, 2 usage. Writes nothing.
-- New POST `/api/projects/{key}/draft/plan` `{source}`; shares generation lock
-  (409 `generation_busy`), 422 `no_composition`. Shell route `/books/{key}/book`.
-  Composition saves reuse `/draft/validate` and `/draft/save` unchanged.
+- `puzzlepress book plan PROJECT [--json]`: read-only; exit 0 complete, 1
+  invalid/missing composition/generation failure, 2 usage.
+- `puzzlepress book build PROJECT [--output DIR] [--profile ID] [--json]`: exit 0
+  written (warnings on stderr), 1 expected failure with diagnostics (JSON `{success:
+  false, stage, diagnostics}`), 2 usage.
+- POST `/api/projects/{key}/draft/plan` `{source}` (409 `generation_busy`, 422
+  `no_composition`). No build endpoint.
 
 ## Studio composer
 
@@ -89,27 +116,27 @@ small external-editor race remains. Drafts memory-only; no autosave/undo/merge.
 
 ## Actual local verification (Windows, Python 3.13.15, Node 24.18.0)
 
-- Python: **472 passed, 4 skipped** (symlink permission), 1 Starlette httpx
-  deprecation warning. Composition/CLI/API-composition subset 85 passed; API suite
-  84 passed, 3 skipped. Ruff lint/format (55 files), strict mypy (29), pip check.
-- Frontend: npm ci, check (tsc/ESLint/Prettier), **29 Vitest**, npm ls, build
-  (JS 284.49 kB, 86.37 kB gzip). **7 Playwright** (installed Chrome) incl. 2
-  composer specs: real edit/preview/save/reload, deterministic repeat preview,
-  validation, stale conflict, keyboard reorder, starter, 1440/1024/768/390 without
-  overflow, zero axe violations in checked states.
-- Installed CLI: 9 regressions exit 0; legacy `book plan` exit 1 structured; plan
-  JSON byte-identical across runs/cwd/hash seed; no build output written.
+- Python: **559 passed, 4 skipped** (symlink permission), 1 Starlette httpx
+  warning. Print/CLI subset (geometry, layout, PDF, book CLI) 92 passed; API 84
+  passed, 3 skipped. Ruff lint/format (71 files), strict mypy (41), pip check.
+- Frontend unchanged: npm ci, check, 29 Vitest, npm ls, build (JS 284.49 kB);
+  7 Playwright pass. Playwright rewrites docs/images/studio captures; restored.
+- Installed CLI: 13 regressions as expected (legacy plan/build exit 1);
+  `book build books/composition-demo` wrote build/composition-demo (11 pages,
+  SHA-256 19d5bd5a...), identical from another cwd/hash seed. pypdf: 612x792 boxes,
+  three embedded TrueType subsets, no annotations/outline/forms, blank page 4 empty.
+  CI print-job verification script run locally.
+- Pages rasterized (scratch pypdfium2, not a dependency) and inspected: title,
+  copyright, instructions, recto/verso puzzles, 2/4/6-per-page solutions, notes.
 - Fixture SHA-256 (LF-normalized) unchanged: garden-demo ffd7f7eb..., automotive
-  209f3fd6..., composition-demo b15651cd... All writes use temp copies.
-- pytest needs a writable basetemp; sandbox blocked `.pytest_cache`, so runs used
-  a scratch basetemp. esbuild/Playwright ran outside the sandbox. Remote CI not
-  verified; CI adds `validate`/`book plan` for composition-demo.
+  209f3fd6..., composition-demo b15651cd...; a session fixture asserts it.
+- pytest needs a writable basetemp (scratch used). Remote CI not verified.
 
 ## Limits and decisions for review
 
-One puzzle per page; all definitions included; solutions end or omitted; no TOC,
-half-title, dividers, per-puzzle recto, rich text or images; no overflow detection
-(renderer must report). Book title edited only in Edit. Existing npm audit Vitest
-advisory not re-examined. Review before Interval 7: per_page set {1,2,4,6},
-copyright/instructions text model, `notes` semantics, plan JSON plus report as the
-renderer input, and whether exclusion of puzzles or a TOC is needed.
+One puzzle per page; all definitions included; solutions end or omitted; no TOC.
+One profile, no bleed, Vera Sans only (Latin-1), subset (not full) embedding, no
+PDF/X. composition-demo is 11 pages (KDP warning). Studio cannot build. Review
+before Interval 8: built-in vs authored print specs, KDP minimum as warning vs
+error, solution captions (title + page label, no English labels), Vera vs a
+bundled serif, and whether to bump engine version for renderer changes.

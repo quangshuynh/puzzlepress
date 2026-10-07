@@ -12,12 +12,12 @@
 
 PuzzlePress is a deterministic Python engine and local publishing studio for
 themed puzzle books. Validate authored projects, generate verified word searches,
-compose them into an ordered book, and author everything in a local browser studio
-with authoritative previews and quality findings.
+compose them into an ordered book, build a print interior PDF, and author everything
+in a local browser studio with authoritative previews and quality findings.
 
-**Interval 6 complete:** Studio supports puzzle authoring, book composition and a
-publication-plan preview: a verified, renderer-independent list of logical pages.
-Print/PDF interiors, covers and publishing remain future work.
+**Interval 7 complete:** `book build` lays out a verified publication plan and writes
+a structurally verified 8.5 x 11 in interior PDF with embedded fonts. It is not a
+complete KDP preflight; covers, print preview and publishing remain future work.
 
 ## Quick start
 
@@ -40,7 +40,8 @@ process serves the UI and API. On Linux/macOS use `.venv/bin/python`,
 `.venv/bin/puzzlepress-studio` and `npm`.
 
 For CLI-only use, install with `python -m pip install -e .` and activate the
-virtual environment. PyYAML remains the only core runtime dependency.
+virtual environment. Runtime dependencies are PyYAML, ReportLab (PDF output) and
+pypdf (independent PDF inspection).
 
 ## CLI
 
@@ -53,12 +54,17 @@ puzzlepress puzzle batch books/garden-demo --json
 puzzlepress puzzle batch books/garden-demo --strict-quality
 puzzlepress book plan books/composition-demo
 puzzlepress book plan books/composition-demo --json
+puzzlepress book build books/composition-demo
+puzzlepress book build books/composition-demo --output /tmp/demo-interior --json
 ```
 
-Commands are read-only. Exit codes: **0** success, **1** expected configuration
+Commands are read-only except `book build`, which writes `interior.pdf` and an
+`interior.json` manifest to the project's output directory (here
+`build/composition-demo/`) or `--output`. Exit codes: **0** success, **1** expected configuration
 or generation failure, **2** usage error. Batch quality findings are warnings
 unless `--strict-quality` is used. `book plan` exits 1 when a puzzle fails to
-generate, still printing the plan. `python -m puzzlepress` is also supported.
+generate, still printing the plan. `book build` exits 1 with structured
+diagnostics (overflow, digest mismatch, invalid profile) and writes nothing. `python -m puzzlepress` is also supported.
 
 ## Web Studio
 
@@ -146,8 +152,9 @@ Chromium job. Symlink tests skip when OS permission is unavailable.
                                 React / TypeScript
 ```
 
-Project -> generation -> quality -> composition -> publication plan. Layout and
-PDF rendering are a separate, future stage that consumes the plan.
+Project -> generation -> quality -> composition -> publication plan -> layout -> PDF.
+The print engine consumes the plan and the generated puzzles, verifies their
+digests, lays out pages without repaginating and rejects content that does not fit.
 
 Immutable Python models own validation, deterministic generation, identity,
 quality and publication planning. The web adapter exposes existing reports; the browser renders them.
@@ -157,7 +164,7 @@ HTTP as decimal strings. Source and disposable build directories stay disjoint.
 
 Contracts: [project format](docs/project-format.md), [word-search engine](docs/word-search.md),
 [batch and quality](docs/batch-quality.md), [book composition](docs/book-composition.md),
-[Studio architecture](docs/studio.md).
+[print interior](docs/print-interior.md), [Studio architecture](docs/studio.md).
 Contribution rules: [AGENTS.md](AGENTS.md). Current handoff: [CONTEXT.md](CONTEXT.md).
 
 ## Current limitations
@@ -171,8 +178,9 @@ Studio edits only existing `book.yaml` projects within its configured books root
 It has no arbitrary filesystem browser, accounts, cloud services or telemetry.
 Drafts are in memory, without autosave or merge; conflicts require review and reload.
 Use one Studio process per library. YAML comments and formatting are not preserved.
-Frontend assets are built from this checkout. Logical page counts are not final
-printed page counts. PDF output, print layout, covers, KDP preflight and publishing
+Frontend assets are built from this checkout. Interiors use one profile (8.5 x 11
+in, no bleed, black ink) and one bundled sans family; books under 24 pages build
+with a KDP warning. Print preview, full KDP preflight, covers and publishing
 automation are not implemented.
 
 ## License

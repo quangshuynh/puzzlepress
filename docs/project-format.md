@@ -62,10 +62,11 @@ paths, backslashes, and invalid path characters are rejected. Relative `..`
 components are intentional: they allow output outside the book source tree.
 
 Loading resolves symlinks and rejects output that is inside, equal to, or an
-ancestor of the source directory. Existing output files are rejected. Nothing
-creates or deletes output directories in this interval. Future writers must
-recheck separation when writing, prevent collisions with other projects, and
-never place authoritative data in build directories. `build/`, environments,
+ancestor of the source directory, and an output path that is an existing file.
+Only `book build` writes: it creates the output directory, rechecks separation at
+write time, replaces only an interior whose manifest names the same book, and
+never deletes directories (see [print interior](print-interior.md)). Never place
+authoritative data in build directories. `build/`, environments,
 test caches, and packaging artifacts are ignored by Git.
 
 ## Build identity

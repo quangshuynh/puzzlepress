@@ -158,5 +158,5 @@ is requested. JSON reports, including partial failures, go to stdout. Source
 validation errors go to stderr without a report. No output files are written.
 
 The [Web Studio](studio.md) displays these same reports for saved projects and unsaved drafts.
-PDFs, covers, KDP layout, difficulty calibration, automatic repair,
+Covers, KDP preflight, difficulty calibration, automatic repair,
 external word-bank files, and large book production remain deferred.

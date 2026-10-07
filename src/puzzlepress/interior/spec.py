@@ -1,0 +1,273 @@
+"""Physical print specification, units and centralized KDP paperback constraints.
+
+All physical values are PDF points (1 inch = 72 points), converted once here.
+Semantic composition never contains these values; renderers receive them separately.
+"""
+
+from dataclasses import asdict, dataclass, field
+from enum import StrEnum
+
+from .issues import LayoutIssue
+
+POINTS_PER_INCH = 72
+# Geometric comparisons tolerate float rounding well below any printable distance.
+TOLERANCE = 1e-6
+
+
+def inches(value: float) -> float:
+    """The single inch-to-point conversion used for authored physical values."""
+    return value * POINTS_PER_INCH
+
+
+def to_inches(points: float) -> float:
+    return points / POINTS_PER_INCH
+
+
+@dataclass(frozen=True)
+class KdpConstraints:
+    """KDP paperback manuscript rules, verified against KDP help pages (2026-10).
+
+    Sources: "Set Trim Size, Bleed, and Margins" (gutter table, outside margins,
+    bleed size) and "Paperback Manuscript File Requirements" (7 pt text, 0.75 pt
+    lines, embedded fonts, no marks/annotations). 24 pages is the paperback minimum.
+    """
+
+    min_font_size: float = 7.0
+    min_line_weight: float = 0.75
+    min_pages: int = 24
+    min_outside_margin: float = inches(0.25)
+    min_outside_margin_with_bleed: float = inches(0.375)
+    # (maximum page count, minimum inside margin) in ascending order.
+    gutter_table: tuple[tuple[int, float], ...] = (
+        (150, inches(0.375)),
+        (300, inches(0.5)),
+        (500, inches(0.625)),
+        (700, inches(0.75)),
+        (828, inches(0.875)),
+    )
+
+    @property
+    def max_pages(self) -> int:
+        return self.gutter_table[-1][0]
+
+    def required_gutter(self, page_count: int) -> float | None:
+        """Minimum inside margin for a physical page count; None above the table.
+
+        Counts below the 24-page minimum use the first row: the gutter requirement
+        is still defined, and the page-count shortfall is reported separately.
+        """
+        for maximum, gutter in self.gutter_table:
+            if page_count <= maximum:
+                return gutter
+        return None
+
+
+KDP = KdpConstraints()
+
+
+class FolioPlacement(StrEnum):
+    CENTER = "center"
+    OUTSIDE = "outside"
+
+
+@dataclass(frozen=True)
+class TrimSize:
+    name: str
+    width: float
+    height: float
+
+
+@dataclass(frozen=True)
+class Margins:
+    """Inside is the binding edge: left on recto pages, right on verso pages."""
+
+    inside: float
+    outside: float
+    top: float
+    bottom: float
+
+
+@dataclass(frozen=True)
+class Typography:
+    """Point sizes per role. Grid letters scale within [minimum, maximum]."""
+
+    title: float = 30.0
+    subtitle: float = 16.0
+    author: float = 14.0
+    imprint: float = 11.0
+    heading: float = 22.0
+    body: float = 11.5
+    copyright: float = 9.5
+    puzzle_title: float = 22.0
+    theme: float = 12.0
+    word_list: float = 13.0
+    grid_letter_max: float = 20.0
+    grid_letter_min: float = 9.0
+    solution_letter_max: float = 14.0
+    solution_letter_min: float = 7.0
+    caption: float = 9.5
+    folio: float = 10.0
+
+
+@dataclass(frozen=True)
+class Strokes:
+    grid_frame: float = 1.0
+    solution_mark: float = 1.0
+    rule: float = 0.75
+    notes_line: float = 0.75
+
+
+@dataclass(frozen=True)
+class PrintSpecification:
+    """Renderer-facing physical choices; independent of the publication plan."""
+
+    profile_id: str
+    profile_version: int
+    description: str
+    trim: TrimSize
+    margins: Margins
+    bleed: bool = False
+    folio_placement: FolioPlacement = FolioPlacement.CENTER
+    typography: Typography = field(default_factory=Typography)
+    strokes: Strokes = field(default_factory=Strokes)
+
+    def to_dict(self) -> dict[str, object]:
+        data = asdict(self)
+        data["folio_placement"] = self.folio_placement.value
+        return data
+
+
+# Trim sizes the renderer has templates for. More sizes are added here, not in layout.
+SUPPORTED_TRIMS = (TrimSize("8.5x11", inches(8.5), inches(11)),)
+
+PAPERBACK_LETTER = PrintSpecification(
+    profile_id="paperback-8.5x11",
+    profile_version=1,
+    description="8.5 x 11 in paperback interior, black ink, no bleed",
+    trim=SUPPORTED_TRIMS[0],
+    # Fixed, explicit margins. The 0.75 in inside margin meets KDP gutters up to
+    # 700 pages; it is validated against the final page count, never enlarged.
+    margins=Margins(
+        inside=inches(0.75), outside=inches(0.5), top=inches(0.625), bottom=inches(0.625)
+    ),
+)
+
+PROFILES = {PAPERBACK_LETTER.profile_id: PAPERBACK_LETTER}
+DEFAULT_PROFILE = PAPERBACK_LETTER.profile_id
+# Content boxes narrower or shorter than this cannot hold any supported template.
+MIN_CONTENT_EXTENT = inches(3)
+
+
+def print_profile(profile_id: str) -> PrintSpecification | LayoutIssue:
+    spec = PROFILES.get(profile_id)
+    if spec is None:
+        return LayoutIssue(
+            "unsupported_profile",
+            f"Unknown print profile {profile_id!r}. Supported: {', '.join(sorted(PROFILES))}.",
+            region="print.profile",
+        )
+    return spec
+
+
+def validate_print_spec(spec: PrintSpecification) -> tuple[LayoutIssue, ...]:
+    """Page-count-independent checks. Gutter versus page count is checked at layout."""
+    issues: list[LayoutIssue] = []
+    trim = spec.trim
+    if not any(
+        abs(trim.width - s.width) <= TOLERANCE and abs(trim.height - s.height) <= TOLERANCE
+        for s in SUPPORTED_TRIMS
+    ):
+        issues.append(
+            LayoutIssue(
+                "unsupported_trim_size",
+                "Trim size has no supported page templates.",
+                region="print.trim",
+                actual=f"{to_inches(trim.width):g}x{to_inches(trim.height):g} in",
+                required=", ".join(s.name for s in SUPPORTED_TRIMS),
+            )
+        )
+    if spec.bleed:
+        issues.append(
+            LayoutIssue(
+                "unsupported_bleed_configuration",
+                "Bleed is not supported: no puzzle-book element prints to the trim edge.",
+                region="print.bleed",
+            )
+        )
+    minimum = KDP.min_outside_margin_with_bleed if spec.bleed else KDP.min_outside_margin
+    margins = spec.margins
+    for name in ("outside", "top", "bottom"):
+        value = getattr(margins, name)
+        if value < minimum - TOLERANCE:
+            issues.append(
+                LayoutIssue(
+                    "margin_too_small",
+                    f"The {name} margin is below the KDP minimum.",
+                    region=f"print.margins.{name}",
+                    actual=_inch_text(value),
+                    required=_inch_text(minimum),
+                )
+            )
+    first_gutter = KDP.gutter_table[0][1]
+    if margins.inside < first_gutter - TOLERANCE:
+        issues.append(
+            LayoutIssue(
+                "gutter_too_small",
+                "The inside margin is below the smallest KDP gutter.",
+                region="print.margins.inside",
+                actual=_inch_text(margins.inside),
+                required=_inch_text(first_gutter),
+            )
+        )
+    width = trim.width - margins.inside - margins.outside
+    height = trim.height - margins.top - margins.bottom
+    if width < MIN_CONTENT_EXTENT or height < MIN_CONTENT_EXTENT:
+        issues.append(
+            LayoutIssue(
+                "invalid_page_geometry",
+                "Margins leave too little live area for page templates.",
+                region="print.margins",
+                actual=f"{to_inches(width):g}x{to_inches(height):g} in",
+                required=f"at least {_inch_text(MIN_CONTENT_EXTENT)} each way",
+            )
+        )
+    for name, value in asdict(spec.typography).items():
+        if value < KDP.min_font_size - TOLERANCE:
+            issues.append(
+                LayoutIssue(
+                    "font_too_small",
+                    f"Typography role {name} is below the minimum text size.",
+                    region=f"print.typography.{name}",
+                    actual=f"{value:g} pt",
+                    required=f"{KDP.min_font_size:g} pt",
+                )
+            )
+    typography = spec.typography
+    for low, high in (
+        ("grid_letter_min", "grid_letter_max"),
+        ("solution_letter_min", "solution_letter_max"),
+    ):
+        if getattr(typography, low) > getattr(typography, high):
+            issues.append(
+                LayoutIssue(
+                    "invalid_typography",
+                    f"{low} exceeds {high}.",
+                    region=f"print.typography.{low}",
+                )
+            )
+    for name, value in asdict(spec.strokes).items():
+        if value < KDP.min_line_weight - TOLERANCE:
+            issues.append(
+                LayoutIssue(
+                    "line_weight_too_small",
+                    f"Stroke {name} is below the minimum line weight.",
+                    region=f"print.strokes.{name}",
+                    actual=f"{value:g} pt",
+                    required=f"{KDP.min_line_weight:g} pt",
+                )
+            )
+    return tuple(issues)
+
+
+def _inch_text(points: float) -> str:
+    return f"{to_inches(points):.4g} in"

@@ -250,5 +250,5 @@ Existing ASCII/size/search limits apply. No extra schema fields, calibrated
 scores, automatic content repair, persisted previews, collaboration or cloud.
 Only Chrome/Chromium is exercised; axe is not screen-reader certification.
 Starlette warns about its deprecated httpx test client. No new dependencies.
-Composition stops at a logical plan: no PDF, print layout, cover creation, KDP or
-publishing functionality.
+Studio stops at a logical plan: no PDF build, print preview, cover creation, KDP or
+publishing functionality. Interiors are built with the CLI (`book build`).

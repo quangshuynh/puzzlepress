@@ -27,6 +27,41 @@ jobs:
       - run: puzzlepress validate books/composition-demo
       - run: puzzlepress book plan books/composition-demo --json
 
+  print:
+    # One interior build per OS; the PDF unit tests already run in every matrix entry.
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install -e .
+      - run: puzzlepress validate books/composition-demo
+      - run: puzzlepress book plan books/composition-demo
+      - run: puzzlepress book build books/composition-demo --output interior-out --json
+      - name: Verify the written interior independently
+        run: |
+          python - <<'EOF'
+          import hashlib, json, pathlib
+          from pypdf import PdfReader
+          out = pathlib.Path("interior-out")
+          manifest = json.loads((out / "interior.json").read_text())
+          data = (out / "interior.pdf").read_bytes()
+          assert hashlib.sha256(data).hexdigest() == manifest["pdf"]["sha256"]
+          reader = PdfReader(out / "interior.pdf", strict=True)
+          assert len(reader.pages) == manifest["page_count"] == 11
+          assert all([float(v) for v in p.mediabox] == [0, 0, 612, 792] for p in reader.pages)
+          assert not any("/Annots" in p for p in reader.pages) and not reader.outline
+          EOF
+      - run: puzzlepress book build books/composition-demo --output interior-again
+      - run: cmp interior-out/interior.pdf interior-again/interior.pdf
+
   studio:
     runs-on: ubuntu-latest
     steps:

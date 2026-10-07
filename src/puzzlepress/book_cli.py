@@ -1,12 +1,18 @@
-"""Terminal adapter for renderer-independent publication plans. Writes no files."""
+"""Terminal adapter for publication plans (read-only) and interior builds."""
 
 import argparse
+import hashlib
 import json
 import sys
+from pathlib import Path
+from typing import TYPE_CHECKING
 
 from .project import load_project
 from .publication import PageKind, PlanPage, PublicationPlan, build_publication
 from .publication_verification import publication_payload, verify_publication_plan
+
+if TYPE_CHECKING:
+    from .interior import LayoutIssue
 
 
 def add_book_command(commands: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
@@ -15,6 +21,13 @@ def add_book_command(commands: "argparse._SubParsersAction[argparse.ArgumentPars
     plan = actions.add_parser("plan", help="Plan and verify the logical publication order")
     plan.add_argument("project", help="YAML file or directory containing book.yaml")
     plan.add_argument("--json", action="store_true", help="Print the structured plan")
+    build = actions.add_parser("build", help="Lay out and write the print interior PDF")
+    build.add_argument("project", help="YAML file or directory containing book.yaml")
+    build.add_argument(
+        "--output", metavar="DIR", help="Output directory (default: the project's output.directory)"
+    )
+    build.add_argument("--profile", help="Print profile (default: paperback-8.5x11)")
+    build.add_argument("--json", action="store_true", help="Print a structured build result")
 
 
 def describe(page: PlanPage, plan: PublicationPlan) -> str:
@@ -40,6 +53,8 @@ def describe(page: PlanPage, plan: PublicationPlan) -> str:
 
 
 def run_book_command(args: argparse.Namespace) -> int:
+    if args.book_command == "build":
+        return run_build_command(args)
     project = load_project(args.project).project
     report, plan = build_publication(project)
     verification = verify_publication_plan(plan, project, report)
@@ -84,3 +99,83 @@ def run_book_command(args: argparse.Namespace) -> int:
     for issue in plan.diagnostics:
         print(f"{issue.path} [{issue.code}]: {issue.message}", file=sys.stderr)
     return 0 if plan.complete else 1
+
+
+def run_build_command(args: argparse.Namespace) -> int:
+    # Imported here so read-only commands never load the PDF toolchain.
+    from .interior import (
+        DEFAULT_PROFILE,
+        InteriorError,
+        LayoutIssue,
+        build_interior,
+        print_profile,
+        write_interior,
+    )
+
+    loaded = load_project(args.project)
+    try:
+        spec = print_profile(args.profile or DEFAULT_PROFILE)
+        if isinstance(spec, LayoutIssue):
+            raise InteriorError("print_spec", (spec,))
+        build = build_interior(loaded.project, spec)
+        output = Path(args.output) if args.output else loaded.output_directory
+        written = write_interior(build, output, loaded.source_path.parent)
+    except InteriorError as error:
+        if args.json:
+            print(
+                json.dumps(
+                    {
+                        "success": False,
+                        "stage": error.stage,
+                        "diagnostics": [issue.to_dict() for issue in error.issues],
+                    },
+                    ensure_ascii=True,
+                    sort_keys=True,
+                    indent=2,
+                )
+            )
+        print(f"Interior build failed at {error.stage}; no interior was written.", file=sys.stderr)
+        for issue in error.issues:
+            print(f"  {_describe_issue(issue)}", file=sys.stderr)
+        return 1
+    manifest = build.manifest
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "success": True,
+                    "output": {"pdf": str(written.pdf), "manifest": str(written.manifest)},
+                    "manifest": manifest,
+                },
+                ensure_ascii=True,
+                sort_keys=True,
+                indent=2,
+            )
+        )
+    else:
+        trim = spec.trim
+        print(f"Interior: {written.pdf}")
+        print(f"Manifest: {written.manifest}")
+        print(
+            f"Pages: {manifest['page_count']} | trim {trim.name} in, no bleed | "
+            f"profile {spec.profile_id} v{spec.profile_version}"
+        )
+        print(f"Interior identity: {manifest['interior_identity']}")
+        print(f"PDF SHA-256: {hashlib.sha256(build.pdf).hexdigest()}")
+        print("Layout validated; PDF reopened and structurally verified.")
+    for warning in build.layout.warnings:
+        print(f"Warning: {_describe_issue(warning)}", file=sys.stderr)
+    return 0
+
+
+def _describe_issue(issue: "LayoutIssue") -> str:
+    where = [
+        f"page {issue.page}" if issue.page is not None else None,
+        f"pdf page {issue.physical_page}" if issue.physical_page is not None else None,
+        issue.kind,
+        issue.subject,
+        issue.region,
+    ]
+    context = ", ".join(part for part in where if part)
+    measured = f" (actual {issue.actual}; required {issue.required})" if issue.actual else ""
+    return f"[{issue.code}] {issue.message}{measured}" + (f" [{context}]" if context else "")

@@ -3,10 +3,11 @@
 Composition answers one question: what belongs in this book, and in what logical
 order? It produces a deterministic, verified **publication plan**. It does not
 lay out pages, choose fonts, trim, margins or coordinates, or produce PDF bytes.
-A future print renderer consumes the plan and decides physical layout.
+The [print interior engine](print-interior.md) consumes the plan and decides
+physical layout.
 
 ```text
-project -> generation -> quality -> composition -> publication plan | layout -> PDF (future)
+project -> generation -> quality -> composition -> publication plan | layout -> PDF
 ```
 
 See [`composition-demo`](../books/composition-demo/book.yaml) for a complete example.
@@ -155,9 +156,9 @@ Quality findings are reported separately and never change a plan.
 
 `logical_pages`, `front_matter_pages`, `puzzle_pages`, `solution_pages`,
 `back_matter_pages`, `blank_pages`, `puzzles`, `solutions`, `first_puzzle_page`
-and `first_solution_page` (logical indexes). These are logical counts. A future
-renderer may require a different physical page count; they are not a KDP page
-count, cost or royalty estimate.
+and `first_solution_page` (logical indexes). These are logical counts. The current
+renderer prints exactly one physical page per logical page; they are not a KDP
+page count, cost or royalty estimate.
 
 ### Verification
 
@@ -204,6 +205,6 @@ working directories.
 One puzzle per page; all definitions are always included. Solutions only at the
 end or omitted. No table of contents, half-title, dedication, section dividers,
 per-puzzle recto rules, rich text or images. Instructions are not checked against
-each puzzle's enabled directions. Logical pages do not detect text overflow; a
-renderer must report content that cannot fit a page rather than paginate it
-silently. No layout, PDF, trim, bleed, fonts, covers or KDP preflight.
+each puzzle's enabled directions. Logical pages do not detect text overflow; the
+renderer reports content that cannot fit a page rather than paginating it. Plans
+contain no layout, trim, bleed or fonts; see [print interior](print-interior.md).

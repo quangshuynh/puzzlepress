@@ -1,17 +1,14 @@
-"""`puzzlepress book plan` text/JSON contracts, failures and process determinism."""
+"""`puzzlepress book plan/build` contracts, failures, output safety and determinism."""
 
+import hashlib
 import json
 import os
 import subprocess
 import sys
-from pathlib import Path
 
 from puzzlepress import dump_project, load_project, validate_project
 from puzzlepress.publication import build_publication
-from tests.helpers import installed_puzzlepress
-
-ROOT = Path(__file__).resolve().parents[1]
-DEMO = ROOT / "books" / "composition-demo"
+from tests.helpers import DEMO, ROOT, demo_variant, installed_puzzlepress
 
 
 def run_cli(*args, **kwargs):
@@ -26,6 +23,8 @@ def run_cli(*args, **kwargs):
 
 def test_text_plan_lists_reading_order_numbering_and_statistics():
     before = DEMO.joinpath("book.yaml").read_bytes()
+    build_dir = ROOT / "build" / "composition-demo"
+    build_before = sorted(build_dir.iterdir()) if build_dir.exists() else None
     result = run_cli("book", "plan", DEMO)
     assert result.returncode == 0 and not result.stderr
     lines = result.stdout.splitlines()
@@ -43,7 +42,7 @@ def test_text_plan_lists_reading_order_numbering_and_statistics():
     assert "Solutions for puzzle 1 (p. 1), 2 (p. 2) | heading: Solutions" in lines[11]
     assert "blanks: 1" in result.stdout and "not a final printed page count" in result.stdout
     assert DEMO.joinpath("book.yaml").read_bytes() == before
-    assert not (ROOT / "build" / "composition-demo").exists()
+    assert (sorted(build_dir.iterdir()) if build_dir.exists() else None) == build_before
 
 
 def test_json_plan_matches_core_and_is_identical_across_processes(tmp_path):
@@ -110,3 +109,120 @@ def test_installed_console_script_plans_books():
     )
     assert result.returncode == 0, result.stderr
     assert "11 logical pages, verified" in result.stdout
+
+
+def build_cli(*args, **kwargs):
+    return run_cli("book", "build", *args, **kwargs)
+
+
+def write_source(tmp_path, project):
+    path = tmp_path / "source" / "book.yaml"
+    path.parent.mkdir(parents=True)
+    path.write_text(dump_project(project), encoding="utf-8")
+    return path
+
+
+def test_build_writes_verified_interior_and_reports_it(tmp_path):
+    out = tmp_path / "out"
+    result = build_cli(DEMO, "--output", out)
+    assert result.returncode == 0, result.stderr
+    pdf = out / "interior.pdf"
+    manifest = json.loads((out / "interior.json").read_text("utf-8"))
+    assert f"Interior: {pdf}" in result.stdout
+    assert "Pages: 11 | trim 8.5x11 in, no bleed | profile paperback-8.5x11 v1" in result.stdout
+    assert hashlib.sha256(pdf.read_bytes()).hexdigest() in result.stdout
+    assert "Warning: [kdp_minimum_page_count]" in result.stderr
+    assert manifest["page_count"] == 11 and manifest["book_id"] == "composition-demo"
+    assert manifest["pdf"]["sha256"] == hashlib.sha256(pdf.read_bytes()).hexdigest()
+
+
+def test_build_json_is_identical_across_processes_cwd_and_hash_seeds(tmp_path):
+    digests, manifests = [], []
+    for seed in ("0", "4242"):
+        cwd = tmp_path / f"cwd{seed}"
+        cwd.mkdir()
+        result = build_cli(
+            DEMO,
+            "--output",
+            tmp_path / f"out{seed}",
+            "--json",
+            cwd=cwd,
+            env={**os.environ, "PYTHONHASHSEED": seed},
+        )
+        assert result.returncode == 0, result.stderr
+        payload = json.loads(result.stdout)
+        assert payload["success"] is True
+        manifests.append(payload["manifest"])
+        digests.append(hashlib.sha256(open(payload["output"]["pdf"], "rb").read()).hexdigest())
+    assert digests[0] == digests[1] == manifests[0]["pdf"]["sha256"]
+    assert manifests[0] == manifests[1]
+    assert (tmp_path / "out0" / "interior.json").read_bytes() == (
+        tmp_path / "out4242" / "interior.json"
+    ).read_bytes()
+
+
+def test_build_defaults_to_project_output_directory(tmp_path):
+    def local_output(data):
+        data["output"]["directory"] = "../build/demo"
+
+    path = write_source(tmp_path, demo_variant(local_output))
+    result = build_cli(path)
+    assert result.returncode == 0, result.stderr
+    assert (tmp_path / "build" / "demo" / "interior.pdf").is_file()
+    assert sorted(p.name for p in path.parent.iterdir()) == ["book.yaml"]
+
+
+def test_build_failures_exit_one_with_diagnostics_and_no_pdf(tmp_path):
+    legacy = build_cli(ROOT / "books" / "garden-demo", "--output", tmp_path / "a")
+    assert legacy.returncode == 1 and "composition [required]" in legacy.stderr
+    assert "Traceback" not in legacy.stderr and not (tmp_path / "a").exists()
+
+    def overflow(data):
+        data["composition"]["front_matter"][2]["text"] = "x\n" * 999 + "x"
+        data["output"]["directory"] = "../build"
+
+    source = write_source(tmp_path / "overflow", demo_variant(overflow))
+    result = build_cli(source, "--output", tmp_path / "b", "--json")
+    assert result.returncode == 1 and "Traceback" not in result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["success"] is False and payload["stage"] == "layout"
+    assert payload["diagnostics"][0]["code"] == "text_overflow"
+    assert payload["diagnostics"][0]["kind"] == "instructions"
+    assert "[text_overflow]" in result.stderr and "page 3" in result.stderr
+    assert not (tmp_path / "b").exists()
+
+    profile = build_cli(DEMO, "--profile", "a5", "--output", tmp_path / "c")
+    assert profile.returncode == 1 and "[unsupported_profile]" in profile.stderr
+    inside = build_cli(DEMO, "--output", DEMO / "build")
+    assert inside.returncode == 1 and "[source_overlap]" in inside.stderr
+    assert not (DEMO / "build").exists()
+    assert build_cli().returncode == 2
+
+
+def test_build_with_failed_generation_reports_incomplete_plan(tmp_path):
+    def tiny(data):
+        data["word_search"]["profiles"].append(
+            {"id": "tiny", "width": 4, "height": 4, "directions": ["right"], "max_restarts": 1}
+        )
+        data["word_search"]["puzzles"][0]["difficulty"] = "tiny"
+        data["word_search"]["puzzles"][0]["target_ids"] = ["wave", "sand", "crab", "kelp", "tide"]
+        data["output"]["directory"] = "../build"
+
+    source = write_source(tmp_path, demo_variant(tiny))
+    result = build_cli(source, "--json")
+    assert result.returncode == 1
+    payload = json.loads(result.stdout)
+    assert payload["stage"] == "integrity"
+    assert {d["code"] for d in payload["diagnostics"]} == {"incomplete_plan", "missing_puzzle"}
+    assert not (tmp_path / "build").exists()
+
+
+def test_installed_console_script_builds_interiors(tmp_path):
+    result = subprocess.run(
+        [str(installed_puzzlepress()), "book", "build", str(DEMO), "--output", str(tmp_path)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (tmp_path / "interior.pdf").stat().st_size > 0
