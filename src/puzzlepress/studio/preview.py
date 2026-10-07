@@ -3,7 +3,7 @@
 PDFium (pypdfium2) draws the same bytes KDP would receive; nothing is recreated
 from the layout. Images are cached in memory by (PDF SHA-256, page, size), so a
 new PDF digest can never be served an old image. PDFium is not thread-safe:
-one lock serializes every call into it.
+one process-wide lock serializes every call into it, across all rasterizers.
 """
 
 import io
@@ -15,6 +15,7 @@ from typing import Any
 # Power-of-two scales keep 8.5 x 11 in pages at exact pixel sizes (36/144/288 DPI).
 SCALES = {"thumb": 0.5, "page": 2.0, "detail": 4.0}
 CACHE_BUDGET = 96 * 1024 * 1024
+_PDFIUM = Lock()
 
 
 class PreviewUnavailable(Exception):
@@ -33,8 +34,9 @@ class _Document:
 
 
 class PageRasterizer:
-    def __init__(self, budget: int = CACHE_BUDGET) -> None:
-        self._lock = Lock()
+    def __init__(self, budget: int = CACHE_BUDGET, scales: dict[str, float] | None = None) -> None:
+        self._lock = _PDFIUM
+        self._scales = scales or SCALES
         self._budget = budget
         self._cache: OrderedDict[tuple[str, int, str], bytes] = OrderedDict()
         self._size = 0
@@ -52,7 +54,7 @@ class PageRasterizer:
             document = self._open(pdf, sha256)
             if not 1 <= page <= document.pages:
                 raise PageOutOfRange(page)
-            data = _encode(document.handle[page - 1].render(scale=SCALES[size]).to_pil())
+            data = _encode(document.handle[page - 1].render(scale=self._scales[size]).to_pil())
             self.renders += 1
             self._cache[key] = data
             self._size += len(data)

@@ -301,3 +301,16 @@ def test_inspection_catches_tampered_pdfs(demo):
 def test_canonical_fixture_unchanged_by_cover_tests():
     data = (ROOT / "books" / "composition-demo" / "book.yaml").read_bytes()
     assert b"cover:" not in data
+
+
+def test_draft_reads_report_a_stale_interior_without_trusting_a_damaged_one(tmp_path):
+    source, output = cover_project(tmp_path)
+    text = (source / "book.yaml").read_text(encoding="utf-8")
+    (source / "book.yaml").write_text(text.replace("Along the Shoreline", "Shoreline"), "utf-8")
+    project = load_project(source).project
+    relaxed = read_interior_facts(output, project, require_current=False)
+    assert relaxed.page_count == 11 and "predates the current source" in (relaxed.stale or "")
+    (output / "interior.pdf").write_bytes(b"%PDF-1.4 damaged")
+    with pytest.raises(CoverError) as error:
+        read_interior_facts(output, project, require_current=False)
+    assert error.value.issues[0].code == "interior_mismatch"

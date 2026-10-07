@@ -75,6 +75,8 @@ class InteriorFacts:
     trim_width: float  # Points.
     trim_height: float
     paper: Paper
+    # Why the interior is out of date, when it was read without requiring currency.
+    stale: str | None = None
 
     def physical(self) -> dict[str, object]:
         """What the cover's geometry depends on; any change makes a cover stale."""
@@ -92,11 +94,15 @@ def _interior_error(code: str, message: str) -> CoverError:
     return cover_error("interior", code, message, region="interior")
 
 
-def read_interior_facts(directory: Path, project: Project) -> InteriorFacts:
-    """Read interior.pdf/interior.json and require them current for this project.
+def read_interior_facts(
+    directory: Path, project: Project, require_current: bool = True
+) -> InteriorFacts:
+    """Read interior.pdf/interior.json and, by default, require them current.
 
     Raises CoverError(stage 'interior'): interior_missing, interior_invalid,
-    interior_foreign, interior_mismatch or interior_stale. Never builds or repairs.
+    interior_foreign, interior_mismatch or interior_stale. With `require_current`
+    false (Studio draft previews) a stale but intact interior is returned with its
+    `stale` reason; integrity is always required. Never builds or repairs.
     """
     artifacts = read_interior_artifacts(directory)
     if artifacts.pdf is None or artifacts.manifest is None:
@@ -117,22 +123,23 @@ def read_interior_facts(directory: Path, project: Project) -> InteriorFacts:
         )
     if interior_identity(manifest) != manifest["interior_identity"]:
         raise _interior_error("interior_mismatch", "interior.json's identity does not recompute.")
-    if manifest["identity"] != build_identity(project):
-        raise _interior_error(
-            "interior_stale", "The interior predates the current source. Rebuild the interior."
-        )
     recorded = manifest["print_profile"]
     assert isinstance(recorded, dict)
     spec = PROFILES.get(str(recorded.get("profile_id")))
-    if spec is None or json.loads(json.dumps(spec.to_dict())) != recorded:
-        raise _interior_error(
-            "interior_stale", "The interior's print profile changed. Rebuild the interior."
-        )
-    current = json.loads(json.dumps(toolchain()))
-    if any(manifest[key] != value for key, value in current.items()):
-        raise _interior_error(
-            "interior_stale", "The interior's renderer or fonts changed. Rebuild the interior."
-        )
+    if spec is None:
+        raise _interior_error("interior_invalid", "The interior's print profile is unknown.")
+    stale: str | None = None
+    if manifest["identity"] != build_identity(project):
+        stale = "The interior predates the current source. Rebuild the interior."
+    elif json.loads(json.dumps(spec.to_dict())) != recorded:
+        stale = "The interior's print profile changed. Rebuild the interior."
+    elif any(manifest[k] != v for k, v in json.loads(json.dumps(toolchain())).items()):
+        stale = "The interior's renderer or fonts changed. Rebuild the interior."
+    if stale and require_current:
+        raise _interior_error("interior_stale", stale)
+    if stale and recorded != json.loads(json.dumps(spec.to_dict())):
+        # Physical facts come from the recorded profile, never a redefined one.
+        raise _interior_error("interior_stale", stale)
     try:
         pages = len(PdfReader(io.BytesIO(artifacts.pdf), strict=True).pages)
     except (PyPdfError, ValueError, KeyError, TypeError, OSError) as error:
@@ -152,6 +159,7 @@ def read_interior_facts(directory: Path, project: Project) -> InteriorFacts:
         spec.trim.width,
         spec.trim.height,
         spec.paper,
+        stale,
     )
 
 
