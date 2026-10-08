@@ -71,6 +71,7 @@ export interface Project {
     };
     composition?: Composition;
     cover?: CoverConfig;
+    publishing?: PublishingConfig;
   };
 }
 export interface Cell {
@@ -431,4 +432,112 @@ export interface CoverStatus {
   layout?: CoverLayoutView | null;
   preview: { pdf_sha256: string; scales: Record<string, number> } | null;
   build?: { success: boolean; stage?: string; diagnostics?: BuildDiagnostic[] };
+}
+// Publishing. Metadata rules, readiness verdicts and the package come from Python.
+export type ContentOrigin = 'unknown' | 'human' | 'ai_assisted' | 'ai_generated' | 'none';
+export interface PublishingConfig {
+  version: number;
+  description: string | null;
+  keywords: string[];
+  categories: string[];
+  contributors: { role: string; name: string }[];
+  audience: {
+    sexually_explicit: boolean | null;
+    reading_age: { minimum: number | null; maximum: number | null };
+  };
+  low_content: boolean | null;
+  isbn: { mode: 'undecided' | 'kdp_free' | 'own' | 'none'; value: string | null };
+  edition: number | null;
+  series: { title: string; number: number | null } | null;
+  ai_disclosure: { text: ContentOrigin; images: ContentOrigin; translations: ContentOrigin };
+  attestations: { rights: boolean; ai_disclosure: boolean; metadata: boolean; isbn: boolean };
+  notes: string | null;
+}
+export interface PublishingFinding {
+  code: string;
+  severity: 'error' | 'warning' | 'info';
+  scope: string;
+  basis: string;
+  source: { title: string; url: string };
+  message: string;
+  field: string | null;
+  artifact: string | null;
+  actual: number | string | null;
+  required: number | string | null;
+  action: string | null;
+  area: 'publishing' | 'edit' | 'book' | 'print' | 'cover';
+  related: string | null;
+}
+export interface PublishingRule {
+  code: string;
+  scope: string;
+  severity: 'error' | 'warning' | 'info';
+  title: string;
+  basis: string;
+  source: { title: string; url: string };
+  outcome: 'passed' | 'failed' | 'not_applicable' | 'not_evaluated';
+  findings: number;
+  note: string | null;
+}
+export interface ArtifactVerdict {
+  state: string;
+  structural: string;
+  kdp: string;
+}
+export interface PublishingVerdicts {
+  metadata: 'missing' | 'valid' | 'invalid';
+  disclosure: 'complete' | 'incomplete';
+  attestations: 'complete' | 'incomplete';
+  interior?: ArtifactVerdict;
+  cover?: ArtifactVerdict;
+  artifacts?: string;
+  package?: 'ready' | 'not_ready';
+}
+export interface MetadataReport {
+  ruleset: { id: string; version: number; kdp_rules_checked: string };
+  publishing_identity: string | null;
+  verdicts: PublishingVerdicts;
+  findings: PublishingFinding[];
+  rules: PublishingRule[];
+}
+export interface ReadinessReport extends MetadataReport {
+  statement: string;
+  identities: Record<string, unknown>;
+  print: {
+    format: string;
+    profile: { id: string; version: number };
+    trim_in: [number, number];
+    ink: string;
+    paper: string;
+    interior_bleed: boolean;
+    page_count: number;
+    cover: { width_in: number; height_in: number; spine_width_in: number; bleed_in: number } | null;
+  } | null;
+}
+export interface PublishingStatus {
+  key: string;
+  revision: string;
+  readiness: ReadinessReport;
+  metadata_record: Record<string, unknown>;
+  checklist: string;
+  package: {
+    identity: string | null;
+    export: {
+      state: 'none' | 'current' | 'stale' | 'damaged';
+      identity: string | null;
+      problem: string | null;
+    };
+    location: string;
+    archive: string;
+    files: { name: string; purpose: string }[];
+  };
+  cover_preview: { pdf_sha256: string } | null;
+  export?: {
+    success: boolean;
+    code?: string;
+    message?: string;
+    identity?: string;
+    archive?: boolean;
+    files?: { name: string; sha256: string; bytes: number; purpose: string }[];
+  };
 }

@@ -1,0 +1,723 @@
+{
+  "metadata": {
+    "book_id": "publishing-demo",
+    "findings": [
+      {
+        "action": "Remove keywords until seven remain.",
+        "actual": 9,
+        "area": "publishing",
+        "artifact": null,
+        "basis": "kdp_requirement",
+        "code": "keywords_count",
+        "field": "publishing.keywords",
+        "message": "9 keywords; KDP allows 7.",
+        "related": null,
+        "required": 7,
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: Make Your Book More Discoverable with Keywords",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201298500"
+        }
+      },
+      {
+        "action": "Remove the duplicate.",
+        "actual": null,
+        "area": "publishing",
+        "artifact": null,
+        "basis": "kdp_requirement",
+        "code": "keywords_format",
+        "field": "publishing.keywords.5",
+        "message": "'Harbour Vocabulary' repeats keyword 2.",
+        "related": null,
+        "required": null,
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: Make Your Book More Discoverable with Keywords",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201298500"
+        }
+      },
+      {
+        "action": "Choose human, AI-assisted, AI-generated.",
+        "actual": null,
+        "area": "publishing",
+        "artifact": null,
+        "basis": "kdp_requirement",
+        "code": "ai_disclosure_complete",
+        "field": "publishing.ai_disclosure.images",
+        "message": "Declare who or what created the book's images. KDP requires disclosure of AI-generated text, images or translations.",
+        "related": null,
+        "required": null,
+        "scope": "disclosure",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: Content Guidelines",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G200672390"
+        }
+      },
+      {
+        "action": "Choose human, AI-assisted, AI-generated.",
+        "actual": null,
+        "area": "publishing",
+        "artifact": null,
+        "basis": "kdp_requirement",
+        "code": "ai_disclosure_complete",
+        "field": "publishing.ai_disclosure.text",
+        "message": "Declare who or what created the book's text. KDP requires disclosure of AI-generated text, images or translations.",
+        "related": null,
+        "required": null,
+        "scope": "disclosure",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: Content Guidelines",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G200672390"
+        }
+      },
+      {
+        "action": "Choose human, AI-assisted, AI-generated or not a translation.",
+        "actual": null,
+        "area": "publishing",
+        "artifact": null,
+        "basis": "kdp_requirement",
+        "code": "ai_disclosure_complete",
+        "field": "publishing.ai_disclosure.translations",
+        "message": "Declare who or what created the book's translations. KDP requires disclosure of AI-generated text, images or translations.",
+        "related": null,
+        "required": null,
+        "scope": "disclosure",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: Content Guidelines",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G200672390"
+        }
+      },
+      {
+        "action": "Review and confirm it yourself; PuzzlePress cannot verify it.",
+        "actual": null,
+        "area": "publishing",
+        "artifact": null,
+        "basis": "human_review",
+        "code": "attestations",
+        "field": "publishing.attestations.ai_disclosure",
+        "message": "Not confirmed: I reviewed the AI content declaration above, and it is accurate.",
+        "related": null,
+        "required": null,
+        "scope": "attestation",
+        "severity": "error",
+        "source": {
+          "title": "PuzzlePress publishing contract",
+          "url": "docs/publishing.md"
+        }
+      },
+      {
+        "action": "Review and confirm it yourself; PuzzlePress cannot verify it.",
+        "actual": null,
+        "area": "publishing",
+        "artifact": null,
+        "basis": "human_review",
+        "code": "attestations",
+        "field": "publishing.attestations.metadata",
+        "message": "Not confirmed: The description, keywords and categories accurately represent this book.",
+        "related": null,
+        "required": null,
+        "scope": "attestation",
+        "severity": "error",
+        "source": {
+          "title": "PuzzlePress publishing contract",
+          "url": "docs/publishing.md"
+        }
+      },
+      {
+        "action": "Review and confirm it yourself; PuzzlePress cannot verify it.",
+        "actual": null,
+        "area": "publishing",
+        "artifact": null,
+        "basis": "human_review",
+        "code": "attestations",
+        "field": "publishing.attestations.rights",
+        "message": "Not confirmed: I hold the rights to publish this book's text, word lists and cover photograph.",
+        "related": null,
+        "required": null,
+        "scope": "attestation",
+        "severity": "error",
+        "source": {
+          "title": "PuzzlePress publishing contract",
+          "url": "docs/publishing.md"
+        }
+      },
+      {
+        "action": null,
+        "actual": null,
+        "area": "book",
+        "artifact": null,
+        "basis": "kdp_requirement",
+        "code": "isbn_imprint",
+        "field": "book.imprint",
+        "message": "With a free KDP ISBN, KDP lists the imprint as 'Independently published', not 'PuzzlePress Demonstration'. The imprint printed on your cover is unchanged.",
+        "related": null,
+        "required": null,
+        "scope": "metadata",
+        "severity": "warning",
+        "source": {
+          "title": "KDP help: What is an ISBN and Imprint?",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201834170"
+        }
+      },
+      {
+        "action": null,
+        "actual": null,
+        "area": "publishing",
+        "artifact": null,
+        "basis": "kdp_recommendation",
+        "code": "keywords_review",
+        "field": "publishing.keywords.6",
+        "message": "'best' is a subjective or time-sensitive claim KDP asks you to avoid.",
+        "related": null,
+        "required": null,
+        "scope": "metadata",
+        "severity": "warning",
+        "source": {
+          "title": "KDP help: Make Your Book More Discoverable with Keywords",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201298500"
+        }
+      },
+      {
+        "action": "Select matching categories in KDP's category selector.",
+        "actual": null,
+        "area": "publishing",
+        "artifact": null,
+        "basis": "human_review",
+        "code": "categories_unverified",
+        "field": "publishing.categories",
+        "message": "Categories are saved preferences. KDP's list differs by marketplace and format and changes over time; confirm each one is available when you select it in KDP.",
+        "related": null,
+        "required": null,
+        "scope": "metadata",
+        "severity": "info",
+        "source": {
+          "title": "KDP help: KDP Categories",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G200652170"
+        }
+      }
+    ],
+    "publishing_identity": "pp1-publishing-sha256-6532077c5295e59edc9b5affcf0f437151a333fd42ee1d4de585499c391256b6",
+    "report_version": 1,
+    "rules": [
+      {
+        "basis": "puzzlepress_rule",
+        "code": "publishing_configured",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "PuzzlePress publishing contract",
+          "url": "docs/publishing.md"
+        },
+        "title": "Publishing metadata authored"
+      },
+      {
+        "basis": "kdp_ambiguous",
+        "code": "title_length",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: Metadata Guidelines for Books",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201097560"
+        },
+        "title": "Title and subtitle length"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "title_content",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: Metadata Guidelines for Books",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201097560"
+        },
+        "title": "Title, subtitle and series title content"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "title_review",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "warning",
+        "source": {
+          "title": "KDP help: Metadata Guidelines for Books",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201097560"
+        },
+        "title": "Title wording to review"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "author_present",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: Metadata Guidelines for Books",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201097560"
+        },
+        "title": "Primary author"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "names_content",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: Metadata Guidelines for Books",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201097560"
+        },
+        "title": "Author, contributor and imprint names"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "contributors_review",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "warning",
+        "source": {
+          "title": "KDP help: Metadata Guidelines for Books",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201097560"
+        },
+        "title": "Contributors to review"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "imprint_length",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: What is an ISBN and Imprint?",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201834170"
+        },
+        "title": "Imprint length"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "language_supported",
+        "findings": 0,
+        "note": "English (en).",
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: Book Supported Languages",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G200673300"
+        },
+        "title": "Paperback language"
+      },
+      {
+        "basis": "puzzlepress_rule",
+        "code": "description_present",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "PuzzlePress publishing contract",
+          "url": "docs/publishing.md"
+        },
+        "title": "Description written"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "description_length",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: Write a Book Description",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201189630"
+        },
+        "title": "Description length"
+      },
+      {
+        "basis": "puzzlepress_rule",
+        "code": "description_markup",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "PuzzlePress publishing contract",
+          "url": "docs/publishing.md"
+        },
+        "title": "Description is plain text"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "description_prohibited",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: Write a Book Description",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201189630"
+        },
+        "title": "Description excludes prohibited content"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "description_review",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "warning",
+        "source": {
+          "title": "KDP help: Write a Book Description",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201189630"
+        },
+        "title": "Description wording to review"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "keywords_count",
+        "findings": 1,
+        "note": null,
+        "outcome": "failed",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: Make Your Book More Discoverable with Keywords",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201298500"
+        },
+        "title": "Number of keywords"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "keywords_format",
+        "findings": 1,
+        "note": null,
+        "outcome": "failed",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: Make Your Book More Discoverable with Keywords",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201298500"
+        },
+        "title": "Keyword format"
+      },
+      {
+        "basis": "kdp_ambiguous",
+        "code": "keywords_length",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "warning",
+        "source": {
+          "title": "KDP help: Make Your Book More Discoverable with Keywords",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201298500"
+        },
+        "title": "Keyword length"
+      },
+      {
+        "basis": "kdp_recommendation",
+        "code": "keywords_review",
+        "findings": 1,
+        "note": null,
+        "outcome": "failed",
+        "scope": "metadata",
+        "severity": "warning",
+        "source": {
+          "title": "KDP help: Make Your Book More Discoverable with Keywords",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201298500"
+        },
+        "title": "Keywords to review"
+      },
+      {
+        "basis": "kdp_recommendation",
+        "code": "keywords_present",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "info",
+        "source": {
+          "title": "KDP help: Make Your Book More Discoverable with Keywords",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201298500"
+        },
+        "title": "Keywords entered"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "categories_count",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: KDP Categories",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G200652170"
+        },
+        "title": "Number of categories"
+      },
+      {
+        "basis": "puzzlepress_rule",
+        "code": "categories_format",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "PuzzlePress publishing contract",
+          "url": "docs/publishing.md"
+        },
+        "title": "Category format"
+      },
+      {
+        "basis": "puzzlepress_rule",
+        "code": "categories_present",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "warning",
+        "source": {
+          "title": "KDP help: KDP Categories",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G200652170"
+        },
+        "title": "Categories chosen"
+      },
+      {
+        "basis": "human_review",
+        "code": "categories_unverified",
+        "findings": 1,
+        "note": null,
+        "outcome": "failed",
+        "scope": "metadata",
+        "severity": "info",
+        "source": {
+          "title": "KDP help: KDP Categories",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G200652170"
+        },
+        "title": "Category availability"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "audience_explicit",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: Primary Audience and Reading Age",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201506310"
+        },
+        "title": "Sexually explicit images or title answered"
+      },
+      {
+        "basis": "puzzlepress_rule",
+        "code": "audience_reading_age",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: Primary Audience and Reading Age",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201506310"
+        },
+        "title": "Reading age consistent"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "low_content_decided",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: Low-Content Books",
+          "url": "https://kdp.amazon.com/en_US/help/topic/GGE5T76TWKA85DJM"
+        },
+        "title": "Low-content classification"
+      },
+      {
+        "basis": "kdp_recommendation",
+        "code": "low_content_review",
+        "findings": 0,
+        "note": "Not low-content.",
+        "outcome": "not_applicable",
+        "scope": "metadata",
+        "severity": "warning",
+        "source": {
+          "title": "KDP help: Low-Content Books",
+          "url": "https://kdp.amazon.com/en_US/help/topic/GGE5T76TWKA85DJM"
+        },
+        "title": "Low-content classification to review"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "isbn_decided",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: What is an ISBN and Imprint?",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201834170"
+        },
+        "title": "ISBN choice"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "isbn_valid",
+        "findings": 0,
+        "note": "No author-supplied ISBN.",
+        "outcome": "not_applicable",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: What is an ISBN and Imprint?",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201834170"
+        },
+        "title": "ISBN format and check digit"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "isbn_eligibility",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: Low-Content Books",
+          "url": "https://kdp.amazon.com/en_US/help/topic/GGE5T76TWKA85DJM"
+        },
+        "title": "ISBN option allowed"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "isbn_imprint",
+        "findings": 1,
+        "note": null,
+        "outcome": "failed",
+        "scope": "metadata",
+        "severity": "warning",
+        "source": {
+          "title": "KDP help: What is an ISBN and Imprint?",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G201834170"
+        },
+        "title": "Imprint with this ISBN"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "series_eligibility",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "metadata",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: Low-Content Books",
+          "url": "https://kdp.amazon.com/en_US/help/topic/GGE5T76TWKA85DJM"
+        },
+        "title": "Series allowed"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "ai_disclosure_complete",
+        "findings": 3,
+        "note": null,
+        "outcome": "failed",
+        "scope": "disclosure",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: Content Guidelines",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G200672390"
+        },
+        "title": "AI content declared"
+      },
+      {
+        "basis": "kdp_requirement",
+        "code": "ai_disclosure_required",
+        "findings": 0,
+        "note": "Nothing declared AI-generated.",
+        "outcome": "passed",
+        "scope": "disclosure",
+        "severity": "info",
+        "source": {
+          "title": "KDP help: Content Guidelines",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G200672390"
+        },
+        "title": "AI-generated content to disclose"
+      },
+      {
+        "basis": "human_review",
+        "code": "attestations",
+        "findings": 3,
+        "note": null,
+        "outcome": "failed",
+        "scope": "attestation",
+        "severity": "error",
+        "source": {
+          "title": "PuzzlePress publishing contract",
+          "url": "docs/publishing.md"
+        },
+        "title": "Author confirmations"
+      },
+      {
+        "basis": "puzzlepress_rule",
+        "code": "description_claims",
+        "findings": 0,
+        "note": null,
+        "outcome": "passed",
+        "scope": "consistency",
+        "severity": "error",
+        "source": {
+          "title": "KDP help: Content Guidelines",
+          "url": "https://kdp.amazon.com/en_US/help/topic/G200672390"
+        },
+        "title": "Description counts match the book"
+      }
+    ],
+    "ruleset": {
+      "id": "puzzlepress-kdp-publishing",
+      "kdp_rules_checked": "2026-10-08",
+      "version": 1
+    },
+    "verdicts": {
+      "attestations": "incomplete",
+      "disclosure": "incomplete",
+      "metadata": "invalid"
+    }
+  }
+}

@@ -5,6 +5,7 @@ from dataclasses import asdict, dataclass
 from .composition import Composition
 from .content import WordSearchContent
 from .cover_config import CoverConfig
+from .publishing_config import PublishingConfig
 
 
 @dataclass(frozen=True)
@@ -45,6 +46,7 @@ class Project:
     word_search: WordSearchContent | None = None
     composition: Composition | None = None
     cover: CoverConfig | None = None
+    publishing: PublishingConfig | None = None
 
     def to_dict(self) -> dict[str, object]:
         """Return an independent, JSON/YAML-compatible source representation."""
@@ -62,4 +64,8 @@ class Project:
             del data["cover"]
         else:
             data["cover"] = self.cover.to_dict()
+        if self.publishing is None:
+            del data["publishing"]
+        else:
+            data["publishing"] = self.publishing.to_dict()
         return data

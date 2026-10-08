@@ -1,7 +1,8 @@
 ﻿# PuzzlePress Studio
 
 Studio is a local visual editor for word-search projects, their book composition,
-a print proof of the built interior and a photography-first cover studio. Python remains the
+a print proof of the built interior, a photography-first cover studio and a
+publishing workspace that exports a package for manual KDP upload. Python remains the
 single authority for schema validation, normalization, generation, identity and
 quality. The browser keeps drafts and displays authoritative results.
 
@@ -144,6 +145,32 @@ A draft previews against the last built interior even when that interior is out
 of date for the draft, and says so; an interior whose files do not agree is
 refused. Decoded photos (two) and draft PDFs (160 MB) are cached in memory.
 
+## Publishing
+
+Choose **Publishing** to turn the built book into a package for manual KDP upload
+([publishing](publishing.md)). It edits the project's `publishing` section in the
+same draft as Edit, Book and Cover.
+
+1. A book without metadata shows **Start publishing metadata**: every decision
+   starts undecided and nothing is confirmed for you.
+2. The summary shows the front panel cropped from the built `cover.pdf` raster,
+   title, subtitle, author, format, paper, pages, spine width and separate
+   metadata, interior, cover and package verdicts.
+3. Edit series, edition, contributors, the plain-text description (with a
+   character count), keywords, category preferences, the explicit-content and
+   reading-age answers, low-content classification, the ISBN option, AI content
+   per kind and your confirmations. Title, subtitle, author, imprint and language
+   are shown read-only, linking to Edit and Book.
+4. As you type, Python checks the draft (`POST /draft/publishing`); blocking and
+   review findings appear beside their fields as text.
+5. The readiness column (saved source) lists what is done and what is left with
+   links to Print or Cover, the readiness statement, grouped findings with their
+   KDP sources, and every check. It moves above the form below 1000px.
+6. **Save changes**, then **Export package** (saved revision only; disabled while
+   the draft is dirty or anything blocks). Optionally write `publishing.zip`. The
+   summary lists the files, digests, location relative to the project and the
+   package identity, and the checklist is shown in full. Nothing is uploaded.
+
 ## Conflict and failure recovery
 
 A save includes the revision loaded with the authoritative source. A competing
@@ -201,6 +228,7 @@ produce identical YAML bytes. No YAML dependency or schema change was added.
 - `studio/printing.py`, `studio/preview.py`: interior build/preflight adapter and the
   PDFium page rasterizer with its digest-keyed cache (one process-wide PDFium lock).
 - `studio/covering.py`: cover status, draft render, photo import, build and rasters.
+- `studio/publishing.py`: publishing readiness, draft metadata checks and export.
 - `studio/server.py`: thin HTTP handlers, expected errors, static assets and launcher.
 - `studio/src/draft.tsx`: shared draft lifecycle and toolbar; `Editor.tsx`,
   `ContentEditor.tsx`, `Composer.tsx`, `editor-fields.tsx`: visual inputs and
@@ -224,6 +252,9 @@ produce identical YAML bytes. No YAML dependency or schema change was added.
 | `GET /api/projects/{key}/cover/assets` | Photos in `cover-assets` with pixels, orientation and problems |
 | `POST /api/projects/{key}/cover/assets` | `?name=`; raw `image/jpeg` or `image/png` body (the only non-JSON POST); imports and returns the asset |
 | `POST /api/projects/{key}/cover/build` | `{revision}`; builds saved source, writes `cover.pdf`, `cover.json`, `cover-preflight.json` |
+| `GET /api/projects/{key}/publishing` | Readiness report, KDP metadata record, checklist, package identity, export state (`none`, `current`, `stale`, `damaged`), location, built cover digest |
+| `POST /api/projects/{key}/draft/publishing` | `{source}`; metadata, disclosure and confirmation findings for the draft; writes nothing |
+| `POST /api/projects/{key}/publishing/export` | `{revision, archive}`; exports the saved revision's package (409 `source_changed`), or returns why not and writes nothing |
 
 Revision is `sha256-<digest of exact source bytes>`. It detects cosmetic changes
 and output edits that semantic identity intentionally excludes. Identical bytes
@@ -240,7 +271,7 @@ HTTP 200 batch report. Closing a page does not interrupt already-running Python.
 JSON POSTs require same-origin Origin when supplied, local Host and JSON content
 type. CSP and no-store response headers remain enabled; no CORS, auth or telemetry.
 
-Routes: `/books`, `/books/{key}`, `/books/{key}/edit`, `/books/{key}/book`, `/books/{key}/print`, `/books/{key}/cover`, `/books/{key}/puzzles`,
+Routes: `/books`, `/books/{key}`, `/books/{key}/edit`, `/books/{key}/book`, `/books/{key}/print`, `/books/{key}/cover`, `/books/{key}/publishing`, `/books/{key}/puzzles`,
 `/books/{key}/puzzles/{id}`, `/books/{key}/quality`. Deep links serve the shell.
 
 ## Design, accessibility and screenshots
@@ -307,7 +338,15 @@ Existing ASCII/size/search limits apply. No extra schema fields, calibrated
 scores, automatic content repair, persisted previews, collaboration or cloud.
 Only Chrome/Chromium is exercised; axe is not screen-reader certification.
 Starlette warns about its deprecated httpx test client. Page previews need
-`pypdfium2` (in the `studio` extra). No KDP packaging, metadata or publishing.
+`pypdfium2` (in the `studio` extra). Publishing exports a local package only; it never
+logs in to, uploads to or submits anything in KDP.
+Publishing captures: [overview](images/studio/publishing.png),
+[metadata](images/studio/publishing-metadata.png),
+[AI disclosure](images/studio/publishing-disclosure.png),
+[readiness](images/studio/publishing-readiness.png),
+[blocking findings](images/studio/publishing-blocking.png),
+[ready package](images/studio/publishing-ready.png),
+[export](images/studio/publishing-export.png), [390](images/studio/publishing-390.png).
 Cover captures: [overview](images/studio/cover.png), [start](images/studio/cover-start.png),
 [front crop](images/studio/cover-crop.png), [full wrap](images/studio/cover-wrap.png),
 [overlays](images/studio/cover-overlays.png), [spine](images/studio/cover-spine.png),

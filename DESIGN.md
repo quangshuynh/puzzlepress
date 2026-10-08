@@ -133,6 +133,13 @@ Small status marks differ in shape as well as color. The supplied logo is preser
   same raster; overlays are thin labeled lines from Python geometry, off by
   default. Crop works by drag, slider and keyboard. Type presets are few and
   named; there are no free layers, effects or arbitrary positions.
+- Publishing: a production handoff. A ruled summary (the front panel cropped from
+  the real cover raster, book facts, separate text verdicts) above a metadata form
+  beside a readiness column. Readiness is an ordered list of what is done and what
+  is left, each line saying why and linking where to act, then grouped findings
+  with their official sources. Python findings sit beside their fields as text.
+  Nothing is preselected for the author; export is one deliberate action and its
+  summary never implies submission. No success banners or statistics.
 - States: text and recovery actions for errors, meaningful empty states, polite
   loading status. A single loading-line animation respects reduced motion.
 
@@ -152,3 +159,5 @@ Small status marks differ in shape as well as color. The supplied logo is preser
 - Don't imply that no quality findings means publication readiness.
 - Don't present future workflows as working navigation.
 - Don't imply preflight readiness means Amazon will accept a book.
+- Don't preselect a declaration, confirmation or ISBN choice for the author, or
+  present a local export as a KDP submission.

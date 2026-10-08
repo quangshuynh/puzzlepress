@@ -32,6 +32,11 @@ and local Web Studio share the same core. Read `CONTEXT.md` for current scope.
   overwrites, and crops are configuration. Studio previews and the final PDF use
   the same Python crop, layout and renderer; the browser never lays out a cover.
   Rendered covers carry only pixels, never source EXIF/GPS/XMP metadata.
+- Publishing metadata is authored source with its own identity, outside build
+  identity. Never declare AI use, rights or other attestations for the author or
+  invent an ISBN; undecided values block. Readiness reruns interior and cover
+  preflight and never trusts saved reports. Packages use the inspected bytes only,
+  are verified before replacement, and nothing contacts or submits to Amazon.
 - Keep authored source and disposable generated directories disjoint. Recheck
   filesystem boundaries before any future write or recursive cleanup.
 - Preserve versioned schema and identity contracts. Include output-affecting
@@ -62,6 +67,8 @@ puzzlepress book build books/composition-demo --output .pytest_cache/interior
 puzzlepress book build books/cover-demo --output .pytest_cache/cover
 puzzlepress cover build books/cover-demo --output .pytest_cache/cover
 puzzlepress cover preflight books/cover-demo --output .pytest_cache/cover --no-write
+puzzlepress publish validate books/publishing-demo
+puzzlepress publish inspect books/publishing-demo --output .pytest_cache/publishing
 puzzlepress puzzle generate --width 10 --height 8 --seed 2026 --word ENGINE --word PISTON --solution
 git diff --check
 git status --short

@@ -9,6 +9,7 @@ from .book_cli import add_book_command, run_book_command
 from .cover_cli import add_cover_command, run_cover_command
 from .identity import build_identity
 from .project import load_project
+from .publish_cli import add_publish_command, run_publish_command
 from .puzzle_cli import add_puzzle_command, run_puzzle_command
 from .validation import ProjectError
 from .wordsearch import WordSearchError
@@ -17,7 +18,8 @@ from .wordsearch import WordSearchError
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="puzzlepress",
-        description="Validate projects, generate word searches, build interiors and covers.",
+        description="Validate projects, generate word searches, build interiors and covers, "
+        "and prepare KDP publishing packages.",
     )
     parser.add_argument("--version", action="version", version=f"PuzzlePress {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -30,6 +32,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     add_puzzle_command(commands)
     add_book_command(commands)
     add_cover_command(commands)
+    add_publish_command(commands)
     args = parser.parse_args(argv)
     try:
         if args.command == "puzzle":
@@ -38,6 +41,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return run_book_command(args)
         if args.command == "cover":
             return run_cover_command(args)
+        if args.command == "publish":
+            return run_publish_command(args)
         loaded = load_project(args.project)
     except (ProjectError, WordSearchError) as error:
         for issue in error.issues:

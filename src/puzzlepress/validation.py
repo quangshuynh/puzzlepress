@@ -12,6 +12,7 @@ from .errors import MAX_SEED
 from .errors import ProjectError as ProjectError
 from .errors import ValidationIssue as ValidationIssue
 from .models import Book, Build, Content, Output, Project
+from .publishing_validation import validate_publishing
 
 SCHEMA_VERSION = 1
 
@@ -83,6 +84,7 @@ def validate_project(data: object) -> ValidationResult:
             "word_search",
             "composition",
             "cover",
+            "publishing",
         },
     )
     version = required(root, "schema_version", "schema_version")
@@ -172,6 +174,12 @@ def validate_project(data: object) -> ValidationResult:
     if "cover" in root:
         cover, cover_issues = validate_cover(root["cover"], "composition" in root)
         issues.extend(cover_issues)
+    publishing = None
+    if "publishing" in root:
+        publishing, publishing_issues = validate_publishing(
+            root["publishing"], "composition" in root
+        )
+        issues.extend(publishing_issues)
     if issues:
         return ValidationResult(None, tuple(issues))
     return ValidationResult(
@@ -192,6 +200,7 @@ def validate_project(data: object) -> ValidationResult:
             word_search=word_search,
             composition=composition,
             cover=cover,
+            publishing=publishing,
         ),
         (),
     )
