@@ -21,6 +21,7 @@ from puzzlepress.errors import ProjectError
 from .covering import CoverService
 from .editing import DraftStore
 from .printing import PrintService
+from .publishing import PublishingService
 from .service import ProjectStore, StudioError, StudioService, issue_dicts, project_detail
 
 LOGGER = logging.getLogger(__name__)
@@ -49,6 +50,10 @@ class InteriorBuildRequest(BuildRequest):
     profile: str | None = None
 
 
+class ExportRequest(BuildRequest):
+    archive: bool = False
+
+
 # The only non-JSON POST: a photograph upload. Image content types are not
 # CORS-safelisted, so another site cannot send one without a refused preflight.
 UPLOAD_PATH = re.compile(r"/api/projects/[^/]+/cover/assets")
@@ -64,6 +69,7 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
     drafts = DraftStore(service.store)
     printing = PrintService(service)
     covers = CoverService(service, drafts)
+    publishing = PublishingService(service, drafts)
     app = FastAPI(title="PuzzlePress Studio", docs_url=None, redoc_url=None, openapi_url=None)
     app.add_middleware(
         TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"]
@@ -212,6 +218,18 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
             headers={"Cache-Control": "private, max-age=31536000, immutable"},
         )
 
+    @app.get("/api/projects/{key}/publishing")
+    def publishing_status(key: str) -> dict[str, object]:
+        return publishing.status(key)
+
+    @app.post("/api/projects/{key}/draft/publishing")
+    def draft_publishing(key: str, body: DraftRequest) -> dict[str, object]:
+        return publishing.draft(key, body.source)
+
+    @app.post("/api/projects/{key}/publishing/export")
+    def export_publishing(key: str, body: ExportRequest) -> dict[str, object]:
+        return publishing.export(key, body.revision, body.archive)
+
     if (frontend / "assets").is_dir():
         app.mount("/assets", StaticFiles(directory=frontend / "assets"), name="assets")
 
@@ -231,6 +249,7 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
     @app.get("/books/{key}/book")
     @app.get("/books/{key}/print")
     @app.get("/books/{key}/cover")
+    @app.get("/books/{key}/publishing")
     @app.get("/books/{key}/puzzles/{puzzle_id}")
     def shell() -> FileResponse:
         index = frontend / "index.html"
