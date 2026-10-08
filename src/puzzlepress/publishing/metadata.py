@@ -20,7 +20,15 @@ from . import text
 from .identity import publishing_identity
 from .isbn import check_isbn
 from .model import Area, Collector, Finding, Outcome, RuleResult, Scope, Severity
-from .rules import KDP_METADATA, METADATA_CODES, PAPERBACK_LANGUAGES, RULES
+from .rules import (
+    KDP_METADATA,
+    KDP_RULES_CHECKED,
+    METADATA_CODES,
+    PAPERBACK_LANGUAGES,
+    RULES,
+    RULESET_ID,
+    RULESET_VERSION,
+)
 
 ATTESTATION_TEXT = {
     "rights": "I hold the rights to publish this book's text, word lists and cover photograph.",
@@ -89,6 +97,26 @@ class MetadataReport:
     @property
     def attestations_complete(self) -> bool:
         return self.configured and not self._blocking(Scope.ATTESTATION)
+
+    @property
+    def valid(self) -> bool:
+        """Metadata valid, disclosure declared and confirmations given."""
+        return self.metadata_valid and self.disclosure_complete and self.attestations_complete
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "report_version": 1,
+            "ruleset": {
+                "id": RULESET_ID,
+                "version": RULESET_VERSION,
+                "kdp_rules_checked": KDP_RULES_CHECKED,
+            },
+            "book_id": self.book_id,
+            "publishing_identity": self.publishing_identity,
+            "verdicts": self.verdicts(),
+            "findings": [finding.to_dict() for finding in self.findings],
+            "rules": [result.to_dict() for result in self.results],
+        }
 
     def verdicts(self) -> dict[str, str]:
         return {
