@@ -40,13 +40,14 @@ from .model import (
 from .spec import KDP, FolioPlacement, PrintSpecification, to_inches, validate_print_spec
 from .text import text_line, wrap_text
 
-RENDERER_VERSION = 1
+# 2: grid frames fit their region by painted extent (frame plus half its stroke).
+RENDERER_VERSION = 2
 
 # Template spacing (points). Changing any value changes output: bump RENDERER_VERSION.
 FOLIO_BAND = 24.0  # Reserved at the bottom of every live area for the page number.
 TEXT_MEASURE = 396.0  # 5.5 in reading measure for running text.
 HEADING_GAP = 24.0
-WORD_GAP = 22.0  # Between a puzzle grid frame and its word list.
+WORD_GAP = 22.0  # Between a puzzle grid's painted frame and its word list.
 WORD_COLUMN_GAP = 36.0
 MAX_WORD_COLUMNS = 5
 WORD_LEADING = 1.5
@@ -600,7 +601,7 @@ def _letter_grid(
         letter_size=geometry.letter_size,
         face=Face.REGULAR,
         frame=geometry.frame,
-        frame_width=spec.strokes.grid_frame,
+        frame_width=geometry.stroke,
         baseline_offset=CAP_HEIGHT * geometry.letter_size / 2,
         emphasized=cells,
         muted_gray=MUTED_GRAY if marks else 0.0,
@@ -658,15 +659,16 @@ def _puzzle_page(page: _Page, puzzles: dict[str, WordSearch]) -> None:
         puzzle.config.size.height,
         grid_region,
         t.grid_letter_max,
+        page.spec.strokes.grid_frame,
         max_cell_for_letter(t.grid_letter_max),
     )
     if not _grid_letters_fit(page, geometry, t.grid_letter_min, "puzzle_grid"):
         return
-    # Center grid and word list together in the space below the header.
-    block = geometry.frame.height + WORD_GAP + table.height
+    # Center the painted grid and word list together in the space below the header.
+    block = geometry.bounds.height + WORD_GAP + table.height
     geometry = geometry.moved(-(available - block) / 2)
     page.elements.append(_letter_grid("puzzle_grid", puzzle, geometry, page.spec, marks=False))
-    _place_word_table(page, table, geometry.frame.y - WORD_GAP)
+    _place_word_table(page, table, geometry.bounds.y - WORD_GAP)
 
 
 def _solution_page(
@@ -687,6 +689,7 @@ def _solution_page(
             puzzle.config.size.height,
             grid_region,
             t.solution_letter_max,
+            page.spec.strokes.grid_frame,
             max_cell_for_letter(t.solution_letter_max),
         )
         if not _grid_letters_fit(page, geometry, t.solution_letter_min, "solution_grid"):

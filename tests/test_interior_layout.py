@@ -9,12 +9,12 @@ from puzzlepress import load_project
 from puzzlepress.interior import InteriorError, layout_interior
 from puzzlepress.interior.engine import FOLIO_BAND
 from puzzlepress.interior.model import LetterGrid, Rule, TextLine
-from puzzlepress.interior.spec import PAPERBACK_LETTER, FolioPlacement
+from puzzlepress.interior.spec import KDP, PAPERBACK_LETTER, FolioPlacement
 from puzzlepress.interior.validation import validate_layout
 from puzzlepress.publication import PageKind, build_publication
 from puzzlepress.publication_verification import verify_publication_plan
 from puzzlepress.wordsearch.models import Grid
-from tests.helpers import DEMO, demo_variant
+from tests.helpers import DEMO, ROOT, demo_variant
 
 SPEC = PAPERBACK_LETTER
 
@@ -139,6 +139,96 @@ def test_puzzle_pages_draw_authoritative_grids_and_word_lists(demo):
         x, y = grid.center(0, 0)
         assert abs(x - (grid.origin_x + grid.cell / 2)) < 1e-9
         assert abs(y - (grid.top - grid.cell / 2)) < 1e-9
+
+
+# Interval 9's cover-demo build (renderer 1): the plan, not the renderer, owns these.
+COVER_DEMO_IDENTITY = "pp1-sha256-5a45b845092f74a285e07ed25a110ab5ae685bdf79d56e88d03a075bafe7ddf5"
+COVER_DEMO_PLAN = "sha256-ddaacb36734594843a30aa69c6811f2686b1dc17447a04ba2019b5cbe096c9b1"
+
+
+@pytest.fixture(scope="module")
+def cover_demo():
+    project = load_project(ROOT / "books" / "cover-demo").project
+    report, plan = built(project)
+    layout = layout_interior(plan, report, SPEC)
+    assert validate_layout(layout, plan, report) == ()
+    return plan, layout
+
+
+def _minimum_letter(grid):
+    t = SPEC.typography
+    return t.grid_letter_min if grid.role == "puzzle_grid" else t.solution_letter_min
+
+
+def test_cover_demo_grid_strokes_paint_inside_the_live_area(cover_demo):
+    """Renderer 1 sized 14 x 14 frames to the live width; half the stroke overhung it."""
+    plan, layout = cover_demo
+    seen = set()
+    for page in layout.pages:
+        content = page.frame.content
+        for grid in grids(page):
+            half = grid.frame_width / 2
+            painted = grid.bounds
+            assert painted == grid.frame.expanded(half)
+            assert content.contains(painted, 1e-9), (page.number, grid.role)
+            assert grid.frame_width >= KDP.min_line_weight
+            assert all(m.line_width >= KDP.min_line_weight for m in grid.marks)
+            assert _minimum_letter(grid) <= grid.letter_size
+            assert grid.cell * 0.56 >= grid.letter_size - 1e-9  # Square cells, letters inside.
+            seen.add((grid.role, "recto" if page.frame.recto else "verso", grid.columns))
+            if grid.role == "puzzle_grid" and grid.columns == 14:
+                # Width-limited: the painted extent meets both live edges exactly.
+                assert painted.x == pytest.approx(content.x, abs=1e-9)
+                assert painted.right == pytest.approx(content.right, abs=1e-9)
+                assert grid.frame.x - content.x == pytest.approx(half)
+    assert {
+        ("puzzle_grid", "verso", 14),
+        ("puzzle_grid", "recto", 13),
+        ("solution_grid", "recto", 13),
+        ("solution_grid", "recto", 14),
+        ("solution_grid", "verso", 13),
+        ("solution_grid", "verso", 14),
+    } <= seen
+
+
+def test_cover_demo_geometry_fix_keeps_plan_and_pagination(cover_demo):
+    plan, layout = cover_demo
+    assert (layout.identity, layout.plan_digest) == (COVER_DEMO_IDENTITY, COVER_DEMO_PLAN)
+    assert len(layout.pages) == len(plan.pages) == 35
+    assert [(p.number, p.kind, p.folio) for p in layout.pages] == [
+        (e.index, str(e.kind), e.number.label if e.number.displayed else None) for e in plan.pages
+    ]
+    letters = sorted({round(g.letter_size, 3) for p in layout.pages for g in grids(p)})
+    assert letters[0] >= SPEC.typography.solution_letter_min and letters[-1] == 20
+
+
+def _square_grids(size):
+    def mutate(data):
+        for profile in data["word_search"]["profiles"]:
+            profile["width"] = profile["height"] = size
+
+    return built(demo_variant(mutate, puzzles=4))
+
+
+@pytest.mark.parametrize("size", [5, 14, 20, 22])
+def test_small_and_large_grids_paint_inside_puzzle_and_solution_regions(size):
+    report, plan = _square_grids(size)
+    layout = layout_interior(plan, report, SPEC)
+    assert validate_layout(layout, plan, report) == ()
+    drawn = [(page, grid) for page in layout.pages for grid in grids(page)]
+    assert {g.role for _, g in drawn} == {"puzzle_grid", "solution_grid"}
+    for page, grid in drawn:
+        assert page.frame.content.contains(grid.bounds, 1e-9)
+        assert grid.letter_size >= _minimum_letter(grid)
+        words = [e for e in page.elements if e.role == "word_list"]
+        assert all(w.bounds.top <= grid.bounds.y - 22 + 1e-9 for w in words)
+
+
+def test_grids_too_large_for_minimum_letters_still_fail_rather_than_shrink():
+    # 22 x 22 is the largest 2-per-page solution grid, as under renderer 1.
+    report, plan = _square_grids(24)
+    error = failure(plan, report)
+    assert {(i.code, i.region) for i in error.issues} == {("grid_too_small", "solution_grid")}
 
 
 def test_puzzle_grid_geometry_is_identical_on_recto_and_verso_except_shift(demo):

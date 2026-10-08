@@ -13,7 +13,7 @@ from reportlab.pdfgen.canvas import Canvas
 
 from puzzlepress import load_project
 from puzzlepress.identity import build_identity
-from puzzlepress.interior import build_interior, write_interior
+from puzzlepress.interior import RENDERER_VERSION, build_interior, write_interior
 from puzzlepress.interior.build import interior_identity
 from puzzlepress.interior.geometry import page_frame
 from puzzlepress.interior.inspection import PdfFacts, PdfPageFacts
@@ -22,6 +22,7 @@ from puzzlepress.interior.model import (
     Box,
     Face,
     InteriorLayout,
+    LetterGrid,
     PhysicalPage,
     Rule,
     TextLine,
@@ -199,7 +200,7 @@ def test_stale_source_composition_and_renderer(written):
     assert pages[0]["kind"] is None and pages[1]["side"] == "verso"  # No borrowed meaning.
 
     def old_renderer(data):
-        data["renderer_version"] = 0
+        data["renderer_version"] = 1  # Before grid frames fit by painted extent.
         data["interior_identity"] = interior_identity(data)
 
     report = preflight_interior(project, artifacts(build, manifest=old_renderer)).report
@@ -207,9 +208,10 @@ def test_stale_source_composition_and_renderer(written):
     finding = report.findings[0]
     assert (finding.region, finding.measure.actual, finding.measure.required) == (
         "renderer_version",
-        0,
         1,
+        RENDERER_VERSION,
     )
+    assert RENDERER_VERSION == 2
 
 
 def test_manifest_identity_profile_and_book_corruption(demo):
@@ -520,6 +522,73 @@ def _pages(pattern):
 def test_consecutive_blank_page_limits(demo, pattern, outcome):
     pages = _pages(pattern)
     assert _evaluate("kdp_blank_page_runs", _context(demo, pages=pages))[0] is outcome
+
+
+# ------------------------------------------------------------- live area and marks
+
+
+def _framed_grid(frame, stroke=1.0):
+    cell = frame.width / 2
+    return LetterGrid(
+        "puzzle_grid", ("AB", "CD"), frame.x, frame.top, cell, 12.0, Face.REGULAR, frame, stroke, 4
+    )
+
+
+def _media_facts(number, media):
+    return PdfPageFacts(number, media, media, None, 0, 0, (), 0, False, True, "")
+
+
+@pytest.mark.parametrize("number", [1, 2])  # Recto and verso live areas differ.
+def test_a_frame_stroke_past_the_live_area_is_structural_not_a_printer_mark(demo, number):
+    """Interval 9's defect: a 1 pt frame on the live edge paints 0.5 pt beyond it."""
+    content = page_frame(SPEC, number).content
+    frame = Box(content.x, content.y + 100, content.width, 300)
+    layout = _layout(_framed_grid(frame), number=number)
+    trim = (0.0, 0.0, SPEC.trim.width, SPEC.trim.height)
+    ctx = _context(demo, layout, 24, pages=[_media_facts(n, trim) for n in (1, 2)])
+    outcome, check = _evaluate("content_in_live_area", ctx)
+    assert outcome is Outcome.FAILED
+    finding = check.findings[0]
+    assert finding.rule.scope is Scope.STRUCTURAL and finding.region == "puzzle_grid"
+    assert finding.bounds == frame.expanded(0.5) and finding.measure.actual == 0.5
+    # KDP's own rules: no slug area, and 0.49 in still clears KDP's minimum margins.
+    for code in ("kdp_no_printer_marks", "kdp_gutter", "kdp_outside_margins"):
+        assert _evaluate(code, ctx)[0] is Outcome.PASSED, code
+    inset = _layout(_framed_grid(Box(frame.x + 0.5, frame.y, frame.width - 1, 300)), number=number)
+    assert _evaluate("content_in_live_area", _context(demo, inset, 24))[0] is Outcome.PASSED
+
+
+def test_printer_marks_rule_judges_only_the_area_beyond_the_trim(demo):
+    layout = _layout(_text(200))
+    slug = (-9.0, -9.0, SPEC.trim.width + 9, SPEC.trim.height + 9)
+    outcome, check = _evaluate(
+        "kdp_no_printer_marks", _context(demo, layout, 24, [_media_facts(1, slug)])
+    )
+    assert outcome is Outcome.FAILED and check.findings[0].region == "MediaBox"
+    assert _evaluate("content_in_live_area", _context(demo, layout, 24))[0] is Outcome.PASSED
+
+
+def test_live_area_rule_needs_the_current_layout(demo):
+    ctx = replace(_context(demo, page_count=24), expected=None)
+    assert _evaluate("content_in_live_area", ctx)[0] is Outcome.NOT_EVALUATED
+
+
+def test_cover_demo_interior_is_kdp_ready_after_the_grid_fix(tmp_path):
+    """Renderer 1 failed ten verso pages here: 14 x 14 frames painted 0.5 pt past the
+    live area. Renderer 2 fits the painted extent; nothing in the source changed."""
+    source = ROOT / "books" / "cover-demo"
+    project = load_project(source).project
+    build = build_interior(project, SPEC)
+    assert build_interior(project, SPEC).pdf == build.pdf
+    directory = write_interior(build, tmp_path / "out", source).pdf.parent
+    report = run(project, directory).report
+    assert report.structurally_valid and report.kdp_ready
+    assert codes(report) == ["kdp_full_font_embedding"]
+    results = by_rule(report)
+    for code in ("content_in_live_area", "kdp_no_printer_marks", "kdp_gutter"):
+        assert results[code].outcome is Outcome.PASSED, code
+    assert results["kdp_outside_margins"].outcome is Outcome.PASSED
+    assert build.manifest["page_count"] == 35 and build.manifest["renderer_version"] == 2
 
 
 # ------------------------------------------------------------- catalogue

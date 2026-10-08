@@ -115,6 +115,7 @@ def _bounds(element: Element) -> Box:
 
 
 def _element_checks(element: Element, content: Box) -> Iterator[tuple[str, str]]:
+    # Bounds are painted extents: text ink boxes, rule and frame strokes included.
     if not content.contains(element.bounds, EPSILON):
         yield "outside_live_area", f"Element {element.role} extends beyond the margins."
     if isinstance(element, TextLine) and element.size < KDP.min_font_size:
@@ -136,7 +137,9 @@ def _element_checks(element: Element, content: Box) -> Iterator[tuple[str, str]]
         if not element.frame.contains(cells, EPSILON):
             yield "invalid_grid_geometry", "Grid cells extend beyond the grid frame."
         for mark in element.marks:
+            # Painted capsule ends: the radius plus half the stroke.
+            extent = mark.radius + mark.line_width / 2
             for x, y in (mark.start, mark.end):
-                outline = Box(x - mark.radius, y - mark.radius, 2 * mark.radius, 2 * mark.radius)
+                outline = Box(x - extent, y - extent, 2 * extent, 2 * extent)
                 if not element.frame.contains(outline, EPSILON):
                     yield "invalid_grid_geometry", "A solution mark leaves the grid frame."

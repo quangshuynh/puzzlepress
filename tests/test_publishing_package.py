@@ -137,6 +137,44 @@ def test_export_replaces_its_own_package_and_reports_staleness(ready):
     assert leftovers == []
 
 
+def test_renderer_change_stales_interior_cover_and_package(tmp_path, monkeypatch):
+    """Interior renderer -> interior identity -> cover freshness -> package identity."""
+    from puzzlepress.interior import build as interior_build
+    from puzzlepress.interior import build_interior, print_profile, write_interior
+
+    monkeypatch.setattr(interior_build, "RENDERER_VERSION", 1)  # Built before renderer 2.
+    source, output = publishing_project(tmp_path / "book")
+    old = package_of(source, output)
+    write_package(old, output, source)
+    old_cover = json.loads((output / "cover.json").read_bytes())
+    monkeypatch.undo()
+
+    report = evaluate(source, output)
+    verdicts = report.verdicts()
+    assert verdicts["interior"]["state"] == "stale" and verdicts["cover"]["state"] == "stale"
+    assert not report.package_ready
+    assert any(
+        f.message == "Interior is out of date: Renderer version changed after this interior "
+        "was built."
+        for f in report.findings
+    )
+    assert export_state(output, source, old.book_id, None).state == "stale"
+    assert report.identities()["publishing"] == old.manifest["identities"]["publishing"]
+
+    # Rebuilding only the interior: the cover's geometry and bytes are unaffected, so it
+    # stays current (its provenance warns); the package identity changes.
+    project = load_project(source).project
+    write_interior(build_interior(project, print_profile("paperback-8.5x11")), output, source)
+    report = evaluate(source, output)
+    assert report.verdicts()["interior"]["state"] == "current"
+    assert report.verdicts()["cover"]["state"] == "current" and report.package_ready
+    assert any(f.related == "cover_interior_provenance" for f in report.findings)
+    assert json.loads((output / "cover.json").read_bytes()) == old_cover
+    new = assemble_package(report)
+    assert new.identity != old.identity
+    assert export_state(output, source, new.book_id, new.identity).state == "stale"
+
+
 def test_damaged_exports_are_detected(ready):
     source, output = ready
     package = package_of(source, output)

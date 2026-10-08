@@ -35,9 +35,15 @@ def page_frame(spec: PrintSpecification, physical_page: int) -> PageFrame:
 class GridGeometry:
     cell: float
     letter_size: float
-    frame: Box  # Outer frame, including padding.
+    frame: Box  # Outer frame, including padding: the centerline of its stroke.
     origin_x: float  # Left of the cell area.
     top: float  # Top of the cell area.
+    stroke: float  # Frame line width, painted centered on the frame.
+
+    @property
+    def bounds(self) -> Box:
+        """Painted extent: the frame plus half its stroke on every side."""
+        return self.frame.expanded(self.stroke / 2)
 
     def moved(self, dy: float) -> "GridGeometry":
         frame = self.frame
@@ -47,6 +53,7 @@ class GridGeometry:
             Box(frame.x, frame.y + dy, frame.width, frame.height),
             self.origin_x,
             self.top + dy,
+            self.stroke,
         )
 
 
@@ -55,23 +62,28 @@ def fit_grid(
     rows: int,
     region: Box,
     max_letter: float,
+    stroke: float,
     max_cell: float | None = None,
 ) -> GridGeometry:
-    """Largest square cells that fit the region, centered horizontally, top-aligned.
+    """Largest square cells whose painted grid fits the region, centered, top-aligned.
 
-    Letters scale with cells and are clamped to `max_letter`. Callers compare the
-    resulting letter size with their minimum; this function never enforces one.
+    The whole painted extent, including the half of the frame stroke that lies
+    outside the frame, fits the region. Letters scale with cells and are clamped to
+    `max_letter`. Callers compare the resulting letter size with their minimum; this
+    function never enforces one.
     """
     span_x = columns + 2 * GRID_PADDING
     span_y = rows + 2 * GRID_PADDING
-    cell = min(region.width / span_x, region.height / span_y)
+    cell = min((region.width - stroke) / span_x, (region.height - stroke) / span_y)
     if max_cell is not None:
         cell = min(cell, max_cell)
     letter = min(cell * LETTER_RATIO, max_letter)
     width, height = cell * span_x, cell * span_y
-    frame = Box(region.x + (region.width - width) / 2, region.top - height, width, height)
+    frame = Box(
+        region.x + (region.width - width) / 2, region.top - stroke / 2 - height, width, height
+    )
     padding = cell * GRID_PADDING
-    return GridGeometry(cell, letter, frame, frame.x + padding, frame.top - padding)
+    return GridGeometry(cell, letter, frame, frame.x + padding, frame.top - padding, stroke)
 
 
 def max_cell_for_letter(max_letter: float) -> float:

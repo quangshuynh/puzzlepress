@@ -640,6 +640,44 @@ def _folios(r: PreflightRule, ctx: Context) -> Check:
     )
 
 
+@rule(
+    "content_in_live_area",
+    Scope.STRUCTURAL,
+    Category.GEOMETRY,
+    "Content inside the live area",
+    "Every element's painted extent (text ink box, rule and frame strokes) lies inside "
+    "the print profile's live area. KDP's own margins are separate rules.",
+    CONTRACT,
+)
+def _live_area(r: PreflightRule, ctx: Context) -> Check:
+    if ctx.layout is None:
+        return _skip(NO_LAYOUT)
+    findings = []
+    for page in ctx.layout.pages:
+        content = page.frame.content
+        for element in page.elements:
+            ink = ink_bounds(element)
+            if not content.contains(ink, 0.01):
+                overhang = max(
+                    content.x - ink.x,
+                    ink.right - content.right,
+                    content.y - ink.y,
+                    ink.top - content.top,
+                )
+                findings.append(
+                    _finding(
+                        r,
+                        f"{element.role} extends {overhang:g} pt beyond the live area.",
+                        ctx,
+                        page.number,
+                        region=element.role,
+                        bounds=ink,
+                        measure=Measure(round(overhang, 3), 0, "pt", "at_most"),
+                    )
+                )
+    return Check(tuple(findings), note="Every element's painted extent is inside the live area.")
+
+
 # ----------------------------------------------------------------------- KDP
 
 
@@ -1098,35 +1136,19 @@ def _flattened(r: PreflightRule, ctx: Context) -> Check:
     Scope.KDP,
     Category.CONTENT,
     "No crop or trim marks",
-    "Pages have no area beyond the trim where marks could print, and every layout "
-    "element lies inside the live area.",
+    "Pages have no area beyond the trim where crop, registration or other printer's "
+    "marks could print. Content placement is judged by the margin rules.",
     SUBMISSION,
 )
 def _marks(r: PreflightRule, ctx: Context) -> Check:
     if ctx.facts is None or ctx.layout is None:
         return _skip(NO_PDF if ctx.facts is None else NO_LAYOUT)
-    findings = []
-    for page in ctx.layout.pages:
-        facts = ctx.facts.pages[page.number - 1]
-        if not same_box(facts.media, page.frame.trim):
-            findings.append(
-                _finding(
-                    r, "The page extends beyond the trim.", ctx, page.number, region="MediaBox"
-                )
-            )
-        for element in page.elements:
-            if not page.frame.content.contains(ink_bounds(element), 0.01):
-                findings.append(
-                    _finding(
-                        r,
-                        f"{element.role} lies outside the live area.",
-                        ctx,
-                        page.number,
-                        region=element.role,
-                        bounds=ink_bounds(element),
-                    )
-                )
-    return Check(tuple(findings), note="No slug area; all content inside the live area.")
+    findings = [
+        _finding(r, "The page extends beyond the trim.", ctx, page.number, region="MediaBox")
+        for page in ctx.layout.pages
+        if not same_box(ctx.facts.pages[page.number - 1].media, page.frame.trim)
+    ]
+    return Check(tuple(findings), note="No slug area beyond the trim.")
 
 
 @rule(
