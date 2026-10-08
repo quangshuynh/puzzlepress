@@ -9,6 +9,7 @@ import { Editor } from './Editor';
 import { Composer } from './Composer';
 import { Print } from './Print';
 import { Cover } from './Cover';
+import { Publishing } from './Publishing';
 import { useDraft } from './draft';
 
 function usePath(allow: (next: string, current: string) => boolean) {
@@ -68,6 +69,7 @@ function DraftWorkspace({
       </div>
       {section === 'book' && <Composer d={draft} />}
       {section === 'cover' && <Cover d={draft} />}
+      {section === 'publishing' && <Publishing d={draft} />}
     </>
   );
 }
@@ -111,7 +113,9 @@ function ProjectWorkspace({
       generationController.current?.abort();
     };
   }, [projectKey, attempt]);
-  const needsGeneration = !['overview', 'edit', 'book', 'print', 'cover'].includes(section);
+  const needsGeneration = !['overview', 'edit', 'book', 'print', 'cover', 'publishing'].includes(
+    section,
+  );
   useEffect(() => {
     if (
       !needsGeneration ||
@@ -177,6 +181,9 @@ function ProjectWorkspace({
         <a href={`${base}/cover`} aria-current={section === 'cover' ? 'page' : undefined}>
           Cover
         </a>
+        <a href={`/publishing`} aria-current={section === 'publishing' ? 'page' : undefined}>
+          Publishing
+        </a>
         <a href={base} aria-current={section === 'overview' ? 'page' : undefined}>
           Overview
         </a>
@@ -199,8 +206,7 @@ function ProjectWorkspace({
           }}
         />
       )}
-      {section === 'edit' || section === 'book' || section === 'cover' ? null : section ===
-        'print' ? (
+      {['edit', 'book', 'cover', 'publishing'].includes(section) ? null : section === 'print' ? (
         <Print project={project} dirty={dirty} />
       ) : section === 'overview' ? (
         <Overview project={project} />
@@ -285,7 +291,7 @@ export function App() {
     first.current = false;
   }, [path]);
   const match = path.match(
-    /^\/books\/([^/]+)(?:\/(puzzles|quality|edit|book|print|cover)(?:\/([^/]+))?)?\/?$/,
+    /^\/books\/([^/]+)(?:\/(puzzles|quality|edit|book|print|cover|publishing)(?:\/([^/]+))?)?\/?$/,
   );
   const isLibrary = path === '/' || path === '/books' || path === '/books/';
   return (
@@ -341,7 +347,10 @@ export function App() {
             {isLibrary ? (
               <Library />
             ) : match &&
-              !(['quality', 'edit', 'book', 'print', 'cover'].includes(match[2]) && match[3]) ? (
+              !(
+                ['quality', 'edit', 'book', 'print', 'cover', 'publishing'].includes(match[2]) &&
+                match[3]
+              ) ? (
               <ProjectWorkspace
                 key={match[1]}
                 projectKey={match[1]}
