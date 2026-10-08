@@ -207,7 +207,7 @@
         "failed": 6,
         "not_applicable": 2,
         "not_evaluated": 0,
-        "passed": 40
+        "passed": 39
       },
       "severity": {
         "error": 6,
@@ -679,20 +679,6 @@
           "url": "https://kdp.amazon.com/en_US/help/topic/G201298500"
         },
         "title": "Keyword format"
-      },
-      {
-        "basis": "kdp_ambiguous",
-        "code": "keywords_length",
-        "findings": 0,
-        "note": null,
-        "outcome": "passed",
-        "scope": "metadata",
-        "severity": "warning",
-        "source": {
-          "title": "KDP help: Make Your Book More Discoverable with Keywords",
-          "url": "https://kdp.amazon.com/en_US/help/topic/G201298500"
-        },
-        "title": "Keyword length"
       },
       {
         "basis": "kdp_recommendation",

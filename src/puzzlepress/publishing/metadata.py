@@ -524,15 +524,6 @@ def _keywords(c: Collector, project: Project, config: PublishingConfig) -> None:
                 field=path,
             )
         variants.setdefault(variant, i)
-        if len(keyword) > KDP_METADATA.keyword_field_length:
-            c.fail(
-                "keywords_length",
-                f"'{keyword[:24]}...' has {len(keyword)} characters; KDP's field may not hold "
-                f"more than about {KDP_METADATA.keyword_field_length}.",
-                field=path,
-                actual=len(keyword),
-                required=KDP_METADATA.keyword_field_length,
-            )
         subjective = text.first(text.SUBJECTIVE, keyword)
         if subjective:
             c.fail(

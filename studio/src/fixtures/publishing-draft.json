@@ -471,20 +471,6 @@
         "title": "Keyword format"
       },
       {
-        "basis": "kdp_ambiguous",
-        "code": "keywords_length",
-        "findings": 0,
-        "note": null,
-        "outcome": "passed",
-        "scope": "metadata",
-        "severity": "warning",
-        "source": {
-          "title": "KDP help: Make Your Book More Discoverable with Keywords",
-          "url": "https://kdp.amazon.com/en_US/help/topic/G201298500"
-        },
-        "title": "Keyword length"
-      },
-      {
         "basis": "kdp_recommendation",
         "code": "keywords_review",
         "findings": 1,

@@ -109,7 +109,6 @@ required values, the action a person must take and the Studio area that fixes it
 | `description_claims` | error | Puzzle counts in the description equal the book's puzzles; no mention of solutions the book omits |
 | `keywords_count` | error | At most 7 |
 | `keywords_format` | error | No quotation marks, HTML, Amazon program names or exact duplicates |
-| `keywords_length` | warning (ambiguous) | 50 characters: the KDP page only says to watch the field's limit |
 | `keywords_review` | warning | Spacing/plural variants, subjective or time-sensitive words, generic words, repeats of title, contributors or categories |
 | `keywords_present` | info | None entered |
 | `categories_count` | error | At most 3 |
@@ -138,7 +137,10 @@ grid") and counts of other things ("8 words in each puzzle").
 ### Keywords and categories
 
 Up to seven keywords; PuzzlePress does not estimate search volume, research
-competitors or suggest keywords. Categories are stored as the author's
+competitors or suggest keywords. KDP's keywords page states no per-keyword length
+(only that the text field has a limit), so PuzzlePress checks none; the 200-character
+schema bound only keeps a draft interpretable. Ruleset 1 warned above an assumed
+50 characters; ruleset 2 removed that unsourced rule. Categories are stored as the author's
 preferences. KDP's category list differs by marketplace and format and changes
 over time, so PuzzlePress has no taxonomy and never calls a category available:
 the checklist asks you to select it in KDP's selector.
@@ -361,8 +363,7 @@ Classification of what is encoded:
   explicit-content answer; AI-generated disclosure.
 - **KDP recommendations**: keyword advice (variants, subjective words), low-content
   guidance for puzzle books.
-- **Ambiguous**: title length wording (stricter applies); keyword field length
-  (50 assumed, warning only); contributor roles beyond author, editor,
+- **Ambiguous**: title length wording (stricter applies); contributor roles beyond author, editor,
   illustrator and translator are taken from KDP's form, not its help pages; the
   language-name to tag mapping is PuzzlePress's (for example Provençal as `oc`).
 - **PuzzlePress rules**: a description is required, descriptions are plain text,

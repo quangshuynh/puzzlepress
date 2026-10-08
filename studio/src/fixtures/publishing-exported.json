@@ -49,13 +49,13 @@
         "sha256": "156f467e015181f3da9005abb7c6001a0936a65e3365b34e0e27d18cb31e9bdf"
       },
       {
-        "bytes": 26728,
+        "bytes": 26322,
         "name": "readiness.json",
         "purpose": "Publishing readiness: every verdict, finding and rule with its source.",
-        "sha256": "00981396a18d6d4ca3526fc17eb5b0a06123b3844cf4fd0160d13f7e9692a333"
+        "sha256": "835c8651a052889f6b8451427bbd15629d7da531256420395aad814e741c6fc7"
       }
     ],
-    "identity": "pp1-package-sha256-31cd201f7674a95954cb0fef9b5dca87f3746d7e0af6282c9ef1e986e4a69778",
+    "identity": "pp1-package-sha256-09656fc2ecbd80a374cbed96eea857cbd8cbcf74903cc2bfd32eb589c89b1d73",
     "success": true
   },
   "key": "publishing-demo",
@@ -150,7 +150,7 @@
   "package": {
     "archive": "../../build/publishing-demo/publishing.zip",
     "export": {
-      "identity": "pp1-package-sha256-31cd201f7674a95954cb0fef9b5dca87f3746d7e0af6282c9ef1e986e4a69778",
+      "identity": "pp1-package-sha256-09656fc2ecbd80a374cbed96eea857cbd8cbcf74903cc2bfd32eb589c89b1d73",
       "problem": null,
       "state": "current"
     },
@@ -192,7 +192,7 @@
         "purpose": "File list, digests and the package identity."
       }
     ],
-    "identity": "pp1-package-sha256-31cd201f7674a95954cb0fef9b5dca87f3746d7e0af6282c9ef1e986e4a69778",
+    "identity": "pp1-package-sha256-09656fc2ecbd80a374cbed96eea857cbd8cbcf74903cc2bfd32eb589c89b1d73",
     "location": "../../build/publishing-demo/publishing"
   },
   "readiness": {
@@ -262,7 +262,7 @@
         "failed": 4,
         "not_applicable": 2,
         "not_evaluated": 0,
-        "passed": 42
+        "passed": 41
       },
       "severity": {
         "error": 0,
@@ -626,20 +626,6 @@
           "url": "https://kdp.amazon.com/en_US/help/topic/G201298500"
         },
         "title": "Keyword format"
-      },
-      {
-        "basis": "kdp_ambiguous",
-        "code": "keywords_length",
-        "findings": 0,
-        "note": null,
-        "outcome": "passed",
-        "scope": "metadata",
-        "severity": "warning",
-        "source": {
-          "title": "KDP help: Make Your Book More Discoverable with Keywords",
-          "url": "https://kdp.amazon.com/en_US/help/topic/G201298500"
-        },
-        "title": "Keyword length"
       },
       {
         "basis": "kdp_recommendation",

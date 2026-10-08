@@ -137,7 +137,7 @@
         "purpose": "File list, digests and the package identity."
       }
     ],
-    "identity": "pp1-package-sha256-31cd201f7674a95954cb0fef9b5dca87f3746d7e0af6282c9ef1e986e4a69778",
+    "identity": "pp1-package-sha256-09656fc2ecbd80a374cbed96eea857cbd8cbcf74903cc2bfd32eb589c89b1d73",
     "location": "../../build/publishing-demo/publishing"
   },
   "readiness": {
@@ -207,7 +207,7 @@
         "failed": 4,
         "not_applicable": 2,
         "not_evaluated": 0,
-        "passed": 42
+        "passed": 41
       },
       "severity": {
         "error": 0,
@@ -571,20 +571,6 @@
           "url": "https://kdp.amazon.com/en_US/help/topic/G201298500"
         },
         "title": "Keyword format"
-      },
-      {
-        "basis": "kdp_ambiguous",
-        "code": "keywords_length",
-        "findings": 0,
-        "note": null,
-        "outcome": "passed",
-        "scope": "metadata",
-        "severity": "warning",
-        "source": {
-          "title": "KDP help: Make Your Book More Discoverable with Keywords",
-          "url": "https://kdp.amazon.com/en_US/help/topic/G201298500"
-        },
-        "title": "Keyword length"
       },
       {
         "basis": "kdp_recommendation",
