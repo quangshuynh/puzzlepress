@@ -10,6 +10,7 @@ passed and the author confirmed what software cannot verify; KDP decides.
 
 from .identity import publishing_identity
 from .metadata import MetadataReport, validate_metadata
+from .readiness import PublishingReadinessReport, evaluate_readiness, readiness_bytes
 from .rules import KDP_METADATA, KDP_RULES_CHECKED, RULES, RULESET_ID, RULESET_VERSION
 
 __all__ = [
@@ -19,6 +20,9 @@ __all__ = [
     "RULESET_ID",
     "RULESET_VERSION",
     "MetadataReport",
+    "PublishingReadinessReport",
+    "evaluate_readiness",
     "publishing_identity",
+    "readiness_bytes",
     "validate_metadata",
 ]
