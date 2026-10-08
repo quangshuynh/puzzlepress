@@ -340,4 +340,5 @@ presets, Latin-1 text, RGB output without color management, no CMYK, no
 barcode or ISBN, no hardcover, ebook or Kindle covers. Spine text is reachable
 only by books of 80+ pages, which the 20-puzzle schema limit currently prevents.
 The cover demo's photograph is a synthetic stand-in. Unreferenced imported
-photos are not cleaned up. KDP packaging, metadata and publishing are Interval 10.
+photos are not cleaned up. KDP metadata and the publishing package are described in
+[publishing](publishing.md).

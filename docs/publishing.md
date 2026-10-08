@@ -1,0 +1,395 @@
+# KDP publishing package
+
+PuzzlePress turns a current, verified interior and cover, plus validated KDP
+metadata and the author's own declarations, into a deterministic package for
+**manual** upload in Amazon KDP. Nothing here contacts Amazon, logs in, uploads
+or publishes. A ready package means the KDP checks PuzzlePress models passed and
+the author confirmed what software cannot verify. Amazon KDP reviews the book
+and decides.
+
+```text
+book.yaml (book details + publishing section) ──> metadata validation
+interior.pdf/json ──> fresh interior preflight (39 rules) ─┐
+cover.pdf/json + photo ──> fresh cover preflight (25 rules) ┼──> PublishingReadinessReport
+saved preflight reports ──> compared, never trusted ────────┘            │
+                                                         ready? ──> PublishingPackage
+                                                                         │
+                                       <output>/publishing/ (+ publishing.zip) ──> you, in KDP
+```
+
+```text
+puzzlepress publish validate books/publishing-demo
+puzzlepress publish inspect books/publishing-demo
+puzzlepress publish package books/publishing-demo --zip
+```
+
+Code lives in `puzzlepress.publishing`: `rules` (catalogue, KDP values, sources),
+`metadata` (validation, AI disclosure meaning, confirmations), `isbn`, `text`
+(detectors), `identity`, `readiness`, `provenance`, `submission` (metadata record,
+checklist) and `package` (assembly, verification, the only writer). The schema is
+`publishing_config.py` / `publishing_validation.py`; the CLI is `publish_cli.py`;
+Studio's adapter is `studio/publishing.py`.
+
+## Publishing section
+
+An optional, versioned `publishing` section of `book.yaml`, edited through the
+same draft, revision check and atomic save as everything else. It requires a
+`composition`. Title, subtitle, author, imprint and language are **not** repeated:
+they stay in `book`, so the cover, the interior title page and KDP all use the
+same values. (`book.description` is an older build-identity field and is not the
+KDP description.)
+
+```yaml
+publishing:
+  version: 1                       # required; other versions are rejected
+  description: |-                  # plain text, line breaks allowed
+    Twenty word searches from harbour walls, tide pools and lighthouse paths.
+  keywords: [coastal word puzzles, harbour vocabulary]
+  categories: [Humor & Entertainment > Puzzles & Games > Word Search]
+  contributors: [{role: editor, name: A. Editor}]
+  audience: {sexually_explicit: false, reading_age: {minimum: null, maximum: null}}
+  low_content: false               # true | false | null (undecided)
+  isbn: {mode: kdp_free, value: null}   # undecided | kdp_free | own | none
+  edition: 1                       # or null
+  series: null                     # or {title, number}
+  ai_disclosure: {text: human, images: human, translations: none}
+  attestations: {rights: true, ai_disclosure: true, metadata: true, isbn: false}
+  notes: null
+```
+
+| Field | Values | Required for a package |
+| --- | --- | --- |
+| `description` | 1..10,000 characters of plain text (KDP limit 4,000 is a finding) | yes |
+| `keywords` | 0..20 single-line entries (KDP limit 7 is a finding) | no |
+| `categories` | 0..10 paths, segments joined by ` > ` (KDP limit 3 is a finding) | no (warning) |
+| `contributors` | role `author`, `editor`, `illustrator`, `photographer`, `translator`, `foreword`, `introduction`, `preface`; name | no |
+| `audience.sexually_explicit` | `true`, `false`, `null` | answered |
+| `audience.reading_age` | `minimum`/`maximum` 0..18 (18 = 18+), both or neither | no |
+| `low_content` | `true`, `false`, `null` | decided |
+| `isbn` | `mode`; `value` only with `own`, kept exactly as entered | decided |
+| `edition` | 1..999 or null | no |
+| `series` | `title` (title rules apply), optional `number` | no |
+| `ai_disclosure` | per `text`, `images`, `translations`: `human`, `ai_assisted`, `ai_generated`, `unknown`; `translations` also `none` | no `unknown` |
+| `attestations` | booleans, default false | rights, ai_disclosure, metadata; isbn with an own ISBN |
+| `notes` | plain text for the author, shown in the checklist | no |
+
+Schema validation only decides whether values are interpretable; generous
+bounds keep a draft savable. Every KDP limit is a **finding** with its source
+(below), so eight keywords save and are reported precisely. Unknown fields, YAML
+`yes`/`no` booleans and wrong types are schema errors with structured paths.
+Text is trimmed at its edges and never otherwise rewritten.
+
+**Identity.** The section is excluded from the build identity (editing keywords
+never stales an interior or cover). `pp1-publishing-sha256-...` covers the
+section, the book details it references, the schema version and engine version.
+
+## Metadata rules
+
+`publish validate` / `validate_metadata(project)` reads only the project. Each
+finding has a stable code, severity (`error` blocks, `warning` asks for review,
+`info` notes), scope, basis, official source URL, field path, measured and
+required values, the action a person must take and the Studio area that fixes it.
+
+| Code | Severity | Checks |
+| --- | --- | --- |
+| `publishing_configured` | error | A publishing section exists |
+| `title_length` | error | Title + subtitle under 200 characters (KDP wording conflicts: "fewer than 200" and "200 or less"; stricter applies) |
+| `title_content` | error | Title, subtitle, series title: no HTML, placeholders (`n/a`, `unknown`...) or punctuation only |
+| `title_review` | warning | Sales rank or promotion ("bestselling", "free"), repeated generic words |
+| `author_present` | error | A primary author |
+| `names_content` | error | Author, contributor, imprint: no HTML or placeholders |
+| `contributors_review` | warning | Duplicates; the primary author repeated |
+| `imprint_length` | error | At most 100 characters |
+| `language_supported` | error | `book.language` is one of KDP's 39 paperback languages |
+| `description_present` | error | A description (PuzzlePress rule) |
+| `description_length` | error | At most 4,000 characters |
+| `description_markup` | error | Plain text: no angle brackets or HTML (PuzzlePress rule; KDP accepts a small HTML subset) |
+| `description_prohibited` | error | No URLs, emails, phone numbers, prices, review requests, emoji or invisible characters |
+| `description_review` | warning | Possible reviews or testimonials, promotional or time-sensitive wording, keyword stuffing |
+| `description_claims` | error | Puzzle counts in the description equal the book's puzzles; no mention of solutions the book omits |
+| `keywords_count` | error | At most 7 |
+| `keywords_format` | error | No quotation marks, HTML, Amazon program names or exact duplicates |
+| `keywords_length` | warning (ambiguous) | 50 characters: the KDP page only says to watch the field's limit |
+| `keywords_review` | warning | Spacing/plural variants, subjective or time-sensitive words, generic words, repeats of title, contributors or categories |
+| `keywords_present` | info | None entered |
+| `categories_count` | error | At most 3 |
+| `categories_format` | error | Path segments, no HTML, no duplicates |
+| `categories_present` | warning | None saved (you still choose them in KDP) |
+| `categories_unverified` | info | Saved preferences are not verified as currently available |
+| `audience_explicit` | error | KDP's explicit-content question answered |
+| `audience_reading_age` | error | Both ages or neither; none below 18 when explicit |
+| `low_content_decided` | error | Classification decided |
+| `low_content_review` | warning | Marked low-content although KDP lists puzzle books as not generally low-content |
+| `isbn_decided` | error | ISBN option chosen |
+| `isbn_valid` | error | Own ISBN: ISBN-13, 978/979, correct check digit |
+| `isbn_eligibility` | error | No free ISBN for low-content books; no ISBN only for low-content books |
+| `isbn_imprint` | warning | Own ISBN without an imprint; free ISBN lists "Independently published" |
+| `series_eligibility` | error | Low-content books cannot have a series |
+| `ai_disclosure_complete` | error | Every content kind declared |
+| `ai_disclosure_required` | info | What must be disclosed as AI-generated in KDP |
+| `attestations` | error | Each required confirmation given |
+
+Detectors are deterministic patterns that quote what they matched. Unambiguous
+patterns are errors; pattern guesses (testimonials, promotion, stuffing) are
+warnings for human judgment. Count claims understand digits and number words
+("Twenty word searches", "twenty-five puzzles") and ignore dimensions ("14 x 14
+grid") and counts of other things ("8 words in each puzzle").
+
+### Keywords and categories
+
+Up to seven keywords; PuzzlePress does not estimate search volume, research
+competitors or suggest keywords. Categories are stored as the author's
+preferences. KDP's category list differs by marketplace and format and changes
+over time, so PuzzlePress has no taxonomy and never calls a category available:
+the checklist asks you to select it in KDP's selector.
+
+### ISBN
+
+| Mode | Meaning |
+| --- | --- |
+| `undecided` | Blocks the package. PuzzlePress never invents an ISBN. |
+| `kdp_free` | KDP assigns a free ISBN during setup, usable only on KDP; KDP lists the imprint as "Independently published". The number is not known in advance and is recorded as `assigned_by_kdp_during_setup`. |
+| `own` | Your ISBN-13 as typed. The format and check digit are verified; registration, ownership and the agency's title, author and imprint record are not. You confirm that separately. |
+| `none` | Only for low-content books. |
+
+PuzzlePress never generates, buys, assigns or encodes ISBNs and draws no barcode;
+KDP prints its own barcode in the area the cover reserves.
+
+### Low-content classification
+
+KDP describes low-content books as repetitive pages to fill in (journals, log
+books, planners) and lists **puzzle books as "not generally low-content"**, with
+exceptions. Word-search books therefore usually are not low-content, but this is
+the author's decision: `low_content: null` blocks, `true` is allowed with a
+warning and the KDP consequences (no free ISBN, no series) are enforced.
+
+## AI disclosure
+
+KDP's Content Guidelines require disclosure of **AI-generated** content (text,
+images or translations created by an AI-based tool, even if substantially
+edited afterwards) and do not require disclosure of **AI-assisted** content (your
+own work edited, refined or checked with AI tools). PuzzlePress maps each
+declared origin onto KDP's question:
+
+| Declared | KDP |
+| --- | --- |
+| `human` | no disclosure required |
+| `ai_assisted` | no disclosure required |
+| `ai_generated` | disclose |
+| `none` (translations) | not applicable |
+| `unknown` | undecided: blocks the package |
+
+Nothing is inferred. PuzzlePress's grids are placed by a seeded, deterministic
+program and verified independently; that is recorded as a machine fact, but it
+does not classify the book's word lists, instructions, description or
+photograph, which the author declares. Photographs are never assumed to be
+AI-generated or human-made.
+
+## Author confirmations
+
+| Name | Statement |
+| --- | --- |
+| `rights` | I hold the rights to publish this book's text, word lists and cover photograph. |
+| `ai_disclosure` | I reviewed the AI content declaration above, and it is accurate. |
+| `metadata` | The description, keywords and categories accurately represent this book. |
+| `isbn` | My ISBN is registered with this title, author and imprint exactly as entered (own ISBN only). |
+
+They default to false, are never set by PuzzlePress, carry no timestamp, and are
+part of the publishing identity. They are booleans: editing metadata after
+confirming does not clear them, so review them before exporting. Copyright,
+authorship, ISBN ownership and the accuracy of an AI declaration are never
+claimed as verified.
+
+## Readiness
+
+`publish inspect` / `evaluate_readiness(project, source, output)` builds an
+immutable, deterministic `PublishingReadinessReport`. It reads `interior.pdf`,
+`interior.json`, `cover.pdf` and `cover.json` by fixed name from a
+boundary-checked build directory and runs the authoritative interior and cover
+preflight **afresh**; the rules are consumed, never reimplemented. Nothing is
+written, rebuilt or repaired.
+
+| Verdict | Values |
+| --- | --- |
+| metadata | `missing`, `valid`, `invalid` |
+| disclosure | `complete`, `incomplete` |
+| attestations | `complete`, `incomplete` |
+| interior | state `missing`/`current`/`stale`/`invalid`; structural `valid`/`invalid`; KDP `ready`/`not_ready` |
+| cover | state `no_config`/`missing`/`current`/`stale`/`invalid`; structural; KDP |
+| artifacts | `current`, `stale`, `mismatched`, `missing`, `unavailable` |
+| package | `ready`, `not_ready` |
+
+Package is ready when no error rule failed **or went unevaluated** in any scope.
+Preflight errors keep blocking; preflight warnings stay warnings
+(`interior_warnings`, `cover_warnings`); KDP readiness of a structurally invalid
+artifact is not evaluated, which blocks. Stale findings say why: "Interior is
+out of date: The project source changed after this interior was built" or
+"Cover is out of date because the interior paper changed (white -> cream)."
+
+Artifact and consistency rules: `output_directory`, `interior_present`,
+`interior_structural`, `interior_kdp`, `interior_warnings`, `cover_present`,
+`cover_structural`, `cover_kdp`, `cover_warnings`, `cover_text_matches` (the
+built cover prints the current title, subtitle and author: KDP requires cover and
+details to match), `cover_matches_interior` (page count, paper, profile, trim and
+ink equal the current interior's), `saved_reports` (warning: a missing,
+outdated or forged `preflight.json`/`cover-preflight.json` is named and ignored).
+
+The report records identities (source, publishing, interior recorded/expected,
+cover recorded/expected), the print configuration read from the verified files
+(trim, ink, paper, interior bleed, page count, cover size, spine width), artifact
+and fresh-report digests, counts, sorted findings and every rule's outcome. Its
+statement is either "Ready for manual KDP submission: the supported KDP checks
+passed and the author's confirmations are complete. Amazon KDP reviews and
+decides." or the number of blocking findings and unevaluated checks. It never
+says approved, accepted, guaranteed or verified.
+
+## Package
+
+`publish package` assembles only from a ready report, using the exact bytes
+readiness inspected, and writes `<output>/publishing/`:
+
+| File | Why |
+| --- | --- |
+| `interior.pdf` | Upload as the manuscript |
+| `cover.pdf` | Upload as the print-ready cover |
+| `metadata.json` | KDP field values exactly as authored, with category and ISBN status |
+| `kdp-checklist.md` | Manual steps for a person in KDP |
+| `readiness.json` | Every verdict, finding and rule with its source |
+| `interior-preflight.json` | Fresh interior preflight for these bytes |
+| `cover-preflight.json` | Fresh cover preflight for these bytes |
+| `provenance.json` | Machine facts and author declarations, kept separate |
+| `package.json` | Each file's purpose, SHA-256 and size, and the package identity |
+
+No source project files are included. **Identity**: `pp1-package-sha256-...` over
+the package version, book ID, source, publishing, interior and cover identities,
+print configuration, the publishing (`puzzlepress-kdp-publishing` v1), interior
+and cover ruleset versions and every file's digest. No timestamps or paths.
+
+**Export.** Files are staged in a temporary sibling directory, fsynced, read back
+and verified against `package.json`; the previous package (only if this book
+wrote it and it holds only package files) is moved aside, the staged directory
+renamed into place and the old one removed file by file. A failed export leaves
+the previous complete package and no staging directory. Refused: a
+`publishing` path that is a file or holds foreign files, another book's package,
+output overlapping source, a build directory without this book's interior.
+`export_state` reports `none`, `current`, `stale` (the book changed since) or
+`damaged` (a file no longer matches `package.json`).
+
+**ZIP.** `--zip` (Studio: "Also write publishing.zip") writes `<output>/publishing.zip`:
+entries in name order under `publishing/`, the 1980-01-01 ZIP date, Unix 0644
+attributes and stored (uncompressed) entries, so no compressor version can change
+bytes. It is reopened and compared before an atomic replace, and never replaces
+an archive written for another book.
+
+### Provenance
+
+`provenance.json` separates **machine facts** (engine and pipeline versions;
+source, publishing, interior and cover identities; PDF digests; page count;
+renderer versions; no raster images in the interior; the photograph's SHA-256,
+format and pixel size and that its metadata is not carried into `cover.pdf`)
+from **author declarations** (AI disclosure with KDP meaning, each confirmation
+with its exact wording, low-content and ISBN choices) and states its limits: a
+digest identifies bytes and proves nothing about authorship, copyright or
+ownership. No paths, times, EXIF, GPS or XMP.
+
+### Checklist
+
+`kdp-checklist.md` follows KDP's three paperback pages with the book's real
+values: language, title, subtitle, series, edition, author, contributors, the
+description, publishing rights, the explicit-content answer, reading age,
+marketplace, category preferences, the low-content box, keywords in order, the
+AI-content answers, the ISBN option, ink and paper, trim, no bleed, cover finish,
+the interior and cover files with digests and sizes, Print Previewer review, KDP
+warnings, territories and pricing (not modeled), an optional printed proof, and
+submitting yourself. Then warnings to review and your confirmations. Every item is
+an unchecked box; nothing claims a step was done in KDP.
+
+## CLI
+
+All commands read the project's output directory or `--output DIR`.
+
+- `publish validate PROJECT [--json]`: metadata, disclosure and confirmations only.
+  Exit 0 when all three are complete.
+- `publish inspect PROJECT [--output DIR] [--json]`: full readiness, print
+  configuration and the exported package's state. `--json` prints exactly the
+  readiness report. Exit 0 when the package is ready. Read-only.
+- `publish package PROJECT [--output DIR] [--zip] [--json]`: write the package when
+  ready; otherwise list blocking findings and write nothing. Exit 0 written.
+
+Exit **1** for expected validation or readiness failures, **2** for usage. No
+command opens a network connection (tested with sockets disabled).
+
+## Studio
+
+The **Publishing** tab ([studio](studio.md#publishing)) edits the publishing
+section in the shared draft with Python findings beside each field, shows the
+real front cover, separate verdicts, ordered state lines with links to Print and
+Cover, findings with sources, and exports the saved revision.
+
+## Determinism
+
+Identical controlled inputs give byte-identical metadata records, readiness
+reports, provenance, checklists, package files, `package.json` and ZIP, tested in
+process and in separate processes with different working directories and
+`PYTHONHASHSEED`; CI rebuilds on Linux and Windows and compares every file. The
+interior and cover inherit their own determinism (ReportLab invariant mode,
+pinned fonts, Pillow and ReportLab versions).
+
+## Official sources
+
+Read on 2026-10-08 from official KDP help pages; search results were used only to
+locate pages. Values live in `publishing.rules` only.
+
+| Topic | Page | Used for |
+| --- | --- | --- |
+| Title, subtitle, series, author, contributors, keywords, categories | [Metadata Guidelines for Books](https://kdp.amazon.com/en_US/help/topic/G201097560) | title rules, under 200 characters, no HTML or placeholders, three categories |
+| Title and edition | [Books Titles & Editions](https://kdp.amazon.com/en_US/help/topic/GW7J4WEKBVU25YEC) | "200 characters or less" (conflict noted), edition numbers |
+| Description | [Write a Book Description](https://kdp.amazon.com/en_US/help/topic/G201189630) | 4,000 characters, prohibited content, supported HTML subset |
+| Keywords | [Make Your Book More Discoverable with Keywords](https://kdp.amazon.com/en_US/help/topic/G201298500) | seven keywords, what to avoid; no numeric length stated |
+| Categories | [KDP Categories](https://kdp.amazon.com/en_US/help/topic/G200652170) | three categories, differ by marketplace/format, change over time |
+| Languages | [Book Supported Languages](https://kdp.amazon.com/en_US/help/topic/G200673300) | 39 paperback languages |
+| Audience | [Primary Audience and Reading Age](https://kdp.amazon.com/en_US/help/topic/G201506310) | explicit-content question required, reading age bands |
+| ISBN and imprint | [What is an ISBN and Imprint?](https://kdp.amazon.com/en_US/help/topic/G201834170) | free ISBN only on KDP, own ISBN must match agency record, 100-character imprint |
+| Low-content | [Low-Content Books](https://kdp.amazon.com/en_US/help/topic/GGE5T76TWKA85DJM) | puzzle books "not generally low-content", ISBN and series limits |
+| AI content | [Content Guidelines](https://kdp.amazon.com/en_US/help/topic/G200672390) | AI-generated vs AI-assisted, misleading content |
+| Cover/details match | [Fix Paperback and Hardcover Formatting Issues](https://kdp.amazon.com/en_US/help/topic/G201834260) | files must match book details |
+| Proofs | [Create a Book](https://kdp.amazon.com/en_US/help/topic/G202172740) | ordering a proof is optional |
+
+Classification of what is encoded:
+
+- **KDP requirements**: limits and prohibitions above; ISBN eligibility; the
+  explicit-content answer; AI-generated disclosure.
+- **KDP recommendations**: keyword advice (variants, subjective words), low-content
+  guidance for puzzle books.
+- **Ambiguous**: title length wording (stricter applies); keyword field length
+  (50 assumed, warning only); contributor roles beyond author, editor,
+  illustrator and translator are taken from KDP's form, not its help pages; the
+  language-name to tag mapping is PuzzlePress's (for example Provençal as `oc`).
+- **PuzzlePress rules**: a description is required, descriptions are plain text,
+  category path format, readiness and package semantics.
+- **Not modeled**: pricing, royalties, territories, marketplace, cover finish,
+  publishing rights options, public-domain content, pre-orders, A+ content,
+  Expanded Distribution, KDP's own review.
+
+To update: re-read the pages, change values only in `publishing/rules.py`, bump
+`RULESET_VERSION` when a verdict can change, update this table and add boundary
+tests (`tests/test_publishing_metadata.py`).
+
+## Demos
+
+`books/publishing-demo` is the cover demo's twenty puzzles with 13 x 13 varied
+grids and complete metadata. Its interior and cover are KDP ready; AI disclosure is
+`unknown` and no confirmation is given, so `publish package` refuses until a
+person decides (Studio or `book.yaml`). Tests and CI make synthetic decisions on
+temporary copies only. `composition-demo` remains the negative example (no
+metadata, 11 pages, no cover).
+
+## Limitations
+
+Paperback only, one trim, black ink, white or cream paper. Plain-text
+descriptions (no KDP HTML subset). No category taxonomy, keyword research,
+ISBN purchase or assignment, barcode, pricing, royalties or marketing. No KDP
+login, browser automation, upload or submission, and no ebook or hardcover.
+Confirmations are booleans without history. Heuristic detectors can miss or
+over-report; warnings exist for that reason. KDP may apply checks PuzzlePress does
+not model; its Print Previewer and reviewers decide.

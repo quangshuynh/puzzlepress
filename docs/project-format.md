@@ -35,6 +35,7 @@ output:
 | `word_search` | Optional banks, explicit difficulty profiles, themed puzzle definitions, and quality settings. See [batch schema](batch-quality.md). Omit for legacy projects; null is rejected. |
 | `composition` | Optional book composition: front/back matter, solution and page-number policy. Requires `word_search`. See [book composition](book-composition.md). |
 | `cover` | Optional versioned paperback cover: photograph, crop, type and fill. Requires `composition`. Excluded from build identity. See [cover](cover.md). |
+| `publishing` | Optional versioned KDP paperback metadata, AI disclosure and author confirmations. Requires `composition`. Excluded from build identity. See [publishing](publishing.md). |
 
 Unknown fields are errors, including nested typos. Text is trimmed at its edges;
 internal whitespace, case, and Unicode normalization form are preserved. Omitted
@@ -100,6 +101,8 @@ preserved, except direction sets use enum order and prohibited search forms are 
 A `cover` section is never part of canonical build inputs: it is presentation of
 the printed edition, identified by its own cover identity, so editing a crop never
 stales the interior. Its photograph lives in the project's `cover-assets/` folder.
+Likewise a `publishing` section is never part of canonical build inputs; it has its
+own `pp1-publishing-sha256-` identity, so editing keywords never stales a build.
 
 Absent `word_search` is omitted from canonical inputs, preserving all legacy
 identities. Likewise, a present `composition` is included in full with envelope

@@ -13,16 +13,17 @@
 PuzzlePress is a deterministic Python engine and local publishing studio for
 themed puzzle books. Validate authored projects, generate verified word searches,
 compose them into an ordered book, build a deterministic print interior PDF, preflight
-it, proof every real page, and build a full-wrap paperback cover around your own
-photograph, all locally.
+it, proof every real page, build a full-wrap paperback cover around your own
+photograph, and assemble a verified package for manual KDP upload, all locally.
 
-**Interval 9 complete:** Cover Studio. A cover is a photograph you supply, a
-nondestructive crop and a small set of type presets, laid over a back, spine and
-front wrap sized from the built interior's real page count and paper. PuzzlePress
-writes a deterministic `cover.pdf`, inspects it and preflights it, again as two
-separate verdicts: structural validity and modeled KDP readiness. Preflight is not a
-guarantee of KDP acceptance; Amazon decides. There is no AI image generation, and
-KDP metadata, packaging and publishing remain future work.
+**Interval 10 complete:** KDP metadata and publishing package. Author the KDP
+paperback details (description, keywords, categories, audience, low-content
+classification, ISBN choice, AI disclosure) beside the book, validate them against
+official KDP limits, confirm what software cannot verify, and export a
+deterministic package: the verified `interior.pdf` and `cover.pdf`, a metadata
+record, fresh preflight reports, provenance and a manual upload checklist.
+Readiness keeps every verdict separate and never trusts a saved report. Nothing is
+uploaded or submitted: you publish in KDP yourself, and Amazon decides.
 
 ## Quick start
 
@@ -69,6 +70,9 @@ puzzlepress cover inspect books/cover-demo
 puzzlepress cover build books/cover-demo
 puzzlepress cover preflight books/cover-demo
 puzzlepress cover import books/my-book ~/Pictures/harbour.jpg
+puzzlepress publish validate books/publishing-demo
+puzzlepress publish inspect books/publishing-demo
+puzzlepress publish package books/publishing-demo --zip
 ```
 
 Commands are read-only except `book build`, which writes `interior.pdf` and an
@@ -76,7 +80,8 @@ Commands are read-only except `book build`, which writes `interior.pdf` and an
 `build/composition-demo/`) or `--output`, and `book preflight`, which writes only
 `preflight.json` beside them (unless `--no-write`). `cover build` writes `cover.pdf`
 and `cover.json` beside the interior, `cover preflight` writes `cover-preflight.json`
-and `cover import` copies a photograph into the project's `cover-assets/`. `book preflight` exits 0 only
+and `cover import` copies a photograph into the project's `cover-assets/`. `publish package`
+writes `publishing/` (and optionally `publishing.zip`) beside them only when the package is ready. `book preflight` exits 0 only
 when the interior is structurally valid and KDP ready. `composition-demo` has 11
 pages: structurally valid, not KDP ready (the paperback minimum is 24 pages). Exit codes: **0** success, **1** expected configuration
 or generation failure, **2** usage error. Batch quality findings are warnings
@@ -100,10 +105,16 @@ diagnostics (overflow, digest mismatch, invalid profile) and writes nothing. `py
 - Design the cover from your own photograph: crop by drag, slider or keyboard, type
   presets, live preview of the real cover PDF, bleed/safe/spine/barcode overlays,
   spine width from the interior, effective DPI, then build and preflight it.
+- Prepare KDP metadata with Python findings beside each field, declare AI content,
+  confirm rights, see exactly what blocks publishing and export the package.
 
-[`cover-demo`](books/cover-demo/book.yaml) is a 35-page composed book with a
-full-wrap cover over a synthetic stand-in photograph; its interior and cover are
-KDP ready under the modeled rules.
+[`publishing-demo`](books/publishing-demo/book.yaml) is a 35-page book with a
+full-wrap cover over a synthetic stand-in photograph and complete KDP metadata;
+its interior and cover are KDP ready under the modeled rules, and it awaits a
+person's AI disclosure and confirmations before it can be packaged.
+[`cover-demo`](books/cover-demo/book.yaml) has the same puzzles with 14 x 14 grids;
+its cover is KDP ready, but its interior fails the live-area check on ten pages by
+half a grid frame stroke (see [CONTEXT](CONTEXT.md)).
 [`composition-demo`](books/composition-demo/book.yaml) is a small composed book:
 front matter, four puzzles, grouped solutions and a notes page.
 [`garden-demo`](books/garden-demo/book.yaml) has two themed puzzles without a
@@ -135,6 +146,10 @@ edits share the same draft, validation and save. See [book composition](docs/boo
   <a href="docs/images/studio/cover-1440.png"><img src="docs/images/studio/cover-1440.png" alt="Cover Studio: photograph controls beside the rendered full-wrap cover" width="48%"></a>
   <a href="docs/images/studio/cover-overlays.png"><img src="docs/images/studio/cover-overlays.png" alt="Full-wrap cover with trim, folds, bleed, safe-area and barcode-corner overlays" width="48%"></a>
 </p>
+<p>
+  <a href="docs/images/studio/publishing.png"><img src="docs/images/studio/publishing.png" alt="Publishing workspace: front cover, verdicts, KDP metadata form and readiness" width="48%"></a>
+  <a href="docs/images/studio/publishing-export.png"><img src="docs/images/studio/publishing-export.png" alt="Exported package summary with files, digests and the KDP checklist" width="48%"></a>
+</p>
 
 Actual application captures from disposable demo projects. See the
 [quality review](docs/images/studio/editor-quality.png),
@@ -143,8 +158,10 @@ Actual application captures from disposable demo projects. See the
 [narrow composer](docs/images/studio/composer-390.png),
 [preflight findings](docs/images/studio/print-findings.png) and
 [narrow print proof](docs/images/studio/print-390.png),
-[cover readiness](docs/images/studio/cover-readiness.png) and
-[narrow Cover Studio](docs/images/studio/cover-390.png).
+[cover readiness](docs/images/studio/cover-readiness.png),
+[narrow Cover Studio](docs/images/studio/cover-390.png),
+[publishing findings](docs/images/studio/publishing-blocking.png) and
+[narrow Publishing](docs/images/studio/publishing-390.png).
 
 ## Development
 
@@ -175,7 +192,7 @@ use real engine output and include accessibility, keyboard, responsive and solut
 checks. For hot reload, run `npm run dev` alongside the Python server. Detailed
 startup options, API contracts and test commands are in [Studio documentation](docs/studio.md).
 
-CI covers Windows/Linux on Python 3.11, 3.13 and 3.14, interior and cover builds on
+CI covers Windows/Linux on Python 3.11, 3.13 and 3.14, interior, cover and publishing package builds on
 both OSes, plus a separate frontend and Chromium job. Symlink tests skip when OS permission is unavailable.
 
 ## Architecture
@@ -192,7 +209,8 @@ both OSes, plus a separate frontend and Chromium job. Symlink tests skip when OS
 
 Project -> generation -> quality -> composition -> publication plan -> layout -> PDF
 -> preflight; built interior facts + photograph + cover section -> cover layout ->
-cover.pdf -> cover preflight.
+cover.pdf -> cover preflight; metadata + fresh interior and cover preflight ->
+readiness -> verified publishing package for manual KDP upload.
 The print engine consumes the plan and the generated puzzles, verifies their
 digests, lays out pages without repaginating and rejects content that does not fit.
 
@@ -205,7 +223,7 @@ HTTP as decimal strings. Source and disposable build directories stay disjoint.
 Contracts: [project format](docs/project-format.md), [word-search engine](docs/word-search.md),
 [batch and quality](docs/batch-quality.md), [book composition](docs/book-composition.md),
 [print interior](docs/print-interior.md), [preflight and preview](docs/preflight.md),
-[paperback cover](docs/cover.md),
+[paperback cover](docs/cover.md), [KDP publishing package](docs/publishing.md),
 [Studio architecture](docs/studio.md).
 Contribution rules: [AGENTS.md](AGENTS.md). Current handoff: [CONTEXT.md](CONTEXT.md).
 
@@ -225,8 +243,9 @@ in, no bleed, black ink on white or cream paper) and one bundled sans family; bo
 with a KDP warning and fail KDP readiness. Preflight models a documented subset of
 KDP rules; some official values are ambiguous (see [preflight](docs/preflight.md)).
 Covers are RGB without CMYK conversion, use one trim and two layouts, and print
-spine text only from 80 pages, which the 20-puzzle limit does not yet reach. KDP
-metadata, packaging and publishing automation are not implemented.
+spine text only from 80 pages, which the 20-puzzle limit does not yet reach.
+Publishing is manual: no KDP login, upload, submission, ISBN purchase, category
+taxonomy, keyword research or pricing (see [publishing](docs/publishing.md)).
 
 ## License
 
