@@ -2,14 +2,14 @@
 
 ## Completed scope
 
-Interval 9 complete: photography-first Cover Studio on branch `feat/cover-studio`
-(from main `b3e8c13`, pushed, not merged; no PR, tag, release or deployment).
-Authors build a deterministic full-wrap paperback cover from their own photo,
-sized from the built interior, via CLI (`puzzlepress cover ...`) or Studio's Cover
-tab, with cover preflight. No Interval 10 work (KDP metadata, package,
-publishing). Engine/package 0.1.0; identity, pipeline, composition, plan,
-interior manifest and renderer versions unchanged; `paperback-8.5x11` profile v2.
-Contracts: docs/cover.md plus book-composition, print-interior, preflight.
+Interval 10 complete: KDP metadata and publishing package on branch
+`feat/kdp-publishing-package` (from main `9ef8901`, which merged Interval 9 via
+PR #1; pushed, not merged; no PR, tag, release or deployment). Authors write KDP
+paperback metadata, declare AI content, confirm rights, and export a verified,
+deterministic package for manual KDP upload via CLI (`puzzlepress publish ...`) or
+Studio's Publishing tab. Nothing contacts Amazon. No Interval 11 work. Engine
+0.1.0; identity, pipeline, composition, plan, interior, cover and preflight
+versions unchanged. Contracts: docs/publishing.md plus cover, preflight, others.
 
 ## Architecture and launch
 
@@ -34,6 +34,11 @@ Contracts: docs/cover.md plus book-composition, print-interior, preflight.
 - Cover: `cover_config.py`/`cover_validation.py` (schema) and `cover/` (`assets`,
   `crop`, `geometry`, `fonts`, `layout`, `model`, `validation`, `render`,
   `inspection`, `build` = only writer, `preflight`); `cover_cli.py`.
+- Publishing: `publishing_config.py`/`publishing_validation.py` (schema) and
+  `publishing/` (`model`, `rules` = catalogue and the one home of KDP metadata
+  values, `isbn`, `text`, `identity`, `metadata`, `readiness`, `provenance`,
+  `submission`, `package` = only writer); `publish_cli.py`; `studio/publishing.py`;
+  `Publishing.tsx`.
 - Studio: `printing.py` (status/build/page adapter, profile choice), `preview.py`
   (PDFium raster, one process-wide lock), `covering.py` (cover adapter); `Print.tsx`,
   `Cover.tsx` plus `service.py`, `editing.py`, `draft.tsx` etc.
@@ -144,8 +149,48 @@ Contracts: docs/cover.md plus book-composition, print-interior, preflight.
   GET/POST /cover/assets (raw image/jpeg|png upload, route-scoped), POST
   /cover/build. Print: paper choice, keeps the built profile.
 - Fixtures: `books/cover-demo` (20 puzzles, 35 pages, synthetic stand-in photo from
-  tests/cover_demo_photo.py): valid and KDP ready, spine text omitted. 20-puzzle
+  tests/cover_demo_photo.py): cover valid and KDP ready (interior is not; see
+  verification), spine text omitted. 20-puzzle
   limit keeps every book below 80 pages; spine text tested with synthetic facts.
+
+## Publishing (docs/publishing.md)
+
+- Optional `publishing` (version 1) in book.yaml, requires composition, excluded
+  from build identity; `pp1-publishing-sha256-` over the section, referenced book
+  details (title, subtitle, author, imprint, language), schema and engine versions.
+  Title/subtitle/author/imprint/language stay in `book`; `book.description` is not
+  the KDP description. Undecided values are explicit (null, `undecided`, `unknown`).
+  Schema bounds are generous; KDP limits are findings, so drafts over them save.
+- KDP values read on official help pages 2026-10-08 (URLs in `publishing/rules.py`):
+  title+subtitle <200 (two wordings; stricter), description 4,000 and prohibited
+  content, 7 keywords, 3 categories, 100-char imprint, 39 paperback languages,
+  explicit-content answer, low-content (puzzle books "not generally low-content";
+  no free ISBN or series when low-content), free ISBN KDP-only, AI-generated vs
+  AI-assisted disclosure, cover must match details. 50-char keyword length is an
+  assumption (warning). Plain-text descriptions are a PuzzlePress rule.
+- 36 metadata/disclosure/attestation rules plus 12 artifact/consistency rules
+  (`puzzlepress-kdp-publishing` v1); findings carry code, severity, scope, basis,
+  source URL, field, actual/required, action, Studio area, related preflight rule.
+  Heuristic detectors (testimonials, promotion, stuffing, keyword variants) warn;
+  unambiguous patterns block. Description puzzle counts are checked against content.
+- Readiness reruns interior and cover preflight (never trusts saved reports; a
+  missing/outdated/forged one is a warning), keeps verdicts separate (metadata,
+  disclosure, attestations, interior and cover state/structural/KDP, artifacts,
+  package), carries preflight warnings unchanged, treats unevaluated error rules as
+  blocking, and explains staleness ("Cover is out of date because the interior
+  paper changed (white -> cream).").
+- Package (only when ready, from inspected bytes): interior.pdf, cover.pdf,
+  metadata.json, kdp-checklist.md, readiness.json, interior-/cover-preflight.json,
+  provenance.json, package.json; `pp1-package-sha256-` over identities, print
+  configuration, three ruleset versions and file digests. Staged directory,
+  verified, swapped; refuses foreign/other-book directories; export state none,
+  current, stale, damaged. Optional stored ZIP with fixed order, date, attributes.
+- CLI `publish validate|inspect|package` (`--output`, `--json`, `--zip`): exit 0/1/2;
+  inspect `--json` equals readiness bytes. Studio: GET /publishing, POST
+  /draft/publishing, POST /publishing/export {revision, archive}; Publishing tab.
+- `books/publishing-demo`: cover-demo puzzles with 13 x 13 varied grids, metadata
+  valid, interior and cover KDP ready, AI disclosure unknown and no confirmations,
+  so packaging is blocked until a person decides. Tests/CI decide on temp copies.
 
 ## Composition model
 
@@ -212,45 +257,49 @@ small external-editor race remains. Drafts memory-only; no autosave/undo/merge.
 
 ## Actual local verification (Windows, Python 3.13.15, Node 24.18.0)
 
-- Baseline before edits matched Interval 8 (646 passed, 4 skipped; 39 Vitest;
-  Playwright 9/9). `.pytest_cache` is unreadable in this sandbox; runs used a
-  scratch `--basetemp`.
-- Python: **954 passed, 4 skipped** (symlink permission), 1 Starlette httpx
-  warning; cover and cover API tests alone 306. Ruff lint and format (109 files),
-  strict mypy (65), pip check.
-- Boundaries: spine at 1/11/24/79/80/300/550 pages, white and cream; 79/80 spine
-  eligibility; exact safe, barcode and region insets; every EXIF orientation;
-  crop clamps, zoom, DPI; 144 preset/position/align/treatment combinations meet
-  the layout contract; tampered layouts, PDFs, manifests, interiors and photos.
-- Frontend: npm ci, check, 48 Vitest (9 Cover), build (JS 329.99 kB, CSS
-  34.20 kB), npm ls, npm audit --omit=dev 0. Playwright 12/12 twice (3 new: import,
-  keyboard crop, overlays, save/reload, build verdicts; drag; cover demo ready at
-  1440/1024/768/390; axe). Captures reproduced byte-identically.
-- Installed CLI: 34 regressions as expected. Independent check with an EXIF-6
-  photo carrying camera/GPS/comment data: none in cover.pdf, JFIF only, boxes
-  exact, spine 29 x 0.002252 in, upright raster, identical rebuild from another
-  cwd/PYTHONHASHSEED, stale after source/interior/photo changes, preflight
-  read-only. CI cover job simulated in Git Bash (all steps pass).
-- Real Studio inspected in the built-in browser at 1440 and 375; fixed: pale pressed
-  toggles, file input sizing, lost import notice, label/output pairing, cramped
-  three columns (now only >=1600px). Cover visually checked (type, shade, back,
-  barcode corner, bleed).
-- build/: composition-demo interior PDF 19d5bd5a... (unchanged since Interval 7),
-  valid, not KDP ready; cover-demo interior 9f907be3..., cover 5dcaf42d...
-  (identity pp1-cover-sha256-01167bf7...), valid and ready.
+- Baseline before edits matched Interval 9 (954 passed, 4 skipped).
+  `.pytest_cache` is unreadable in this sandbox; runs used a scratch `--basetemp`.
+- Python: **1114 passed, 4 skipped** (symlink permission), 1 Starlette httpx
+  warning; publishing tests 160 (schema and metadata 104, readiness 19, provenance
+  and package 21, CLI and API 16). Ruff lint and format (133 files), strict mypy
+  (80), pip check.
+- Frontend: npm ci, check (tsc, ESLint, Prettier), 55 Vitest (7 Publishing), build
+  (JS 357.62 kB, CSS 38.04 kB), npm ls, npm audit --omit=dev 0. Playwright 15/15
+  twice (3 new: blocked review, field findings, keyboard confirmations, save,
+  export with ZIP, reload; paper-change stale cover with link; 1440/1024/768/390
+  without overflow; axe on key states); captures reproduced byte-identically.
+- Installed CLI: 27 regressions with expected exits (0/1/2). Scratch end to end:
+  positive package hashes verified, PDFs identical to the build, inspect JSON
+  stable, ZIP and every package file byte-identical across process, cwd and
+  PYTHONHASHSEED; keyword change gives a new identity and a stale export; source
+  change stales interior and cover; cream rebuild gives the paper message; an
+  unconfirmed attestation blocks. No publishing code imports network modules; a
+  test runs all commands with sockets disabled. CI publishing job simulated in
+  Git Bash (all steps pass). Real Studio checked in the built-in browser and via
+  Playwright captures; fixed text inputs shrunk by the radio-group rule.
+- Pre-existing, unchanged: the cover-demo interior (PDF 9f907be3...) is
+  structurally valid but NOT KDP ready under the existing preflight: ten verso
+  puzzle pages fail `kdp_no_printer_marks` because 14 x 14 grid frames sized to the
+  live width overhang it by half the 1 pt stroke (0.007 in; KDP minimum margins are
+  still met). Interval 9's CI checked only the cover preflight. Its cover is ready.
+  composition-demo PDF 19d5bd5a... unchanged since Interval 7.
 - Fixture SHA-256 (LF) unchanged: automotive 209f3fd6, composition-demo b15651cd,
-  garden-demo ffd7f7eb; new cover-demo b906bbda (+ photo 34b4d3b9...). Remote CI
-  not verified.
+  cover-demo b906bbda, garden-demo ffd7f7eb; new publishing-demo e49110ea (photo
+  34b4d3b9..., same blob as cover-demo). Remote CI not verified.
 
 ## Limits and decisions for review
 
-One trim; black ink white/cream; RGB output without CMYK or output intent; two
-layouts, three presets; Latin-1 sans; no barcode/ISBN, hardcover or ebook covers;
-unreferenced imported photos are kept. Review before Interval 10: the 80-page
-spine reading, the assumed barcode offsets, RGB-as-warning, the 20-puzzle cap
-versus spine text, cover excluded from build identity, the profile v2 bump
-(staling v1 interiors), keeping the 550-page maximum for white paper, and the
-two-file non-atomic cover write. History note: commits 6850538 and fc4477d lack
-their source modules (an unanchored `cover/` ignore rule); 21819fa adds them.
-Interior notes from Interval 8 still apply (550 max ambiguity, subset embedding
-warning, preflight.json default write).
+Paperback only; plain-text descriptions; categories are unverified preferences;
+the keyword 50-character warning is an assumption; contributor roles beyond
+author/editor/illustrator/translator come from KDP's form, not its help pages;
+confirmations are booleans that do not reset when metadata changes; heuristic
+detectors can over- or under-report. Not modeled: pricing, territories,
+marketplace, cover finish, publishing-rights options, public domain. Review
+before Interval 11: whether to fix the grid-frame overhang (layout engine, a
+renderer version bump) or treat sub-point overhangs within KDP margins as a
+warning in preflight; whether `saved_reports` should be a note; whether
+confirmations should bind to the publishing identity; and the Interval 9 items
+(80-page spine reading, barcode offsets, RGB warning, 550-page maximum, two-file
+cover write). History: Interval 9 commits 9c6d290 and 446252b (on main) lack their
+source modules (an unanchored `cover/` ignore rule); 7ea89b2 adds them. The
+branch was already merged and deleted, so it was not rewritten.
