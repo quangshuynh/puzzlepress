@@ -45,7 +45,13 @@ def with_publishing(data: dict, **overrides: object) -> dict:
     return data
 
 
-def publishing_project(root, puzzles: int = 16, cover: bool = True, **overrides: object):
+def publishing_project(
+    root,
+    puzzles: int | None = 16,
+    cover: bool = True,
+    photo: bytes | None = None,
+    **overrides: object,
+):
     """A disposable book with interior (and cover) built, ready unless overridden.
 
     Returns (source directory, output directory). 16 puzzles give 29 pages.
@@ -56,7 +62,7 @@ def publishing_project(root, puzzles: int = 16, cover: bool = True, **overrides:
     def mutate(data: dict) -> None:
         with_publishing(data, **overrides)
 
-    source, output = cover_project(root, puzzles=puzzles, mutate=mutate)
+    source, output = cover_project(root, data=photo, puzzles=puzzles, mutate=mutate)
     if cover:
         project = load_project(source).project
         write_cover(build_cover(project, source, output), output, source)
