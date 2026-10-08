@@ -26,7 +26,8 @@ async function build(page: Page, key: string, profile?: string) {
 
 async function open(page: Page, key: string) {
   await page.goto(`/books/${key}/publishing`);
-  await expect(page.getByRole('heading', { name: 'Readiness' })).toBeVisible();
+  // Readiness reruns interior and cover preflight (a full render each): allow slow runners.
+  await expect(page.getByRole('heading', { name: 'Readiness' })).toBeVisible({ timeout: 60_000 });
   const front = page.locator('.front-window img');
   if (await front.count())
     await expect
