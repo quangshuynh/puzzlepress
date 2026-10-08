@@ -13,7 +13,7 @@ from puzzlepress.cover.build import build_cover, write_cover
 from puzzlepress.interior import build_interior, print_profile, write_interior
 from puzzlepress.publishing import evaluate_readiness, readiness_bytes, validate_metadata
 from tests.helpers import ROOT, installed_puzzlepress
-from tests.publishing_helpers import publishing_project
+from tests.publishing_helpers import publishing_project, reconfirm
 
 DEMO = ROOT / "books" / "publishing-demo"
 
@@ -47,6 +47,35 @@ def test_validate_reports_metadata_only(capsysbinary, ready):
     assert run(capsysbinary, "publish", "validate", str(source), "--json")[1] == out
     code, out, _ = run(capsysbinary, "publish", "validate", str(source))
     assert code == 0 and b"Metadata: VALID" in out and b"publish inspect" in out
+
+
+def test_validate_prints_confirmation_states_and_what_to_record(capsysbinary, ready):
+    from puzzlepress.publishing.review import review_identity
+
+    source, _ = ready
+    code, out, _ = run(capsysbinary, "publish", "validate", str(source))
+    assert code == 0 and b"  metadata: CONFIRMED." in out and b"Only you can confirm" not in out
+    path = source / "book.yaml"
+    path.write_text(
+        path.read_text(encoding="utf-8").replace("- seaside puzzles", "- harbour puzzles", 1),
+        encoding="utf-8",
+    )
+    code, out, _ = run(capsysbinary, "publish", "validate", str(source))
+    current = review_identity(load_project(source).project, "metadata")
+    assert code == 1 and b"  metadata: STALE." in out and b"  rights: CONFIRMED." in out
+    assert f"  publishing.attestations.metadata: {current}".encode() in out
+    assert b"publishing.attestations.rights:" not in out
+    reconfirm(source, "metadata")
+    assert run(capsysbinary, "publish", "validate", str(source))[0] == 0
+
+
+def test_validate_explains_legacy_confirmations(capsysbinary, tmp_path):
+    source, _ = publishing_project(
+        tmp_path, version=1, attestations={"rights": True, "ai_disclosure": True, "metadata": True}
+    )
+    code, out, _ = run(capsysbinary, "publish", "validate", str(source))
+    assert code == 1 and out.count(b": LEGACY.") == 3
+    assert b"first set publishing.version to 2 and every confirmation to null" in out
 
 
 def test_validate_fails_without_publishing_metadata(capsysbinary):

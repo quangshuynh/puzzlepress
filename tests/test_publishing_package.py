@@ -27,7 +27,7 @@ from puzzlepress.publishing.package import (
 from puzzlepress.publishing.readiness import evaluate_readiness
 from tests.cover_helpers import LEAKS, photo_bytes
 from tests.helpers import ROOT
-from tests.publishing_helpers import publishing_project
+from tests.publishing_helpers import publishing_project, reconfirm
 
 
 def evaluate(source, output):
@@ -101,6 +101,8 @@ def test_identity_tracks_metadata_and_artifacts(ready):
     assert first.identity.startswith("pp1-package-sha256-")
     assert package_of(source, output).identity == first.identity
     edit(source, "- seaside puzzles", "- harbour puzzles")
+    assert not evaluate(source, output).package_ready  # The metadata confirmation is stale.
+    reconfirm(source, "metadata")
     changed = package_of(source, output)
     assert changed.identity != first.identity
     assert changed.file("interior.pdf") == first.file("interior.pdf")
@@ -128,6 +130,7 @@ def test_export_replaces_its_own_package_and_reports_staleness(ready):
     first = package_of(source, output)
     write_package(first, output, source)
     edit(source, "- seaside puzzles", "- harbour puzzles")
+    reconfirm(source, "metadata")
     second = package_of(source, output)
     state = export_state(output, source, second.book_id, second.identity)
     assert state.state == "stale" and state.identity == first.identity
@@ -224,6 +227,7 @@ def test_failed_export_leaves_the_previous_package(ready, monkeypatch):
     write_package(first, output, source)
     before = snapshot(output / "publishing", skip=())
     edit(source, "- seaside puzzles", "- harbour puzzles")
+    reconfirm(source, "metadata")
     second = package_of(source, output)
     calls = {"n": 0}
     real = package_module._write

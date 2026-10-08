@@ -8,10 +8,17 @@ identity instead. Undecided values are explicit (`None`, `undecided`, `unknown`)
 and never default to a claim on the author's behalf.
 """
 
-from dataclasses import dataclass, field
+import re
+from dataclasses import dataclass, field, replace
 from enum import StrEnum
 
-PUBLISHING_VERSION = 1
+# Version 2 binds each confirmation to the content reviewed. Version 1 recorded
+# yes/no answers; it is still read, but those answers never count as confirmed.
+PUBLISHING_VERSION = 2
+LEGACY_PUBLISHING_VERSION = 1
+CONFIRMATIONS = ("rights", "ai_disclosure", "metadata", "isbn")
+# A stored confirmation: the review identity of what the author confirmed.
+REVIEW_IDENTITY = re.compile(r"pp1-review-sha256-[0-9a-f]{64}")
 
 # Generous schema bounds keep a draft savable; KDP limits are reported by
 # publishing validation with their official source (docs/publishing.md).
@@ -121,20 +128,29 @@ class AiDisclosure:
 
 @dataclass(frozen=True)
 class Attestations:
-    """The author's own confirmations. Never set by PuzzlePress; no timestamps."""
+    """The author's own confirmations. Never set by PuzzlePress; no timestamps.
 
-    rights: bool = False  # Holds the rights to the text, word lists and photograph.
-    ai_disclosure: bool = False  # Reviewed the AI disclosure as declared.
-    metadata: bool = False  # Description, keywords and categories represent the book.
-    isbn: bool = False  # Own ISBN registered with this title, author and imprint.
+    Each holds the review identity of the content the author confirmed, or None
+    (puzzlepress.publishing.review decides whether it still applies). A version 1
+    section stored booleans: `legacy` keeps the names saved as true so the file
+    round-trips unchanged, and none of them counts as a confirmation.
+    """
+
+    rights: str | None = None  # Holds the rights to the text, word lists and photograph.
+    ai_disclosure: str | None = None  # Reviewed the AI disclosure as declared.
+    metadata: str | None = None  # The book details and KDP metadata represent the book.
+    isbn: str | None = None  # Own ISBN registered with this title, author and imprint.
+    legacy: frozenset[str] | None = None  # Version 1 only: names saved as true.
+
+    def stored(self, name: str) -> str | None:
+        value = getattr(self, name)
+        assert value is None or isinstance(value, str)
+        return value
 
     def to_dict(self) -> dict[str, object]:
-        return {
-            "rights": self.rights,
-            "ai_disclosure": self.ai_disclosure,
-            "metadata": self.metadata,
-            "isbn": self.isbn,
-        }
+        if self.legacy is not None:
+            return {name: name in self.legacy for name in CONFIRMATIONS}
+        return {name: self.stored(name) for name in CONFIRMATIONS}
 
 
 @dataclass(frozen=True)
@@ -169,3 +185,10 @@ class PublishingConfig:
             "attestations": self.attestations.to_dict(),
             "notes": self.notes,
         }
+
+    def upgraded(self) -> "PublishingConfig":
+        """This section in the current version. Version 1 confirmations recorded no
+        reviewed content, so every confirmation starts unconfirmed; nothing else changes."""
+        if self.version == PUBLISHING_VERSION:
+            return self
+        return replace(self, version=PUBLISHING_VERSION, attestations=Attestations())

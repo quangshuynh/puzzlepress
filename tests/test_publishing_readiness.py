@@ -13,7 +13,7 @@ from puzzlepress.preflight import preflight_interior, read_interior_artifacts
 from puzzlepress.preflight import report_bytes as interior_report_bytes
 from puzzlepress.publishing.model import Outcome
 from puzzlepress.publishing.readiness import evaluate_readiness, readiness_bytes
-from tests.publishing_helpers import publishing_project
+from tests.publishing_helpers import publishing_project, reconfirm
 
 
 def evaluate(source, output):
@@ -243,6 +243,28 @@ def test_saved_reports_are_compared_never_trusted(ready):
     report = evaluate(source, output)
     assert any("does not match a fresh preflight" in m for m in messages(report, "saved_reports"))
     assert report.package_ready  # A warning: the fresh evaluation is what counts.
+
+
+def test_a_stale_confirmation_blocks_the_package_and_nothing_else(ready):
+    """Reviewed content -> confirmation identity -> readiness, never the artifacts."""
+    source, output = ready
+    before = evaluate(source, output)
+    assert before.package_ready
+    edit(source, "- seaside puzzles", "- harbour puzzles")
+    report = evaluate(source, output)
+    assert errors(report) == ["attestations"] and not report.package_ready
+    verdicts = report.verdicts()
+    assert verdicts["metadata"] == "valid" and verdicts["attestations"] == "incomplete"
+    assert verdicts["interior"]["state"] == verdicts["cover"]["state"] == "current"
+    for key in ("source", "interior", "cover"):
+        assert report.identities()[key] == before.identities()[key], key
+    assert report.identities()["publishing"] != before.identities()["publishing"]
+    (message,) = messages(report, "attestations")
+    assert message.startswith("Review again: The title, author and other book details")
+    stale = {c["name"]: c["state"] for c in report.to_dict()["confirmations"]}
+    assert stale["metadata"] == "stale" and stale["rights"] == "confirmed"
+    reconfirm(source, "metadata")
+    assert evaluate(source, output).package_ready
 
 
 def test_incomplete_attestation_blocks_only_that_verdict(tmp_path):

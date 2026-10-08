@@ -13,7 +13,8 @@ from dataclasses import dataclass
 from .model import Basis, Rule, Scope, Severity, Source
 
 RULESET_ID = "puzzlepress-kdp-publishing"
-RULESET_VERSION = 1
+# 2: confirmations bind to the reviewed content (publishing.review).
+RULESET_VERSION = 2
 KDP_RULES_CHECKED = "2026-10-08"
 
 

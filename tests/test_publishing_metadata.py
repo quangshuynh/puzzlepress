@@ -10,7 +10,7 @@ from puzzlepress.publishing.model import Basis, Outcome, Severity
 from puzzlepress.publishing.rules import PAPERBACK_LANGUAGES
 from puzzlepress.publishing_config import AiDisclosure, ContentOrigin
 from tests.helpers import demo_variant
-from tests.publishing_helpers import complete_section
+from tests.publishing_helpers import complete_section, confirm_current
 
 
 def project(book: dict | None = None, mutate=None, puzzles: int | None = None, **overrides):
@@ -20,7 +20,7 @@ def project(book: dict | None = None, mutate=None, puzzles: int | None = None, *
     data["book"].update(book or {})
     if mutate:
         mutate(data)
-    return validate_project(data).require_project()
+    return validate_project(confirm_current(data)).require_project()
 
 
 def report(**kwargs):

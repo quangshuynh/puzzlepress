@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 from .project import LoadedProject, load_project
 
 if TYPE_CHECKING:
+    from .publishing.metadata import Confirmation
     from .publishing.model import Finding
 
 BOUNDARY = (
@@ -107,9 +108,33 @@ def _validate(loaded: LoadedProject, args: argparse.Namespace) -> int:
     print(f"Author confirmations: {verdicts['attestations'].upper()}")
     if report.publishing_identity:
         print(f"Publishing identity: {report.publishing_identity}")
+    _confirmations(loaded, report.confirmations)
     _findings(report.findings)
     print("Built files are not checked here; run `puzzlepress publish inspect`.")
     return 0 if report.valid else 1
+
+
+def _confirmations(loaded: LoadedProject, states: "tuple[Confirmation, ...]") -> None:
+    """Each required confirmation's state, and what to record once a person has reviewed."""
+    required = [c for c in states if c.required]
+    if not required:
+        return
+    publishing = loaded.project.publishing
+    legacy = publishing is not None and publishing.attestations.legacy is not None
+    print("Confirmations:")
+    for c in required:
+        print(f"  {c.name}: {c.state.upper()}. {c.message}")
+    pending = [c for c in required if c.state != "confirmed"]
+    if not pending:
+        return
+    print(
+        "Only you can confirm. After reviewing, record each statement's current review "
+        "identity in book.yaml"
+        + (" (first set publishing.version to 2 and every confirmation to null)" if legacy else "")
+        + ":"
+    )
+    for c in pending:
+        print(f"  publishing.attestations.{c.name}: {c.current}")
 
 
 def _inspect(loaded: LoadedProject, args: argparse.Namespace) -> int:

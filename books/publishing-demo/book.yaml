@@ -71,10 +71,10 @@ publishing:
     text: unknown
     translations: unknown
   attestations:
-    ai_disclosure: false
-    isbn: false
-    metadata: false
-    rights: false
+    ai_disclosure: null
+    isbn: null
+    metadata: null
+    rights: null
   audience:
     reading_age:
       maximum: null
@@ -102,7 +102,7 @@ publishing:
   low_content: false
   notes: null
   series: null
-  version: 1
+  version: 2
 schema_version: 1
 word_search:
   banks:

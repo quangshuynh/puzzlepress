@@ -240,12 +240,16 @@ jobs:
           import shutil
           from pathlib import Path
           from puzzlepress import load_project, validate_project
+          from puzzlepress.publishing.review import review_identity
           from puzzlepress.yaml_io import dump_project
           shutil.copytree("books/publishing-demo", "ci-book")
           data = load_project("ci-book").project.to_dict()
           # SYNTHETIC: CI stands in for an author's decisions; never a real declaration.
+          # Declare first, then confirm the content as it now is (review identities).
           data["publishing"]["ai_disclosure"] = {"text": "human", "images": "human", "translations": "none"}
-          data["publishing"]["attestations"] = {"rights": True, "ai_disclosure": True, "metadata": True, "isbn": False}
+          declared = validate_project(data).require_project()
+          for name in ("rights", "ai_disclosure", "metadata"):
+              data["publishing"]["attestations"][name] = review_identity(declared, name)
           Path("ci-book/book.yaml").write_text(dump_project(validate_project(data).require_project()), encoding="utf-8")
           EOF
           for out in ci-out ci-again; do

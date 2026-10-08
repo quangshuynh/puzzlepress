@@ -1,14 +1,16 @@
 """Publishing section schema: versioning, bounds, normalization and identity boundaries."""
 
+from dataclasses import replace
+
 import pytest
 
 from puzzlepress import validate_project
 from puzzlepress.identity import build_identity
 from puzzlepress.publishing import publishing_identity
-from puzzlepress.publishing_config import ContentOrigin, IsbnMode, PublishingConfig
+from puzzlepress.publishing_config import Attestations, ContentOrigin, IsbnMode, PublishingConfig
 from puzzlepress.yaml_io import dump_project, parse_project
 from tests.helpers import demo_variant
-from tests.publishing_helpers import complete_section
+from tests.publishing_helpers import complete_section, confirm_current
 
 
 def base() -> dict:
@@ -24,7 +26,7 @@ def issues(section: object, data: dict | None = None) -> list[tuple[str, str]]:
 def project(**overrides: object):
     data = base()
     data["publishing"] = complete_section(**overrides)
-    return validate_project(data).require_project()
+    return validate_project(confirm_current(data)).require_project()
 
 
 def test_absent_section_is_omitted_and_changes_nothing():
@@ -35,7 +37,7 @@ def test_absent_section_is_omitted_and_changes_nothing():
 
 def test_minimal_section_normalizes_to_explicit_undecided_values():
     data = base()
-    data["publishing"] = {"version": 1}
+    data["publishing"] = {"version": 2}
     config = validate_project(data).require_project().publishing
     assert config == PublishingConfig()
     assert config.isbn.mode is IsbnMode.UNDECIDED
@@ -47,7 +49,7 @@ def test_minimal_section_normalizes_to_explicit_undecided_values():
     assert validate_project(explicit).require_project() == validate_project(data).require_project()
 
 
-@pytest.mark.parametrize("version", [2, 0, "1", True, None])
+@pytest.mark.parametrize("version", [3, 0, "1", True, None])
 def test_unsupported_versions_are_rejected(version):
     assert issues({"version": version}) == [("publishing.version", "unsupported_version")]
 
@@ -128,6 +130,50 @@ def test_schema_rejects_uninterpretable_values(section, expected):
     assert expected in issues({"version": 1, **section})
 
 
+@pytest.mark.parametrize(
+    "value",
+    [True, False, "true", "sha256-" + "0" * 64, "pp1-review-sha256-" + "0" * 63, 1],
+)
+def test_version_2_confirmations_are_review_identities_or_null(value):
+    found = issues({"version": 2, "attestations": {"metadata": value}})
+    assert found == [("publishing.attestations.metadata", "confirmation_identity")]
+    identity = "pp1-review-sha256-" + "a" * 64
+    data = base()
+    data["publishing"] = {"version": 2, "attestations": {"metadata": identity, "rights": None}}
+    config = validate_project(data).require_project().publishing
+    assert config.attestations.metadata == identity and config.attestations.rights is None
+    assert config.attestations.to_dict() == {
+        "rights": None,
+        "ai_disclosure": None,
+        "metadata": identity,
+        "isbn": None,
+    }
+
+
+def test_version_1_sections_still_load_and_round_trip_as_written():
+    """A legacy yes is kept so nothing is lost, but it is never a confirmation."""
+    data = base()
+    section = complete_section(version=1, attestations={"rights": True, "metadata": False})
+    data["publishing"] = section
+    project_v1 = validate_project(data).require_project()
+    config = project_v1.publishing
+    assert config.version == 1 and config.attestations.legacy == frozenset({"rights"})
+    assert config.attestations.stored("rights") is None
+    assert config.to_dict()["attestations"] == {
+        "rights": True,
+        "ai_disclosure": False,
+        "metadata": False,
+        "isbn": False,
+    }
+    again = base()
+    again["publishing"] = config.to_dict()
+    assert validate_project(again).require_project() == project_v1
+    upgraded = config.upgraded()
+    assert upgraded.version == 2 and upgraded.attestations == Attestations()
+    assert replace(upgraded, version=1, attestations=config.attestations) == config
+    assert upgraded.upgraded() is upgraded
+
+
 def test_kdp_limits_are_not_schema_errors():
     # Eight keywords, four categories and a long description still save; KDP
     # limits are reported by publishing validation with their source.
@@ -173,6 +219,7 @@ def test_publishing_identity_covers_metadata_and_referenced_book_details():
     data = base()
     data["publishing"] = complete_section()
     data["book"]["title"] = "Renamed"
+    confirm_current(data)
     assert publishing_identity(validate_project(data).require_project()) != publishing_identity(
         first
     )

@@ -2377,6 +2377,21 @@ summary:hover {
   font-size: 12px;
   margin-right: 4px;
 }
+.confirmations .confirmation {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 6px;
+}
+.confirmation-state {
+  margin: 0 0 4px 28px;
+  max-width: 75ch;
+}
+.confirmation-state .status {
+  font-size: 12px;
+  margin-right: 4px;
+}
+.confirmation-upgrade p {
+  margin-top: 0;
+}
 .publishing-readiness {
   min-width: 0;
   border-top: 1px solid var(--ink);

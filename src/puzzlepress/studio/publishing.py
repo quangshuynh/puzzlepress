@@ -55,9 +55,20 @@ class PublishingService:
     # ------------------------------------------------------------ draft metadata
 
     def draft(self, key: str, source_data: object) -> dict[str, object]:
-        """Python-authoritative metadata findings for an unsaved draft (no files)."""
+        """Python-authoritative metadata findings for an unsaved draft (no files).
+
+        Confirmation states and the review identities a confirmation records come from
+        here; the browser never computes them. A version 1 section also gets its
+        version 2 form (every confirmation unconfirmed) for the author to adopt.
+        """
         project = self.drafts.validate(key, source_data)
-        return {"metadata": validate_metadata(project).to_dict()}
+        publishing = project.publishing
+        return {
+            "metadata": validate_metadata(project).to_dict(),
+            "upgrade": None
+            if publishing is None or publishing.upgraded() is publishing
+            else publishing.upgraded().to_dict(),
+        }
 
     # ------------------------------------------------------------ status
 

@@ -10,6 +10,7 @@ from dataclasses import dataclass
 
 from ..models import Project
 from ..publishing_config import (
+    CONFIRMATIONS,
     AiDisclosure,
     ContentOrigin,
     ContributorRole,
@@ -20,6 +21,7 @@ from . import text
 from .identity import publishing_identity
 from .isbn import check_isbn
 from .model import Area, Collector, Finding, Outcome, RuleResult, Scope, Severity
+from .review import COVERS, review_identity
 from .rules import (
     KDP_METADATA,
     KDP_RULES_CHECKED,
@@ -33,7 +35,8 @@ from .rules import (
 ATTESTATION_TEXT = {
     "rights": "I hold the rights to publish this book's text, word lists and cover photograph.",
     "ai_disclosure": "I reviewed the AI content declaration above, and it is accurate.",
-    "metadata": "The description, keywords and categories accurately represent this book.",
+    "metadata": "The title, author and other book details, description, keywords, categories "
+    "and audience accurately represent this book.",
     "isbn": "My ISBN is registered with this title, author and imprint exactly as entered.",
 }
 KINDS = ("text", "images", "translations")
@@ -68,11 +71,73 @@ def required_attestations(config: PublishingConfig) -> tuple[str, ...]:
 
 
 @dataclass(frozen=True)
+class Confirmation:
+    """Whether a stored confirmation applies to the content as it is now."""
+
+    name: str
+    required: bool
+    # confirmed: stored identity equals current; stale: it names other content;
+    # legacy: a version 1 yes; unconfirmed: nothing stored.
+    state: str
+    current: str  # Review identity of the covered content now.
+    confirmed: str | None  # The stored review identity.
+
+    @property
+    def message(self) -> str:
+        return {
+            "confirmed": "It applies to the content as it is now.",
+            "stale": "Something it covers changed after you confirmed it: "
+            f"{COVERS[self.name]}. Review and confirm again (restoring exactly what you "
+            "reviewed also restores it).",
+            "legacy": "Saved as yes or no by publishing version 1, which did not record what "
+            "you reviewed. Upgrade the section and confirm again.",
+            "unconfirmed": f"It covers {COVERS[self.name]}.",
+        }[self.state]
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "name": self.name,
+            "statement": ATTESTATION_TEXT[self.name],
+            "covers": COVERS[self.name],
+            "required": self.required,
+            "state": self.state,
+            "current": self.current,
+            "confirmed": self.confirmed,
+            "message": self.message,
+        }
+
+
+def confirmations(project: Project) -> tuple[Confirmation, ...]:
+    """Every confirmation's state against the current content; () without publishing."""
+    config = project.publishing
+    if config is None:
+        return ()
+    required = required_attestations(config)
+    states = []
+    for name in CONFIRMATIONS:
+        current = review_identity(project, name)
+        stored = config.attestations.stored(name)
+        legacy = config.attestations.legacy
+        state = (
+            "legacy"
+            if legacy is not None and name in legacy
+            else "unconfirmed"
+            if stored is None
+            else "confirmed"
+            if stored == current
+            else "stale"
+        )
+        states.append(Confirmation(name, name in required, state, current, stored))
+    return tuple(states)
+
+
+@dataclass(frozen=True)
 class MetadataReport:
     book_id: str
     publishing_identity: str | None
     findings: tuple[Finding, ...]
     results: tuple[RuleResult, ...]
+    confirmations: tuple[Confirmation, ...] = ()
 
     def _blocking(self, *scopes: Scope) -> bool:
         return any(
@@ -105,7 +170,7 @@ class MetadataReport:
 
     def to_dict(self) -> dict[str, object]:
         return {
-            "report_version": 1,
+            "report_version": 2,
             "ruleset": {
                 "id": RULESET_ID,
                 "version": RULESET_VERSION,
@@ -114,6 +179,7 @@ class MetadataReport:
             "book_id": self.book_id,
             "publishing_identity": self.publishing_identity,
             "verdicts": self.verdicts(),
+            "confirmations": [c.to_dict() for c in self.confirmations],
             "findings": [finding.to_dict() for finding in self.findings],
             "rules": [result.to_dict() for result in self.results],
         }
@@ -134,6 +200,7 @@ def validate_metadata(project: Project) -> MetadataReport:
     """Evaluate every metadata, disclosure and attestation rule. Pure."""
     c = Collector(RULES)
     config = project.publishing
+    states = confirmations(project)
     if config is None:
         c.fail(
             "publishing_configured",
@@ -152,12 +219,13 @@ def validate_metadata(project: Project) -> MetadataReport:
         _audience(c, config)
         _classification(c, project, config)
         _disclosure(c, config)
-        _attestations(c, config)
+        _attestations(c, states)
     return MetadataReport(
         project.book.id,
         publishing_identity(project),
         tuple(sorted(c.findings, key=Finding.sort_key)),
         c.results(METADATA_CODES),
+        states,
     )
 
 
@@ -679,13 +747,18 @@ def _disclosure(c: Collector, config: PublishingConfig) -> None:
         c.note("ai_disclosure_required", "Nothing declared AI-generated.")
 
 
-def _attestations(c: Collector, config: PublishingConfig) -> None:
-    given = config.attestations.to_dict()
-    for name in required_attestations(config):
-        if given[name] is not True:
-            c.fail(
-                "attestations",
-                f"Not confirmed: {ATTESTATION_TEXT[name]}",
-                field=f"publishing.attestations.{name}",
-                action="Review and confirm it yourself; PuzzlePress cannot verify it.",
-            )
+def _attestations(c: Collector, states: tuple[Confirmation, ...]) -> None:
+    for state in states:
+        if not state.required or state.state == "confirmed":
+            continue
+        statement = ATTESTATION_TEXT[state.name]
+        c.fail(
+            "attestations",
+            f"Not confirmed: {statement}"
+            if state.state == "unconfirmed"
+            else f"Review again: {statement} {state.message}",
+            field=f"publishing.attestations.{state.name}",
+            action="Upgrade the publishing section to version 2, then review and confirm it."
+            if state.state == "legacy"
+            else "Review and confirm it yourself; PuzzlePress cannot verify it.",
+        )

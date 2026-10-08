@@ -84,17 +84,32 @@ test('review what blocks, declare, confirm by keyboard, save and export', async 
     .getByRole('group', { name: /^Translations/ })
     .getByRole('radio', { name: /Not a translation/ })
     .check();
-  // Confirmations by keyboard.
-  for (const name of [/hold the rights/, /AI content declaration/, /accurately represent/]) {
+  // Confirmations by keyboard. Each records what was reviewed, as Python reports it.
+  const confirm = async (name: RegExp) => {
     const box = page.getByRole('checkbox', { name });
     await expect(box).not.toBeChecked();
     await box.focus();
     await page.keyboard.press('Space');
     await expect(box).toBeChecked();
-  }
+  };
+  for (const name of [/hold the rights/, /AI content declaration/, /accurately represent/])
+    await confirm(name);
   await page.locator('section[aria-labelledby="pub-ai"]').screenshot({
     path: shot('publishing-disclosure'),
   });
+  // Editing the description asks for review again of what covers it, and only that.
+  const description = page.getByRole('textbox', { name: /^Description/ });
+  await description.fill((await description.inputValue()) + ' Printed large.');
+  const confirmations = page.locator('#publishing\\.attestations');
+  await expect(page.getByRole('checkbox', { name: /accurately represent/ })).not.toBeChecked();
+  await expect(page.getByRole('checkbox', { name: /AI content declaration/ })).not.toBeChecked();
+  await expect(page.getByRole('checkbox', { name: /hold the rights/ })).toBeChecked();
+  await expect(confirmations.getByText(/changed after you confirmed it/)).toHaveCount(2);
+  await noAxeViolations(page);
+  await page.locator('section[aria-labelledby="pub-confirm"]').screenshot({
+    path: shot('publishing-confirmations'),
+  });
+  for (const name of [/AI content declaration/, /accurately represent/]) await confirm(name);
   await expect(panel.getByRole('button', { name: 'Export package' })).toBeDisabled();
   await expect(panel.getByText(/Save the draft first/)).toBeVisible();
 
