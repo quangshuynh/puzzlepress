@@ -43,6 +43,11 @@ async function open(page: Page, key: string) {
 const readiness = (page: Page) => page.getByRole('complementary', { name: 'Readiness' });
 
 test('review what blocks, declare, confirm by keyboard, save and export', async ({ page }) => {
+  // This one test runs the whole publishing workflow: two builds, four full readiness
+  // evaluations (each re-renders interior and cover preflight; export runs two) and
+  // three axe scans. Measured at 29 s of a 30 s default on a fast workstation, so it
+  // gets its own budget; completion is still awaited explicitly at every step.
+  test.setTimeout(90_000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.setViewportSize({ width: 1440, height: 1000 });
