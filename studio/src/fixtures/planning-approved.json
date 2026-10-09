@@ -1,0 +1,1996 @@
+{
+  "key": "automotive",
+  "book": {
+    "id": "automotive-word-search",
+    "title": "Automotive Word Search"
+  },
+  "revision": "sha256-cb5849cfabc5c456a98297a9c5a98772f93783573612463fdf59f17f217962cd",
+  "source": {
+    "planning_version": 1,
+    "concept": {
+      "summary": "Word searches about engines and the tools used to work on them.",
+      "subject": "Automotive",
+      "reader_experience": "Short, steady puzzles.",
+      "scope": "Two themes."
+    },
+    "positioning": {
+      "primary_audience": "Adult car enthusiasts",
+      "secondary_audience": "Automotive students",
+      "candidate_audiences": [
+        "Car enthusiasts",
+        "Mechanics"
+      ],
+      "familiarity": "enthusiast",
+      "tone": "Friendly",
+      "use_case": "Leisure",
+      "main_benefit": "Real workshop vocabulary.",
+      "differentiation": "Engines and tools only.",
+      "evidence": [
+        "r-test"
+      ],
+      "claims": []
+    },
+    "structure": {
+      "puzzle_type": "word_search",
+      "target_puzzles": 12,
+      "print_profile": "paperback-8.5x11",
+      "solutions": "end",
+      "solutions_per_page": 1,
+      "front_matter_pages": 3,
+      "back_matter_pages": 1
+    },
+    "difficulty": {
+      "strategy": "gradual",
+      "levels": [
+        {
+          "id": "easy",
+          "label": "Easy",
+          "profile": null,
+          "width": 10,
+          "height": 10,
+          "directions": [
+            "right",
+            "down"
+          ],
+          "words": {
+            "min": 4,
+            "max": 6
+          },
+          "notes": null
+        },
+        {
+          "id": "hard",
+          "label": "Hard",
+          "profile": null,
+          "width": 12,
+          "height": 12,
+          "directions": [
+            "right",
+            "left",
+            "down",
+            "down-right"
+          ],
+          "words": {
+            "min": 4,
+            "max": 8
+          },
+          "notes": null
+        }
+      ]
+    },
+    "themes": [
+      {
+        "id": "engines",
+        "label": "Engines",
+        "parent": null,
+        "required": true,
+        "puzzles": 6,
+        "notes": null
+      },
+      {
+        "id": "tools",
+        "label": "Tools",
+        "parent": null,
+        "required": false,
+        "puzzles": 6,
+        "notes": null
+      }
+    ],
+    "vocabulary": [
+      {
+        "theme": "engines",
+        "source": "human",
+        "reference": null,
+        "entries": [
+          {
+            "word": "PISTON",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "VALVE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CAMSHAFT",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CYLINDER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "GASKET",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "INJECTOR",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "TURBO",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "MANIFOLD",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "FLYWHEEL",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CLUTCH",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "GEARBOX",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "AXLE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "TORQUE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "THROTTLE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "IGNITION",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "DIESEL",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SPARK PLUG",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "TIMING BELT",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "OIL PUMP",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CRANKCASE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "INTAKE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "EXHAUST",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "PUSHROD",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "BEARING",
+            "source": null,
+            "reference": null,
+            "note": null
+          }
+        ]
+      },
+      {
+        "theme": "tools",
+        "source": "human",
+        "reference": null,
+        "entries": [
+          {
+            "word": "WRENCH",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SOCKET",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "RATCHET",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "PLIERS",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "HAMMER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "MALLET",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CREEPER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "FUNNEL",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "VISE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "TOOLBOX",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "GLOVES",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "PRY BAR",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "FLOOR JACK",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "MULTIMETER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "WORKBENCH",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "FLASHLIGHT",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "COMPRESSOR",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "TIRE GAUGE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "BREAKER BAR",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CHISEL",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "FILE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CLAMP",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SNIPS",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SCRAPER",
+            "source": null,
+            "reference": null,
+            "note": null
+          }
+        ]
+      }
+    ],
+    "puzzles": [
+      {
+        "id": "engines-1",
+        "theme": "engines",
+        "level": "easy",
+        "title": "Engines 1",
+        "words": [
+          "PISTON",
+          "VALVE",
+          "CAMSHAFT",
+          "CYLINDER"
+        ],
+        "notes": null
+      },
+      {
+        "id": "engines-2",
+        "theme": "engines",
+        "level": "easy",
+        "title": "Engines 2",
+        "words": [
+          "GASKET",
+          "INJECTOR",
+          "TURBO",
+          "MANIFOLD"
+        ],
+        "notes": null
+      },
+      {
+        "id": "engines-3",
+        "theme": "engines",
+        "level": "easy",
+        "title": "Engines 3",
+        "words": [
+          "FLYWHEEL",
+          "CLUTCH",
+          "GEARBOX",
+          "AXLE"
+        ],
+        "notes": null
+      },
+      {
+        "id": "tools-1",
+        "theme": "tools",
+        "level": "easy",
+        "title": "Tools 1",
+        "words": [
+          "WRENCH",
+          "SOCKET",
+          "RATCHET",
+          "PLIERS"
+        ],
+        "notes": null
+      },
+      {
+        "id": "tools-2",
+        "theme": "tools",
+        "level": "easy",
+        "title": "Tools 2",
+        "words": [
+          "HAMMER",
+          "MALLET",
+          "CREEPER",
+          "FUNNEL"
+        ],
+        "notes": null
+      },
+      {
+        "id": "tools-3",
+        "theme": "tools",
+        "level": "easy",
+        "title": "Tools 3",
+        "words": [
+          "VISE",
+          "TOOLBOX",
+          "GLOVES",
+          "PRY BAR"
+        ],
+        "notes": null
+      },
+      {
+        "id": "engines-4",
+        "theme": "engines",
+        "level": "hard",
+        "title": "Engines 4",
+        "words": [
+          "TORQUE",
+          "THROTTLE",
+          "IGNITION",
+          "DIESEL"
+        ],
+        "notes": null
+      },
+      {
+        "id": "engines-5",
+        "theme": "engines",
+        "level": "hard",
+        "title": "Engines 5",
+        "words": [
+          "SPARK PLUG",
+          "TIMING BELT",
+          "OIL PUMP",
+          "CRANKCASE"
+        ],
+        "notes": null
+      },
+      {
+        "id": "engines-6",
+        "theme": "engines",
+        "level": "hard",
+        "title": "Engines 6",
+        "words": [
+          "INTAKE",
+          "EXHAUST",
+          "PUSHROD",
+          "BEARING"
+        ],
+        "notes": null
+      },
+      {
+        "id": "tools-4",
+        "theme": "tools",
+        "level": "hard",
+        "title": "Tools 4",
+        "words": [
+          "FLOOR JACK",
+          "MULTIMETER",
+          "WORKBENCH",
+          "FLASHLIGHT"
+        ],
+        "notes": null
+      },
+      {
+        "id": "tools-5",
+        "theme": "tools",
+        "level": "hard",
+        "title": "Tools 5",
+        "words": [
+          "COMPRESSOR",
+          "TIRE GAUGE",
+          "BREAKER BAR",
+          "CHISEL"
+        ],
+        "notes": null
+      },
+      {
+        "id": "tools-6",
+        "theme": "tools",
+        "level": "hard",
+        "title": "Tools 6",
+        "words": [
+          "FILE",
+          "CLAMP",
+          "SNIPS",
+          "SCRAPER"
+        ],
+        "notes": null
+      }
+    ],
+    "constraints": {
+      "min_letters": 3,
+      "max_letters": 15,
+      "max_word_reuse": 2,
+      "prohibited_words": [],
+      "notes": []
+    },
+    "questions": [
+      {
+        "id": "q-test",
+        "question": "Is two themes enough?",
+        "blocking": true,
+        "resolution": "Yes, for a first book."
+      }
+    ],
+    "research": [
+      {
+        "id": "r-test",
+        "question": "q-test",
+        "observation": "Synthetic test observation.",
+        "evidence": "verified_source",
+        "confidence": null,
+        "source": {
+          "citation": "Synthetic test citation",
+          "url": "https://example.com/a",
+          "type": "other"
+        },
+        "observed": "2026-10-09",
+        "relevance": null,
+        "notes": null,
+        "decision": null
+      }
+    ],
+    "comparables": [],
+    "approval": "pp1-planning-sha256-fd3ecb0d22d1f77d10937209af0ad2500bba992ebd99733e55c4b01f427cfa8e"
+  },
+  "report": {
+    "report_version": 1,
+    "ruleset": {
+      "id": "puzzlepress-planning",
+      "version": 1
+    },
+    "book": {
+      "id": "automotive-word-search",
+      "title": "Automotive Word Search"
+    },
+    "planning_identity": "pp1-planning-sha256-fd3ecb0d22d1f77d10937209af0ad2500bba992ebd99733e55c4b01f427cfa8e",
+    "state": "approved",
+    "statement": "Approved: this exact plan is approved for production handoff.",
+    "gates": [
+      {
+        "gate": "definition",
+        "label": "Blueprint defined",
+        "passed": true,
+        "blocking": []
+      },
+      {
+        "gate": "research",
+        "label": "Research and evidence in order",
+        "passed": true,
+        "blocking": []
+      },
+      {
+        "gate": "content",
+        "label": "Content planned",
+        "passed": true,
+        "blocking": []
+      },
+      {
+        "gate": "structure",
+        "label": "References and vocabulary valid",
+        "passed": true,
+        "blocking": []
+      },
+      {
+        "gate": "feasibility",
+        "label": "Producible with current PuzzlePress",
+        "passed": true,
+        "blocking": []
+      },
+      {
+        "gate": "decisions",
+        "label": "Author decisions made",
+        "passed": true,
+        "blocking": []
+      }
+    ],
+    "approval": {
+      "status": "current",
+      "approved_identity": "pp1-planning-sha256-fd3ecb0d22d1f77d10937209af0ad2500bba992ebd99733e55c4b01f427cfa8e",
+      "counts": true
+    },
+    "summary": {
+      "target_puzzles": 12,
+      "allocated_puzzles": 12,
+      "specified_puzzles": 12,
+      "themes": 2,
+      "levels": 2,
+      "candidate_words": 48,
+      "findings": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      }
+    },
+    "allocation": [
+      {
+        "id": "engines",
+        "label": "Engines",
+        "parent": null,
+        "depth": 0,
+        "required": true,
+        "allocated": 6,
+        "specified": 6,
+        "share": 0.5
+      },
+      {
+        "id": "tools",
+        "label": "Tools",
+        "parent": null,
+        "depth": 0,
+        "required": false,
+        "allocated": 6,
+        "specified": 6,
+        "share": 0.5
+      }
+    ],
+    "levels": [
+      {
+        "id": "easy",
+        "label": "Easy",
+        "rank": 1,
+        "origin": "plan",
+        "profile": null,
+        "width": 10,
+        "height": 10,
+        "directions": [
+          "right",
+          "down"
+        ],
+        "words": {
+          "min": 4,
+          "max": 6
+        },
+        "puzzles": 6,
+        "supported": true
+      },
+      {
+        "id": "hard",
+        "label": "Hard",
+        "rank": 2,
+        "origin": "plan",
+        "profile": null,
+        "width": 12,
+        "height": 12,
+        "directions": [
+          "right",
+          "left",
+          "down",
+          "down-right"
+        ],
+        "words": {
+          "min": 4,
+          "max": 8
+        },
+        "puzzles": 6,
+        "supported": true
+      }
+    ],
+    "progression": [
+      {
+        "id": "engines-1",
+        "title": "Engines 1",
+        "theme": "engines",
+        "level": "easy",
+        "rank": 1,
+        "words": 4
+      },
+      {
+        "id": "engines-2",
+        "title": "Engines 2",
+        "theme": "engines",
+        "level": "easy",
+        "rank": 1,
+        "words": 4
+      },
+      {
+        "id": "engines-3",
+        "title": "Engines 3",
+        "theme": "engines",
+        "level": "easy",
+        "rank": 1,
+        "words": 4
+      },
+      {
+        "id": "tools-1",
+        "title": "Tools 1",
+        "theme": "tools",
+        "level": "easy",
+        "rank": 1,
+        "words": 4
+      },
+      {
+        "id": "tools-2",
+        "title": "Tools 2",
+        "theme": "tools",
+        "level": "easy",
+        "rank": 1,
+        "words": 4
+      },
+      {
+        "id": "tools-3",
+        "title": "Tools 3",
+        "theme": "tools",
+        "level": "easy",
+        "rank": 1,
+        "words": 4
+      },
+      {
+        "id": "engines-4",
+        "title": "Engines 4",
+        "theme": "engines",
+        "level": "hard",
+        "rank": 2,
+        "words": 4
+      },
+      {
+        "id": "engines-5",
+        "title": "Engines 5",
+        "theme": "engines",
+        "level": "hard",
+        "rank": 2,
+        "words": 4
+      },
+      {
+        "id": "engines-6",
+        "title": "Engines 6",
+        "theme": "engines",
+        "level": "hard",
+        "rank": 2,
+        "words": 4
+      },
+      {
+        "id": "tools-4",
+        "title": "Tools 4",
+        "theme": "tools",
+        "level": "hard",
+        "rank": 2,
+        "words": 4
+      },
+      {
+        "id": "tools-5",
+        "title": "Tools 5",
+        "theme": "tools",
+        "level": "hard",
+        "rank": 2,
+        "words": 4
+      },
+      {
+        "id": "tools-6",
+        "title": "Tools 6",
+        "theme": "tools",
+        "level": "hard",
+        "rank": 2,
+        "words": 4
+      }
+    ],
+    "vocabulary": [
+      {
+        "theme": "engines",
+        "label": "Engines",
+        "entries": 24,
+        "usable": 24,
+        "invalid": 0,
+        "duplicates": 0,
+        "shared": 0,
+        "assigned": 24,
+        "needed": 12,
+        "sources": {
+          "human": 24
+        },
+        "words": [
+          {
+            "word": "PISTON",
+            "search": "PISTON",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "VALVE",
+            "search": "VALVE",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CAMSHAFT",
+            "search": "CAMSHAFT",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CYLINDER",
+            "search": "CYLINDER",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "GASKET",
+            "search": "GASKET",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "INJECTOR",
+            "search": "INJECTOR",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "TURBO",
+            "search": "TURBO",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "MANIFOLD",
+            "search": "MANIFOLD",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "FLYWHEEL",
+            "search": "FLYWHEEL",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CLUTCH",
+            "search": "CLUTCH",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "GEARBOX",
+            "search": "GEARBOX",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "AXLE",
+            "search": "AXLE",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "TORQUE",
+            "search": "TORQUE",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "THROTTLE",
+            "search": "THROTTLE",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "IGNITION",
+            "search": "IGNITION",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "DIESEL",
+            "search": "DIESEL",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SPARK PLUG",
+            "search": "SPARKPLUG",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "TIMING BELT",
+            "search": "TIMINGBELT",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "OIL PUMP",
+            "search": "OILPUMP",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CRANKCASE",
+            "search": "CRANKCASE",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "INTAKE",
+            "search": "INTAKE",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "EXHAUST",
+            "search": "EXHAUST",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "PUSHROD",
+            "search": "PUSHROD",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "BEARING",
+            "search": "BEARING",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          }
+        ]
+      },
+      {
+        "theme": "tools",
+        "label": "Tools",
+        "entries": 24,
+        "usable": 24,
+        "invalid": 0,
+        "duplicates": 0,
+        "shared": 0,
+        "assigned": 24,
+        "needed": 12,
+        "sources": {
+          "human": 24
+        },
+        "words": [
+          {
+            "word": "WRENCH",
+            "search": "WRENCH",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SOCKET",
+            "search": "SOCKET",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "RATCHET",
+            "search": "RATCHET",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "PLIERS",
+            "search": "PLIERS",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "HAMMER",
+            "search": "HAMMER",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "MALLET",
+            "search": "MALLET",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CREEPER",
+            "search": "CREEPER",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "FUNNEL",
+            "search": "FUNNEL",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "VISE",
+            "search": "VISE",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "TOOLBOX",
+            "search": "TOOLBOX",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "GLOVES",
+            "search": "GLOVES",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "PRY BAR",
+            "search": "PRYBAR",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "FLOOR JACK",
+            "search": "FLOORJACK",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "MULTIMETER",
+            "search": "MULTIMETER",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "WORKBENCH",
+            "search": "WORKBENCH",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "FLASHLIGHT",
+            "search": "FLASHLIGHT",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "COMPRESSOR",
+            "search": "COMPRESSOR",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "TIRE GAUGE",
+            "search": "TIREGAUGE",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "BREAKER BAR",
+            "search": "BREAKERBAR",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CHISEL",
+            "search": "CHISEL",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "FILE",
+            "search": "FILE",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CLAMP",
+            "search": "CLAMP",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SNIPS",
+            "search": "SNIPS",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SCRAPER",
+            "search": "SCRAPER",
+            "source": "human",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          }
+        ]
+      }
+    ],
+    "research": {
+      "notes": 1,
+      "evidence": {
+        "unknown": 0,
+        "verified_source": 1,
+        "unverified_source": 0,
+        "author_observation": 0,
+        "hypothesis": 0,
+        "preference": 0
+      },
+      "questions": 1,
+      "open_questions": 0,
+      "blocking_questions": 0,
+      "comparables": 0,
+      "sourced_comparables": 0
+    },
+    "feasibility": [
+      {
+        "code": "puzzle_type",
+        "label": "Puzzle type",
+        "status": "verified",
+        "detail": "Word searches are supported.",
+        "actual": "word_search",
+        "limit": null
+      },
+      {
+        "code": "puzzle_count",
+        "label": "Puzzle count",
+        "status": "verified",
+        "detail": "Within the project cap of 20 puzzles.",
+        "actual": 12,
+        "limit": 20
+      },
+      {
+        "code": "word_banks",
+        "label": "Word banks",
+        "status": "verified",
+        "detail": "Each theme pool can become one word bank.",
+        "actual": 2,
+        "limit": 20
+      },
+      {
+        "code": "profiles",
+        "label": "Difficulty profiles",
+        "status": "verified",
+        "detail": "Each level can become one difficulty profile.",
+        "actual": 2,
+        "limit": 20
+      },
+      {
+        "code": "generator_settings",
+        "label": "Generator settings",
+        "status": "verified",
+        "detail": "Level grids, directions and word counts are within the generator's limits.",
+        "actual": null,
+        "limit": null
+      },
+      {
+        "code": "print_profile",
+        "label": "Print profile",
+        "status": "verified",
+        "detail": "8.5 x 11 in paperback interior, black ink on white paper, no bleed",
+        "actual": "paperback-8.5x11",
+        "limit": null
+      },
+      {
+        "code": "puzzle_grids_print",
+        "label": "Puzzle grids on the page",
+        "status": "estimate",
+        "detail": "Each level's grid fits the live area at 9 pt or more before the title and word list are laid out. The interior layout decides with the real word list.",
+        "actual": null,
+        "limit": null
+      },
+      {
+        "code": "solution_grids_print",
+        "label": "Solution grids",
+        "status": "estimate",
+        "detail": "Each level's solution fits 1 a page at 7 pt or more before captions.",
+        "actual": null,
+        "limit": null
+      },
+      {
+        "code": "word_fit",
+        "label": "Words fit their grids",
+        "status": "verified",
+        "detail": "All 48 assigned words fit their level's grid in an enabled direction.",
+        "actual": null,
+        "limit": null
+      },
+      {
+        "code": "page_count",
+        "label": "Page count",
+        "status": "estimate",
+        "detail": "About 28-30 logical pages from the plan. The exact count comes from the publication plan; the renderer never pads.",
+        "actual": "28-30",
+        "limit": null
+      },
+      {
+        "code": "spine_text",
+        "label": "Spine text",
+        "status": "estimate",
+        "detail": "Unlikely: spine text needs 80 pages.",
+        "actual": "28-30",
+        "limit": 80
+      },
+      {
+        "code": "generation",
+        "label": "Puzzle generation",
+        "status": "unknown",
+        "detail": "Whether every grid places all its words is known only when production generates and verifies each puzzle. Placement is bounded and may fail for dense grids.",
+        "actual": null,
+        "limit": null
+      },
+      {
+        "code": "cover",
+        "label": "Cover",
+        "status": "unknown",
+        "detail": "Cover size and spine derive from the built interior's real page count and paper; they cannot be planned exactly.",
+        "actual": null,
+        "limit": null
+      }
+    ],
+    "page_estimate": {
+      "minimum": 28,
+      "maximum": 30,
+      "parts": {
+        "puzzles": 12,
+        "solutions": 12,
+        "front_matter": 3,
+        "back_matter": 1
+      }
+    },
+    "findings": [],
+    "rules": [
+      {
+        "code": "concept_missing",
+        "gate": "definition",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "The book concept is stated"
+      },
+      {
+        "code": "subject_missing",
+        "gate": "definition",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "The subject or niche is stated"
+      },
+      {
+        "code": "audience_missing",
+        "gate": "definition",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "A primary audience is chosen"
+      },
+      {
+        "code": "differentiation_missing",
+        "gate": "definition",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "What makes the book different is stated"
+      },
+      {
+        "code": "puzzle_type_missing",
+        "gate": "definition",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "The puzzle type is stated"
+      },
+      {
+        "code": "target_missing",
+        "gate": "definition",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "A target puzzle count is stated"
+      },
+      {
+        "code": "strategy_undecided",
+        "gate": "definition",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "A difficulty strategy is chosen"
+      },
+      {
+        "code": "themes_missing",
+        "gate": "definition",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "At least one theme is planned"
+      },
+      {
+        "code": "levels_missing",
+        "gate": "definition",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "At least one difficulty level is planned"
+      },
+      {
+        "code": "question_blocking_open",
+        "gate": "research",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "Blocking questions are resolved"
+      },
+      {
+        "code": "evidence_source_missing",
+        "gate": "research",
+        "severity": "error",
+        "basis": "evidence_integrity",
+        "title": "Sourced evidence cites its source"
+      },
+      {
+        "code": "comparable_unsourced",
+        "gate": "research",
+        "severity": "error",
+        "basis": "evidence_integrity",
+        "title": "Comparable books cite where they were observed"
+      },
+      {
+        "code": "claim_unsupported",
+        "gate": "research",
+        "severity": "error",
+        "basis": "evidence_integrity",
+        "title": "Positioning claims cite verified evidence"
+      },
+      {
+        "code": "evidence_undated",
+        "gate": "research",
+        "severity": "warning",
+        "basis": "evidence_integrity",
+        "title": "Verified sources record when they were observed"
+      },
+      {
+        "code": "comparable_price_undated",
+        "gate": "research",
+        "severity": "warning",
+        "basis": "evidence_integrity",
+        "title": "Observed prices record when they were observed"
+      },
+      {
+        "code": "source_url_format",
+        "gate": "research",
+        "severity": "warning",
+        "basis": "evidence_integrity",
+        "title": "Source URLs are web addresses"
+      },
+      {
+        "code": "claim_weak_evidence",
+        "gate": "research",
+        "severity": "warning",
+        "basis": "evidence_integrity",
+        "title": "Claims rest on verified rather than reported evidence"
+      },
+      {
+        "code": "assumption_unresolved",
+        "gate": "research",
+        "severity": "warning",
+        "basis": "evidence_integrity",
+        "title": "Decisions do not rest on hypotheses alone"
+      },
+      {
+        "code": "question_open",
+        "gate": "research",
+        "severity": "info",
+        "basis": "author_decision",
+        "title": "Open questions"
+      },
+      {
+        "code": "allocation_missing",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Every theme has a planned allocation"
+      },
+      {
+        "code": "allocation_total_mismatch",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Theme allocations add up to the target"
+      },
+      {
+        "code": "required_theme_empty",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Required themes receive puzzles"
+      },
+      {
+        "code": "puzzles_unspecified",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Every planned puzzle is specified"
+      },
+      {
+        "code": "puzzles_exceed_target",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Specified puzzles do not exceed the target"
+      },
+      {
+        "code": "theme_overspecified",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Specified puzzles stay within their theme's allocation"
+      },
+      {
+        "code": "puzzle_level_missing",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Every planned puzzle has a level"
+      },
+      {
+        "code": "puzzle_words_missing",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Every planned puzzle has words"
+      },
+      {
+        "code": "puzzle_word_count",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Puzzles have the word count their level expects"
+      },
+      {
+        "code": "pool_missing",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Allocated themes have candidate vocabulary"
+      },
+      {
+        "code": "pool_insufficient",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Pools hold enough valid words for one puzzle"
+      },
+      {
+        "code": "level_settings_missing",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Levels state grid and directions"
+      },
+      {
+        "code": "progression_contradicts_strategy",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Level order follows the strategy"
+      },
+      {
+        "code": "reference_unknown",
+        "gate": "structure",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "References name existing plan items"
+      },
+      {
+        "code": "theme_cycle",
+        "gate": "structure",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Theme parents do not form a cycle"
+      },
+      {
+        "code": "theme_label_duplicate",
+        "gate": "structure",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Theme labels are distinct"
+      },
+      {
+        "code": "level_profile_unknown",
+        "gate": "structure",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Levels name existing project profiles"
+      },
+      {
+        "code": "word_invalid",
+        "gate": "structure",
+        "severity": "error",
+        "basis": "engine_rule",
+        "title": "Words satisfy the generator's input rules"
+      },
+      {
+        "code": "word_duplicate",
+        "gate": "structure",
+        "severity": "error",
+        "basis": "engine_rule",
+        "title": "Words in one pool normalize to distinct forms"
+      },
+      {
+        "code": "word_prohibited",
+        "gate": "structure",
+        "severity": "error",
+        "basis": "quality_measure",
+        "title": "Words are not on the prohibited list"
+      },
+      {
+        "code": "puzzle_word_not_in_pool",
+        "gate": "structure",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Puzzle words come from their theme's pool"
+      },
+      {
+        "code": "puzzle_word_repeated",
+        "gate": "structure",
+        "severity": "error",
+        "basis": "engine_rule",
+        "title": "A puzzle lists each word once"
+      },
+      {
+        "code": "puzzle_type_unsupported",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "production_cap",
+        "title": "The puzzle type is supported"
+      },
+      {
+        "code": "puzzle_count_unsupported",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "production_cap",
+        "title": "The puzzle count is within the project cap"
+      },
+      {
+        "code": "bank_count_unsupported",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "production_cap",
+        "title": "Theme pools fit the word-bank cap"
+      },
+      {
+        "code": "profile_count_unsupported",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "production_cap",
+        "title": "Levels fit the difficulty-profile cap"
+      },
+      {
+        "code": "grid_unsupported",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "engine_rule",
+        "title": "Level grids are within the generator's limits"
+      },
+      {
+        "code": "grid_print_unsupported",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "print_constant",
+        "title": "Puzzle grids can print at the minimum letter size"
+      },
+      {
+        "code": "solution_print_unsupported",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "print_constant",
+        "title": "Solution grids can print at their minimum"
+      },
+      {
+        "code": "words_per_puzzle_unsupported",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "engine_rule",
+        "title": "Word counts are within the generator's limit"
+      },
+      {
+        "code": "word_cannot_fit",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "engine_rule",
+        "title": "Assigned words fit their level's grid"
+      },
+      {
+        "code": "print_profile_unsupported",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "production_cap",
+        "title": "The print profile is supported"
+      },
+      {
+        "code": "page_estimate_below_minimum",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "print_constant",
+        "title": "The planned book reaches KDP's minimum length"
+      },
+      {
+        "code": "page_estimate_above_maximum",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "print_constant",
+        "title": "The planned book stays within KDP's maximum"
+      },
+      {
+        "code": "page_estimate_uncertain",
+        "gate": "feasibility",
+        "severity": "warning",
+        "basis": "print_constant",
+        "title": "The page estimate clears KDP's limits"
+      },
+      {
+        "code": "bank_size_exceeds",
+        "gate": "feasibility",
+        "severity": "warning",
+        "basis": "production_cap",
+        "title": "Pools fit one word bank"
+      },
+      {
+        "code": "print_profile_undecided",
+        "gate": "decisions",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "Print profile (trim and paper) is chosen"
+      },
+      {
+        "code": "solutions_undecided",
+        "gate": "decisions",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "Solution placement is decided"
+      },
+      {
+        "code": "provenance_unknown",
+        "gate": "decisions",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "Assigned words record where they came from"
+      },
+      {
+        "code": "theme_labels_similar",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "editorial_heuristic",
+        "title": "Theme labels are clearly distinct"
+      },
+      {
+        "code": "theme_vocabulary_overlap",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "editorial_heuristic",
+        "title": "Theme pools do not largely overlap"
+      },
+      {
+        "code": "theme_overrepresented",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "editorial_heuristic",
+        "title": "No theme dominates the allocation"
+      },
+      {
+        "code": "theme_thin",
+        "gate": "editorial",
+        "severity": "info",
+        "basis": "editorial_heuristic",
+        "title": "No theme is much thinner than the others"
+      },
+      {
+        "code": "theme_without_puzzles",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "plan_consistency",
+        "title": "Themes receive puzzles"
+      },
+      {
+        "code": "pool_thin",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "quality_measure",
+        "title": "Pools can fill their puzzles within the reuse limit"
+      },
+      {
+        "code": "word_reuse",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "quality_measure",
+        "title": "Words stay within the reuse limit"
+      },
+      {
+        "code": "duplicate_word_sets",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "quality_measure",
+        "title": "Planned puzzles use different word sets"
+      },
+      {
+        "code": "similar_word_sets",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "quality_measure",
+        "title": "Planned word sets are not too similar"
+      },
+      {
+        "code": "puzzle_titles_duplicate",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "editorial_heuristic",
+        "title": "Planned puzzle titles are distinct"
+      },
+      {
+        "code": "word_short",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "author_decision",
+        "title": "Words meet the authored minimum length"
+      },
+      {
+        "code": "word_long",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "author_decision",
+        "title": "Words meet the authored maximum length"
+      },
+      {
+        "code": "word_contains_prohibited",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "quality_measure",
+        "title": "Words do not contain prohibited forms"
+      },
+      {
+        "code": "word_cross_theme",
+        "gate": "editorial",
+        "severity": "info",
+        "basis": "editorial_heuristic",
+        "title": "Words shared between themes"
+      },
+      {
+        "code": "difficulty_jump",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "editorial_heuristic",
+        "title": "Gradual plans do not skip levels"
+      },
+      {
+        "code": "sections_out_of_order",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "editorial_heuristic",
+        "title": "Difficulty sections run from easiest to hardest"
+      },
+      {
+        "code": "level_order_inverted",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "editorial_heuristic",
+        "title": "Harder levels differ from easier ones"
+      },
+      {
+        "code": "level_unused",
+        "gate": "editorial",
+        "severity": "info",
+        "basis": "plan_consistency",
+        "title": "Every level is used"
+      },
+      {
+        "code": "familiarity_undecided",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "author_decision",
+        "title": "Reader familiarity is stated"
+      },
+      {
+        "code": "audience_repeated",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "editorial_heuristic",
+        "title": "Secondary audience differs from the primary"
+      },
+      {
+        "code": "promotional_language",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "editorial_heuristic",
+        "title": "Positioning avoids promotional wording"
+      },
+      {
+        "code": "vocabulary_ai_generated",
+        "gate": "editorial",
+        "severity": "info",
+        "basis": "author_decision",
+        "title": "AI-generated vocabulary is recorded"
+      },
+      {
+        "code": "licensed_unreferenced",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "author_decision",
+        "title": "Licensed vocabulary records its licence"
+      },
+      {
+        "code": "pool_unused",
+        "gate": "editorial",
+        "severity": "info",
+        "basis": "plan_consistency",
+        "title": "Pools belong to allocated themes"
+      },
+      {
+        "code": "approval_stale",
+        "gate": "approval",
+        "severity": "warning",
+        "basis": "author_decision",
+        "title": "Approval covers the current plan"
+      },
+      {
+        "code": "approval_not_ready",
+        "gate": "approval",
+        "severity": "warning",
+        "basis": "author_decision",
+        "title": "Approval is recorded for a ready plan"
+      }
+    ],
+    "boundary": "Planning approval records the author's own review of this plan. It is not publishing approval, KDP acceptance or evidence that the book will sell."
+  },
+  "options": {
+    "print_profiles": [
+      {
+        "id": "paperback-8.5x11",
+        "description": "8.5 x 11 in paperback interior, black ink on white paper, no bleed"
+      },
+      {
+        "id": "paperback-8.5x11-cream",
+        "description": "8.5 x 11 in paperback interior, black ink on cream paper, no bleed"
+      }
+    ],
+    "puzzle_types": [
+      "word_search"
+    ],
+    "directions": [
+      "right",
+      "left",
+      "down",
+      "up",
+      "down-right",
+      "down-left",
+      "up-right",
+      "up-left"
+    ]
+  }
+}

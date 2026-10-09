@@ -2502,3 +2502,400 @@ summary:hover {
   min-height: 44px;
   margin: 0;
 }
+
+/* Planning: a research notebook and book blueprint. Section list, one editor, readiness. */
+.planning-workspace {
+  display: grid;
+  grid-template-columns: 176px minmax(0, 1fr) minmax(260px, 320px);
+  gap: 32px;
+  margin-top: 16px;
+  align-items: start;
+}
+.planning-nav {
+  position: sticky;
+  top: 16px;
+}
+.planning-nav ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--ink);
+}
+.planning-nav a {
+  display: block;
+  min-height: 44px;
+  padding: 10px 8px 9px 10px;
+  border-bottom: 1px solid var(--line);
+  border-left: 3px solid transparent;
+  text-decoration: none;
+}
+.planning-nav a[aria-current] {
+  border-left-color: var(--green);
+  background: var(--wash);
+  font-weight: 600;
+}
+.planning-nav small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+.planning-main {
+  min-width: 0;
+}
+.planning-section {
+  margin-top: 0;
+  border-top: 2px solid var(--ink);
+  padding-top: 12px;
+}
+.planning-section > h3 {
+  font-family: 'Newsreader Variable', Georgia, serif;
+  font-size: 26px;
+  font-weight: 450;
+  letter-spacing: -0.015em;
+}
+.planning-section > h3:focus:not(:focus-visible) {
+  outline: none;
+}
+.planning-section h4 {
+  margin: 28px 0 4px;
+  font-size: 15px;
+}
+.plan-intro {
+  margin-top: 4px;
+}
+.plan-facts {
+  margin: 0 0 24px;
+}
+.plan-rows {
+  list-style: none;
+  margin: 12px 0;
+  padding: 0;
+}
+.plan-rows > li {
+  border-bottom: 1px solid var(--line);
+  padding: 10px 0 14px;
+}
+.row-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.row-head .ordinal {
+  font-family: 'Newsreader Variable', Georgia, serif;
+  font-size: 20px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.row-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+.editor .row-actions button {
+  padding: 8px 10px;
+  font-size: 12px;
+}
+.plan-record > summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding: 10px 0;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.word-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  column-gap: 16px;
+}
+.editor .word-options .check {
+  overflow-wrap: anywhere;
+}
+.pool-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 16px 0 4px;
+}
+.editor .pool-tabs button {
+  padding: 8px 12px;
+  gap: 4px;
+}
+.feasibility-lines li {
+  display: block;
+}
+.feasibility-lines .status {
+  display: flex;
+  text-transform: capitalize;
+}
+.pool-editor {
+  border-top: 1px solid var(--line);
+  margin-top: 8px;
+}
+.word-table select {
+  min-height: 36px;
+  width: 100%;
+  font: inherit;
+}
+.add-pool select {
+  max-width: 360px;
+}
+
+/* Charts: Python's numbers as table text; one green, length for magnitude. */
+.plan-figure {
+  margin: 16px 0 24px;
+}
+.plan-figure figcaption,
+.plan-chart caption {
+  caption-side: top;
+  text-align: left;
+  font-size: 12px;
+  color: var(--muted);
+  padding-bottom: 6px;
+}
+.plan-chart {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.plan-chart th,
+.plan-chart td {
+  text-align: left;
+  font-weight: 400;
+  padding: 6px 8px 6px 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.plan-chart thead th {
+  font-size: 11px;
+  color: var(--muted);
+}
+.plan-chart tbody th {
+  font-weight: 550;
+  overflow-wrap: anywhere;
+}
+.plan-chart .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  width: 5.5em;
+}
+.plan-chart td:last-child,
+.plan-chart th:last-child {
+  width: 34%;
+  padding-left: 12px;
+}
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+.chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+.swatch.allocated {
+  background: #cad9bd;
+}
+.swatch.specified {
+  background: var(--green);
+}
+.swatch.tick {
+  width: 2px;
+  height: 12px;
+  border-radius: 0;
+  background: var(--ink);
+}
+.bar-track {
+  position: relative;
+  height: 14px;
+}
+.bar {
+  position: absolute;
+  left: 0;
+  border-radius: 0 4px 4px 0;
+}
+.bar.allocated {
+  top: 0;
+  height: 14px;
+  background: #cad9bd;
+}
+.bar.specified {
+  top: 4px;
+  height: 6px;
+  background: var(--green);
+}
+.bar-tick {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--ink);
+}
+.level-legend {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  font-size: 13px;
+}
+.progression {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.level-cell {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 4px;
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+.level-cell.unspecified {
+  border: 1px dashed #8a9285;
+  color: var(--muted);
+  font-weight: 400;
+  padding: 0 8px;
+}
+
+/* Readiness column. */
+.plan-readiness {
+  min-width: 0;
+  border-top: 1px solid var(--ink);
+}
+.plan-readiness:focus {
+  outline: none;
+}
+.plan-readiness h3,
+.plan-readiness h4 {
+  font-family: 'Newsreader Variable', Georgia, serif;
+  font-weight: 450;
+  margin: 14px 0 6px;
+}
+.plan-readiness h3 {
+  font-size: 20px;
+}
+.plan-readiness h4 {
+  font-size: 17px;
+}
+.plan-readiness section {
+  margin-top: 18px;
+  border-top: 1px solid var(--ink);
+}
+.plan-state {
+  font-weight: 550;
+}
+.plan-state {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.gate-list {
+  list-style: none;
+  margin: 10px 0;
+  padding: 0;
+}
+.gate-list li {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+}
+.gate-list small {
+  display: block;
+}
+.plan-approval > button {
+  width: 100%;
+  margin: 10px 0 0;
+}
+.finding-group h4 {
+  margin: 20px 0 4px;
+}
+.plan-findings {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.plan-findings > li {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.plan-findings p {
+  margin-top: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1280px) {
+  .planning-workspace {
+    grid-template-columns: 168px minmax(0, 1fr);
+  }
+  .plan-readiness {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 850px) {
+  .planning-workspace {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .planning-nav {
+    position: static;
+  }
+  .planning-nav ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    border: 0;
+  }
+  .planning-nav a {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+  }
+  .planning-nav a[aria-current] {
+    border-color: var(--green);
+  }
+}
+@media (max-width: 600px) {
+  .plan-chart td:last-child,
+  .plan-chart th:last-child {
+    display: none;
+  }
+  .plan-chart .num {
+    width: 4.5em;
+  }
+  .row-actions {
+    margin-left: 0;
+    width: 100%;
+  }
+  .editor .row-actions button {
+    flex: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .planning-nav a {
+    transition: none;
+  }
+}

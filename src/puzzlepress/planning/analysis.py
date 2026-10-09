@@ -1038,8 +1038,11 @@ class PlanAnalysis:
             for word in matched_words:
                 if word.search:
                     assigned.setdefault(word.theme, set()).add(word.search)
+        minimum_words = min((s.level.words.min for s in self.levels), default=None)
         rows: list[dict[str, object]] = []
         for info in self.pools:
+            theme = self.themes.get(info.pool.theme)
+            allocated = self.allocation(theme) if theme else 0
             sources: dict[str, int] = {}
             for word in info.words:
                 sources[word.source.value] = sources.get(word.source.value, 0) + 1
@@ -1055,6 +1058,10 @@ class PlanAnalysis:
                     "duplicates": sum(w.duplicate_of is not None for w in info.words),
                     "shared": sum(shared[f] > 1 for f in info.forms),
                     "assigned": len(assigned.get(info.pool.theme, set())),
+                    # Distinct words the allocation needs within the reuse limit (pool_thin).
+                    "needed": math.ceil(allocated * minimum_words / self.max_reuse)
+                    if allocated and minimum_words
+                    else None,
                     "sources": dict(sorted(sources.items())),
                     "words": [
                         {

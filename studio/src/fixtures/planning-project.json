@@ -1,0 +1,35 @@
+{
+  "key": "automotive",
+  "revision": "sha256-209f3fd646b2bf5cfd97f646c2c7868ba376edf9e11bf262bb09a02a5f3759e0",
+  "source": {
+    "schema_version": 1,
+    "book": {
+      "id": "automotive-word-search",
+      "title": "Automotive Word Search",
+      "language": "en-US",
+      "subtitle": null,
+      "description": "A tiny source fixture for the PuzzlePress foundation.",
+      "author": null,
+      "imprint": null
+    },
+    "build": {
+      "seed": "2026"
+    },
+    "content": {
+      "items": [
+        "ENGINE",
+        "CLUTCH",
+        "PISTON"
+      ]
+    },
+    "output": {
+      "directory": "../../build/automotive-word-search"
+    }
+  },
+  "identity": "pp1-sha256-7c31474f1712b985957d7edaa7ecff27f702060320eadbee7343819e13507bf2",
+  "engine_version": "0.1.0",
+  "validation": {
+    "valid": true,
+    "issues": []
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "key": "automotive",
+  "book": {
+    "id": "automotive-word-search",
+    "title": "Automotive Word Search"
+  },
+  "revision": null,
+  "source": null,
+  "report": null,
+  "options": {
+    "print_profiles": [
+      {
+        "id": "paperback-8.5x11",
+        "description": "8.5 x 11 in paperback interior, black ink on white paper, no bleed"
+      },
+      {
+        "id": "paperback-8.5x11-cream",
+        "description": "8.5 x 11 in paperback interior, black ink on cream paper, no bleed"
+      }
+    ],
+    "puzzle_types": [
+      "word_search"
+    ],
+    "directions": [
+      "right",
+      "left",
+      "down",
+      "up",
+      "down-right",
+      "down-left",
+      "up-right",
+      "up-left"
+    ]
+  }
+}

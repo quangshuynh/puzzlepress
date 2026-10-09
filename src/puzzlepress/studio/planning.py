@@ -10,6 +10,7 @@ Approval records the planning identity of the saved plan the author reviewed.
 from pathlib import Path
 
 from puzzlepress.errors import ProjectError
+from puzzlepress.interior.spec import PROFILES
 from puzzlepress.models import Project
 from puzzlepress.planning import (
     ApprovalError,
@@ -22,7 +23,10 @@ from puzzlepress.planning import (
     withdraw_approval,
     write_planning,
 )
+from puzzlepress.planning.feasibility import SUPPORTED_PUZZLE_TYPES
+from puzzlepress.planning.model import direction_name
 from puzzlepress.planning.store import LoadedPlan
+from puzzlepress.wordsearch import Direction
 
 from .service import StudioError, StudioService
 
@@ -32,6 +36,17 @@ ERRORS = {
     "save_unconfirmed": 503,
     "identity_mismatch": 409,
     "not_ready": 409,
+}
+
+
+# Choices Python supports today, for Studio's selects (never a second rule set).
+OPTIONS = {
+    "print_profiles": [
+        {"id": spec.profile_id, "description": spec.description}
+        for spec in sorted(PROFILES.values(), key=lambda s: s.profile_id)
+    ],
+    "puzzle_types": list(SUPPORTED_PUZZLE_TYPES),
+    "directions": [direction_name(d) for d in Direction],
 }
 
 
@@ -59,6 +74,7 @@ class PlanningService:
             "revision": plan.revision,
             "source": plan.document.to_dict() if plan.document else None,
             "report": report.to_dict() if report else None,
+            "options": OPTIONS,
         }
 
     def status(self, key: str) -> dict[str, object]:
