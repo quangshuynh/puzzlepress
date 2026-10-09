@@ -1,6 +1,7 @@
 """Serve disposable project copies for browser acceptance, never authored books."""
 
 import shutil
+import sys
 import tempfile
 from pathlib import Path
 
@@ -9,13 +10,29 @@ import uvicorn
 from puzzlepress.studio.server import create_app
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tests"))
+
+from planning_helpers import complete_plan, document  # noqa: E402
+
+from puzzlepress.planning import write_planning  # noqa: E402
 
 with tempfile.TemporaryDirectory(prefix="puzzlepress-browser-") as directory:
     books = Path(directory) / "books"
-    for key in ("garden-demo", "automotive", "composition-demo"):
+    for key in ("garden-demo", "composition-demo"):
         target = books / key
         target.mkdir(parents=True)
         shutil.copyfile(ROOT / "books" / key / "book.yaml", target / "book.yaml")
+    # Planning: the automotive demo with its plan, and a synthetic plan ready for approval.
+    shutil.copytree(ROOT / "books" / "automotive", books / "automotive")
+    target = books / "planning-ready"
+    target.mkdir()
+    (target / "book.yaml").write_text(
+        (ROOT / "books/automotive/book.yaml")
+        .read_text(encoding="utf-8")
+        .replace("Automotive Word Search", "Planning Acceptance Book"),
+        encoding="utf-8",
+    )
+    write_planning(target, document(complete_plan()), None)  # SYNTHETIC test plan.
     target = books / "editor-demo"
     target.mkdir()
     shutil.copyfile(ROOT / "books/garden-demo/book.yaml", target / "book.yaml")
