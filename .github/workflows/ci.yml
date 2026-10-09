@@ -28,6 +28,7 @@ jobs:
       - run: puzzlepress book plan books/composition-demo --json
       - run: puzzlepress validate books/cover-demo
       - run: puzzlepress validate books/publishing-demo
+      - run: puzzlepress plan validate books/automotive
 
   print:
     # One interior build per OS; the PDF unit tests already run in every matrix entry.
@@ -286,6 +287,106 @@ jobs:
         run: |
           cmp ci-out/publishing.zip ci-again/publishing.zip
           for f in ci-out/publishing/*; do cmp "$f" "ci-again/publishing/$(basename "$f")"; done
+      - name: Source fixtures unchanged
+        run: sha256sum -c fixtures.txt
+
+  planning:
+    # Planning reads planning.yaml beside book.yaml and never touches production.
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install -e .
+      - name: Record fixture digests
+        run: sha256sum books/*/book.yaml books/automotive/planning.yaml > fixtures.txt
+      - name: Demo plan validates and reports honestly (not ready, cap unsupported)
+        run: |
+          puzzlepress plan validate books/automotive
+          puzzlepress plan inspect books/automotive
+          set +e
+          puzzlepress plan report books/automotive --json > report.json
+          status=$?
+          set -e
+          test "$status" -eq 1
+          python - <<'EOF'
+          import json
+          r = json.load(open("report.json"))
+          assert r["state"] == "needs_research", r["state"]
+          assert r["approval"]["status"] == "none"
+          errors = {f["code"] for f in r["findings"] if f["severity"] == "error"}
+          assert {"question_blocking_open", "puzzles_unspecified", "puzzle_count_unsupported",
+                  "print_profile_undecided"} == errors, errors
+          items = {i["code"]: i["status"] for i in r["feasibility"]}
+          assert items["puzzle_count"] == "unsupported" and items["word_fit"] == "verified"
+          assert items["generation"] == "unknown" and items["page_count"] == "estimate"
+          assert r["page_estimate"] == {"minimum": 94, "maximum": 96, "parts": {
+              "puzzles": 60, "solutions": 30, "front_matter": 3, "back_matter": 1}}
+          EOF
+      - name: Report bytes and identity are stable across processes, directories and hash seeds
+        run: |
+          for seed in 0 1 4242; do
+            PYTHONHASHSEED=$seed puzzlepress plan report books/automotive --json > "r-$seed.json" || true
+          done
+          mkdir elsewhere && (cd elsewhere && puzzlepress plan report ../books/automotive --json > ../r-cwd.json || true)
+          cmp r-0.json r-1.json && cmp r-0.json r-4242.json && cmp r-0.json r-cwd.json
+      - name: Legacy projects have no plan and are unaffected
+        run: |
+          set +e
+          puzzlepress plan inspect books/garden-demo 2> legacy.txt
+          status=$?
+          set -e
+          test "$status" -eq 1 && grep -q "No planning document" legacy.txt
+          puzzlepress validate books/garden-demo
+      - name: Approval binds to the reviewed plan; edits stale it; production is untouched
+        run: |
+          cp -r books/composition-demo ci-plan
+          sed -i.bak 's#../../build/composition-demo#../build/ci-plan#' ci-plan/book.yaml && rm ci-plan/book.yaml.bak
+          puzzlepress book build ci-plan --output plan-out
+          sha256sum plan-out/interior.pdf plan-out/interior.json ci-plan/book.yaml > built.txt
+          python - <<'EOF'
+          # SYNTHETIC: a test plan, not an author's plan.
+          import sys
+          sys.path.insert(0, "tests")
+          from planning_helpers import complete_plan, document
+          from puzzlepress.planning import write_planning
+          write_planning("ci-plan", document(complete_plan()), None)
+          EOF
+          identity=$(puzzlepress plan report ci-plan --json | python -c "import json,sys; print(json.load(sys.stdin)['planning_identity'])")
+          set +e
+          puzzlepress plan approve ci-plan --identity pp1-planning-sha256-0000000000000000000000000000000000000000000000000000000000000000
+          refused=$?
+          set -e
+          test "$refused" -eq 1
+          puzzlepress plan approve ci-plan --identity "$identity"
+          puzzlepress plan report ci-plan --json > approved.json
+          puzzlepress plan handoff ci-plan --json > handoff.json
+          puzzlepress plan handoff ci-plan --json | cmp - handoff.json
+          sed -i.bak 's/Two themes\./Two themes, edited./' ci-plan/planning.yaml && rm ci-plan/planning.yaml.bak
+          puzzlepress plan report ci-plan --json > stale.json || true
+          python - <<'EOF'
+          import json
+          a, s, h = (json.load(open(f)) for f in ("approved.json", "stale.json", "handoff.json"))
+          assert a["state"] == "approved" and a["approval"]["status"] == "current"
+          assert s["approval"]["status"] == "stale" and s["state"] == "ready_for_approval"
+          assert h["approved_identity"] == a["planning_identity"] and len(h["puzzles"]) == 12
+          EOF
+          set +e
+          puzzlepress plan handoff ci-plan > /dev/null 2>&1
+          stale=$?
+          set -e
+          test "$stale" -eq 1
+          puzzlepress book build ci-plan --output plan-again
+          cmp plan-out/interior.pdf plan-again/interior.pdf
+          cmp plan-out/interior.json plan-again/interior.json
+          sha256sum -c built.txt
       - name: Source fixtures unchanged
         run: sha256sum -c fixtures.txt
 
