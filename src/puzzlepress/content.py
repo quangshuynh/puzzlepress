@@ -5,6 +5,14 @@ from dataclasses import asdict, dataclass
 from .wordsearch.models import GenerationConfig, TargetEntry
 
 PIPELINE_VERSION = 1
+# Schema caps for a project's word_search section. They bound generation work (at
+# most MAX_PUZZLES x 1,000,000 candidate checks per batch); planning reports a
+# larger plan against them rather than changing them (docs/book-planning.md).
+MAX_BANKS = 20
+MAX_BANK_ENTRIES = 100
+MAX_PROFILES = 20
+MAX_PUZZLES = 20
+MAX_PUZZLE_TARGETS = 100
 
 
 @dataclass(frozen=True)

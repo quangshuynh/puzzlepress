@@ -68,10 +68,13 @@ _ProjectLoader.add_implicit_resolver(
 )
 
 
-def parse_project(source: str) -> Project:
-    """Decode and validate one YAML document; return immutable normalized values."""
+def load_yaml(source: str) -> object:
+    """Decode one restricted YAML document (no aliases, tags or duplicate keys).
+
+    Shared by project and planning sources; raises ProjectError on malformed YAML.
+    """
     try:
-        data = yaml.load(source, Loader=_ProjectLoader)
+        return yaml.load(source, Loader=_ProjectLoader)
     except (yaml.YAMLError, RecursionError, ValueError) as error:
         mark = getattr(error, "problem_mark", None)
         message = getattr(error, "problem", None) or "Malformed or excessively nested YAML."
@@ -86,7 +89,11 @@ def parse_project(source: str) -> Project:
                 ),
             )
         ) from error
-    return validate_project(data).require_project()
+
+
+def parse_project(source: str) -> Project:
+    """Decode and validate one YAML document; return immutable normalized values."""
+    return validate_project(load_yaml(source)).require_project()
 
 
 def dump_project(project: Project) -> str:

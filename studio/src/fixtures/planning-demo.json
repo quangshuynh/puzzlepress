@@ -1,0 +1,4586 @@
+{
+  "key": "automotive",
+  "book": {
+    "id": "automotive-word-search",
+    "title": "Automotive Word Search"
+  },
+  "revision": "sha256-75a412a008c0918f808602edf0f917ea1a5156a07e603fc26afadd4cea30565f",
+  "source": {
+    "planning_version": 1,
+    "concept": {
+      "summary": "An adult word-search book about how cars work and how people look after them: engines, maintenance, tools, vehicle systems, motorsport, automotive history and driving culture, each puzzle built from factual, generic automotive terms.",
+      "subject": "Automotive technology, maintenance and car culture",
+      "reader_experience": "Relaxed solving with vocabulary a car enthusiast recognizes; difficulty rises gently from warm-up grids to larger challenge grids.",
+      "scope": "Seven themes on vehicle technology, care and culture. No brand or model names."
+    },
+    "positioning": {
+      "primary_audience": "Adult car enthusiasts (working assumption, not validated)",
+      "secondary_audience": "Automotive students and hobby mechanics (candidate, not validated)",
+      "candidate_audiences": [
+        "Car enthusiasts",
+        "Mechanics",
+        "Automotive students",
+        "General vehicle hobbyists",
+        "Adults who enjoy themed word searches"
+      ],
+      "familiarity": "enthusiast",
+      "tone": "Knowledgeable and friendly, with plain factual theme titles",
+      "use_case": "Leisure solving at home or while travelling",
+      "main_benefit": "Themed puzzles built from real automotive vocabulary rather than general car words.",
+      "differentiation": "Hypothesis to test: themes organized around how vehicles work and are maintained, using technical terms, rather than a general mix of car-related words.",
+      "evidence": [
+        "r-audience-hypothesis"
+      ],
+      "claims": []
+    },
+    "structure": {
+      "puzzle_type": "word_search",
+      "target_puzzles": 60,
+      "print_profile": null,
+      "solutions": "end",
+      "solutions_per_page": 2,
+      "front_matter_pages": 3,
+      "back_matter_pages": 1
+    },
+    "difficulty": {
+      "strategy": "gradual",
+      "levels": [
+        {
+          "id": "warm-up",
+          "label": "Warm-up",
+          "profile": null,
+          "width": 13,
+          "height": 13,
+          "directions": [
+            "right",
+            "down",
+            "down-right"
+          ],
+          "words": {
+            "min": 10,
+            "max": 12
+          },
+          "notes": null
+        },
+        {
+          "id": "standard",
+          "label": "Standard",
+          "profile": null,
+          "width": 15,
+          "height": 15,
+          "directions": [
+            "right",
+            "down",
+            "down-right",
+            "up-right"
+          ],
+          "words": {
+            "min": 12,
+            "max": 15
+          },
+          "notes": null
+        },
+        {
+          "id": "challenge",
+          "label": "Challenge",
+          "profile": null,
+          "width": 17,
+          "height": 17,
+          "directions": [
+            "right",
+            "left",
+            "down",
+            "up",
+            "down-right",
+            "down-left",
+            "up-right",
+            "up-left"
+          ],
+          "words": {
+            "min": 15,
+            "max": 18
+          },
+          "notes": null
+        }
+      ]
+    },
+    "themes": [
+      {
+        "id": "automotive",
+        "label": "Automotive",
+        "parent": null,
+        "required": false,
+        "puzzles": null,
+        "notes": null
+      },
+      {
+        "id": "engines",
+        "label": "Engines & Powertrains",
+        "parent": "automotive",
+        "required": true,
+        "puzzles": 10,
+        "notes": null
+      },
+      {
+        "id": "maintenance",
+        "label": "Maintenance & Repair",
+        "parent": "automotive",
+        "required": true,
+        "puzzles": 10,
+        "notes": null
+      },
+      {
+        "id": "tools",
+        "label": "Tools & Workshop",
+        "parent": "automotive",
+        "required": false,
+        "puzzles": 8,
+        "notes": null
+      },
+      {
+        "id": "systems",
+        "label": "Vehicle Systems",
+        "parent": "automotive",
+        "required": true,
+        "puzzles": 10,
+        "notes": null
+      },
+      {
+        "id": "motorsport",
+        "label": "Motorsport",
+        "parent": "automotive",
+        "required": false,
+        "puzzles": 8,
+        "notes": null
+      },
+      {
+        "id": "history",
+        "label": "Automotive History",
+        "parent": "automotive",
+        "required": false,
+        "puzzles": 6,
+        "notes": null
+      },
+      {
+        "id": "driving",
+        "label": "Driving & Road Culture",
+        "parent": "automotive",
+        "required": false,
+        "puzzles": 8,
+        "notes": null
+      }
+    ],
+    "vocabulary": [
+      {
+        "theme": "engines",
+        "source": "ai_generated",
+        "reference": null,
+        "entries": [
+          {
+            "word": "PISTON",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CYLINDER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CRANKSHAFT",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CAMSHAFT",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CONNECTING ROD",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "VALVE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SPARK PLUG",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "IGNITION COIL",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "FUEL INJECTOR",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "THROTTLE BODY",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "INTAKE MANIFOLD",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "EXHAUST MANIFOLD",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "TURBOCHARGER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SUPERCHARGER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "INTERCOOLER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "TIMING BELT",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "TIMING CHAIN",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "FLYWHEEL",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CLUTCH",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "GEARBOX",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "TRANSMISSION",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "DIFFERENTIAL",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "DRIVESHAFT",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "AXLE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "TORQUE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "HORSEPOWER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "COMPRESSION",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "COMBUSTION",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "DIESEL",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "HYBRID",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "ELECTRIC MOTOR",
+            "source": null,
+            "reference": null,
+            "note": null
+          }
+        ]
+      },
+      {
+        "theme": "maintenance",
+        "source": "ai_generated",
+        "reference": null,
+        "entries": [
+          {
+            "word": "OIL CHANGE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "OIL FILTER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "AIR FILTER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CABIN FILTER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "COOLANT",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "ANTIFREEZE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "BRAKE FLUID",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "BRAKE PADS",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "ROTORS",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "TIRE ROTATION",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "WHEEL ALIGNMENT",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "TREAD DEPTH",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "TIRE PRESSURE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "WIPER BLADES",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "BATTERY",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SPARK PLUG",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SERPENTINE BELT",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "INSPECTION",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "TUNE UP",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "DIAGNOSTICS",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SERVICE INTERVAL",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "MILEAGE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "GASKET",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "RADIATOR",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "THERMOSTAT",
+            "source": null,
+            "reference": null,
+            "note": null
+          }
+        ]
+      },
+      {
+        "theme": "tools",
+        "source": "ai_generated",
+        "reference": null,
+        "entries": [
+          {
+            "word": "WRENCH",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SOCKET",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "RATCHET",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "TORQUE WRENCH",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SCREWDRIVER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "PLIERS",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "HAMMER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "MALLET",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "FLOOR JACK",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "JACK STANDS",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CREEPER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "MULTIMETER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "FEELER GAUGE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "OIL DRAIN PAN",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "FUNNEL",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "PRY BAR",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "IMPACT DRIVER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "BREAKER BAR",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "VISE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "WORKBENCH",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "TOOLBOX",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "FLASHLIGHT",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "GLOVES",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SAFETY GLASSES",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "COMPRESSOR",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "TIRE GAUGE",
+            "source": null,
+            "reference": null,
+            "note": null
+          }
+        ]
+      },
+      {
+        "theme": "systems",
+        "source": "ai_generated",
+        "reference": null,
+        "entries": [
+          {
+            "word": "BRAKES",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "BRAKE PADS",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CALIPER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "MASTER CYLINDER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "ABS",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "STEERING",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "RACK AND PINION",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "POWER STEERING",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SUSPENSION",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SHOCK ABSORBER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "STRUT",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "COIL SPRING",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SWAY BAR",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "ALTERNATOR",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "STARTER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "BATTERY",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "FUSE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "RELAY",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "WIRING HARNESS",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "HEADLIGHT",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "RADIATOR",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "WATER PUMP",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "THERMOSTAT",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "FUEL PUMP",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "FUEL TANK",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "EXHAUST",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "MUFFLER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CATALYTIC CONVERTER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SENSOR",
+            "source": null,
+            "reference": null,
+            "note": null
+          }
+        ]
+      },
+      {
+        "theme": "motorsport",
+        "source": "ai_generated",
+        "reference": null,
+        "entries": [
+          {
+            "word": "RACETRACK",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "PIT STOP",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "PIT LANE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "GRID",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "POLE POSITION",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CHICANE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "HAIRPIN",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "APEX",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SLIPSTREAM",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "DOWNFORCE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SPOILER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SLICKS",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "RALLY",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "DRAG RACE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "ENDURANCE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CHECKERED FLAG",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "PADDOCK",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "QUALIFYING",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "OVERTAKE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SAFETY CAR",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "STEWARD",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "HELMET",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "ROLL CAGE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "KART",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SPRINT",
+            "source": null,
+            "reference": null,
+            "note": null
+          }
+        ]
+      },
+      {
+        "theme": "history",
+        "source": "ai_generated",
+        "reference": null,
+        "entries": [
+          {
+            "word": "HORSELESS CARRIAGE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "STEAM CAR",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "ASSEMBLY LINE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "MODEL YEAR",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "COACHBUILDER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "RUNNING BOARD",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "HAND CRANK",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CARBURETOR",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CHROME",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "TAILFINS",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "GAS STATION",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "ROAD TRIP",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CLASSIC CAR",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "VINTAGE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "RESTORATION",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "PATENT",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "PROTOTYPE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "ROADSTER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "COUPE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SEDAN",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CONVERTIBLE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "STATION WAGON",
+            "source": null,
+            "reference": null,
+            "note": null
+          }
+        ]
+      },
+      {
+        "theme": "driving",
+        "source": "ai_generated",
+        "reference": null,
+        "entries": [
+          {
+            "word": "ROAD TRIP",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "HIGHWAY",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "INTERSTATE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "ROUNDABOUT",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "MERGE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "LANE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SPEED LIMIT",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CRUISE CONTROL",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "PARALLEL PARKING",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CAR SHOW",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CAR WASH",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "DRIVE IN",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CAR CLUB",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "MOTEL",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "ROADSIDE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "DETOUR",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "COMMUTE",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "CARPOOL",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "ODOMETER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SPEEDOMETER",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "DASHBOARD",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "GLOVEBOX",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "TURN SIGNAL",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "MIRROR",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "SEAT BELT",
+            "source": null,
+            "reference": null,
+            "note": null
+          },
+          {
+            "word": "NAVIGATION",
+            "source": null,
+            "reference": null,
+            "note": null
+          }
+        ]
+      }
+    ],
+    "puzzles": [
+      {
+        "id": "engines-01",
+        "theme": "engines",
+        "level": "warm-up",
+        "title": "Under the Hood",
+        "words": [
+          "PISTON",
+          "CYLINDER",
+          "CRANKSHAFT",
+          "CAMSHAFT",
+          "VALVE",
+          "SPARK PLUG",
+          "FLYWHEEL",
+          "TIMING BELT",
+          "TORQUE",
+          "AXLE"
+        ],
+        "notes": null
+      },
+      {
+        "id": "maintenance-01",
+        "theme": "maintenance",
+        "level": "warm-up",
+        "title": "Service Day",
+        "words": [
+          "OIL CHANGE",
+          "OIL FILTER",
+          "AIR FILTER",
+          "COOLANT",
+          "BRAKE FLUID",
+          "WIPER BLADES",
+          "BATTERY",
+          "RADIATOR",
+          "GASKET",
+          "INSPECTION"
+        ],
+        "notes": null
+      },
+      {
+        "id": "tools-01",
+        "theme": "tools",
+        "level": "warm-up",
+        "title": "In the Toolbox",
+        "words": [
+          "WRENCH",
+          "SOCKET",
+          "RATCHET",
+          "PLIERS",
+          "HAMMER",
+          "SCREWDRIVER",
+          "FLOOR JACK",
+          "CREEPER",
+          "FUNNEL",
+          "VISE"
+        ],
+        "notes": null
+      },
+      {
+        "id": "systems-01",
+        "theme": "systems",
+        "level": "warm-up",
+        "title": "Stop and Steer",
+        "words": [
+          "BRAKES",
+          "CALIPER",
+          "STEERING",
+          "SUSPENSION",
+          "STRUT",
+          "COIL SPRING",
+          "SWAY BAR",
+          "ALTERNATOR",
+          "STARTER",
+          "FUSE"
+        ],
+        "notes": null
+      },
+      {
+        "id": "motorsport-01",
+        "theme": "motorsport",
+        "level": "warm-up",
+        "title": "Race Day",
+        "words": [
+          "RACETRACK",
+          "PIT STOP",
+          "GRID",
+          "CHICANE",
+          "HAIRPIN",
+          "APEX",
+          "SPOILER",
+          "RALLY",
+          "PADDOCK",
+          "HELMET"
+        ],
+        "notes": null
+      },
+      {
+        "id": "history-01",
+        "theme": "history",
+        "level": "warm-up",
+        "title": "Early Motoring",
+        "words": [
+          "STEAM CAR",
+          "ASSEMBLY LINE",
+          "HAND CRANK",
+          "RUNNING BOARD",
+          "CARBURETOR",
+          "ROADSTER",
+          "COUPE",
+          "SEDAN",
+          "PATENT",
+          "PROTOTYPE"
+        ],
+        "notes": null
+      },
+      {
+        "id": "driving-01",
+        "theme": "driving",
+        "level": "warm-up",
+        "title": "Open Road",
+        "words": [
+          "ROAD TRIP",
+          "HIGHWAY",
+          "ROUNDABOUT",
+          "MERGE",
+          "SPEED LIMIT",
+          "CAR WASH",
+          "MOTEL",
+          "DETOUR",
+          "ODOMETER",
+          "SEAT BELT"
+        ],
+        "notes": null
+      }
+    ],
+    "constraints": {
+      "min_letters": 4,
+      "max_letters": 15,
+      "max_word_reuse": 2,
+      "prohibited_words": [],
+      "notes": [
+        "Generic terms only. No brand, model, team or driver names.",
+        "Factual terminology. No slang that could read as offensive."
+      ]
+    },
+    "questions": [
+      {
+        "id": "q-audience",
+        "question": "Should the primary audience be adult car enthusiasts, or automotive students?",
+        "blocking": true,
+        "resolution": null
+      },
+      {
+        "id": "q-comparables",
+        "question": "Which comparable automotive word-search books exist, and what puzzle counts, page counts and trim sizes do they use? Record only books a person has read.",
+        "blocking": true,
+        "resolution": null
+      },
+      {
+        "id": "q-puzzle-cap",
+        "question": "Projects hold at most 20 puzzles today. Raise the cap for a 60-puzzle book in production, or plan a smaller first edition?",
+        "blocking": true,
+        "resolution": null
+      },
+      {
+        "id": "q-paper",
+        "question": "White or cream interior paper?",
+        "blocking": false,
+        "resolution": null
+      }
+    ],
+    "research": [
+      {
+        "id": "r-kdp-minimum",
+        "question": "q-puzzle-cap",
+        "observation": "KDP paperbacks need at least 24 pages.",
+        "evidence": "unverified_source",
+        "confidence": null,
+        "source": {
+          "citation": "KDP help, Paperback Submission Guidelines, as recorded in PuzzlePress docs/cover.md (KDP provenance, read 2026-10-07). Not re-read for this book.",
+          "url": null,
+          "type": "official"
+        },
+        "observed": null,
+        "relevance": "Even a 20-puzzle first edition clears the minimum with solutions and front matter.",
+        "notes": null,
+        "decision": null
+      },
+      {
+        "id": "r-spine-text",
+        "question": null,
+        "observation": "Spine text needs at least 80 pages under the stricter reading of KDP's wording (\"more than 79\" and \"at least 79\").",
+        "evidence": "unverified_source",
+        "confidence": null,
+        "source": {
+          "citation": "KDP help, Create a Paperback Cover, as recorded in PuzzlePress docs/cover.md (KDP provenance, read 2026-10-07). Not re-read for this book.",
+          "url": null,
+          "type": "official"
+        },
+        "observed": null,
+        "relevance": "Sixty puzzles with two solutions a page are estimated near 95 pages.",
+        "notes": null,
+        "decision": "Plan two solutions a page so a full book can carry spine text."
+      },
+      {
+        "id": "r-audience-hypothesis",
+        "question": "q-audience",
+        "observation": "Car enthusiasts may prefer technical vocabulary to general car words.",
+        "evidence": "hypothesis",
+        "confidence": "low",
+        "source": {
+          "citation": null,
+          "url": null,
+          "type": null
+        },
+        "observed": null,
+        "relevance": null,
+        "notes": null,
+        "decision": "Work from enthusiasts as the primary audience until this is researched."
+      },
+      {
+        "id": "r-generic-terms",
+        "question": null,
+        "observation": "Brand, model and team names may be trademarks; generic technical terms avoid that question entirely.",
+        "evidence": "preference",
+        "confidence": null,
+        "source": {
+          "citation": null,
+          "url": null,
+          "type": null
+        },
+        "observed": null,
+        "relevance": null,
+        "notes": null,
+        "decision": "Use generic terms only."
+      }
+    ],
+    "comparables": [],
+    "approval": null
+  },
+  "report": {
+    "report_version": 1,
+    "ruleset": {
+      "id": "puzzlepress-planning",
+      "version": 1
+    },
+    "book": {
+      "id": "automotive-word-search",
+      "title": "Automotive Word Search"
+    },
+    "planning_identity": "pp1-planning-sha256-aa540aeb359852d035b7dcc779fcc86ab288dae2acd65aa8783e7bf377c91a47",
+    "state": "needs_research",
+    "statement": "Needs research: blocking questions or unattributed evidence remain.",
+    "gates": [
+      {
+        "gate": "definition",
+        "label": "Blueprint defined",
+        "passed": true,
+        "blocking": []
+      },
+      {
+        "gate": "research",
+        "label": "Research and evidence in order",
+        "passed": false,
+        "blocking": [
+          "question_blocking_open"
+        ]
+      },
+      {
+        "gate": "content",
+        "label": "Content planned",
+        "passed": false,
+        "blocking": [
+          "puzzles_unspecified"
+        ]
+      },
+      {
+        "gate": "structure",
+        "label": "References and vocabulary valid",
+        "passed": true,
+        "blocking": []
+      },
+      {
+        "gate": "feasibility",
+        "label": "Producible with current PuzzlePress",
+        "passed": false,
+        "blocking": [
+          "puzzle_count_unsupported"
+        ]
+      },
+      {
+        "gate": "decisions",
+        "label": "Author decisions made",
+        "passed": false,
+        "blocking": [
+          "print_profile_undecided"
+        ]
+      }
+    ],
+    "approval": {
+      "status": "none",
+      "approved_identity": null,
+      "counts": false
+    },
+    "summary": {
+      "target_puzzles": 60,
+      "allocated_puzzles": 60,
+      "specified_puzzles": 7,
+      "themes": 8,
+      "levels": 3,
+      "candidate_words": 184,
+      "findings": {
+        "error": 6,
+        "warning": 12,
+        "info": 10
+      }
+    },
+    "allocation": [
+      {
+        "id": "automotive",
+        "label": "Automotive",
+        "parent": null,
+        "depth": 0,
+        "required": false,
+        "allocated": null,
+        "specified": 0,
+        "share": 0.0
+      },
+      {
+        "id": "engines",
+        "label": "Engines & Powertrains",
+        "parent": "automotive",
+        "depth": 1,
+        "required": true,
+        "allocated": 10,
+        "specified": 1,
+        "share": 0.1667
+      },
+      {
+        "id": "maintenance",
+        "label": "Maintenance & Repair",
+        "parent": "automotive",
+        "depth": 1,
+        "required": true,
+        "allocated": 10,
+        "specified": 1,
+        "share": 0.1667
+      },
+      {
+        "id": "tools",
+        "label": "Tools & Workshop",
+        "parent": "automotive",
+        "depth": 1,
+        "required": false,
+        "allocated": 8,
+        "specified": 1,
+        "share": 0.1333
+      },
+      {
+        "id": "systems",
+        "label": "Vehicle Systems",
+        "parent": "automotive",
+        "depth": 1,
+        "required": true,
+        "allocated": 10,
+        "specified": 1,
+        "share": 0.1667
+      },
+      {
+        "id": "motorsport",
+        "label": "Motorsport",
+        "parent": "automotive",
+        "depth": 1,
+        "required": false,
+        "allocated": 8,
+        "specified": 1,
+        "share": 0.1333
+      },
+      {
+        "id": "history",
+        "label": "Automotive History",
+        "parent": "automotive",
+        "depth": 1,
+        "required": false,
+        "allocated": 6,
+        "specified": 1,
+        "share": 0.1
+      },
+      {
+        "id": "driving",
+        "label": "Driving & Road Culture",
+        "parent": "automotive",
+        "depth": 1,
+        "required": false,
+        "allocated": 8,
+        "specified": 1,
+        "share": 0.1333
+      }
+    ],
+    "levels": [
+      {
+        "id": "warm-up",
+        "label": "Warm-up",
+        "rank": 1,
+        "origin": "plan",
+        "profile": null,
+        "width": 13,
+        "height": 13,
+        "directions": [
+          "right",
+          "down",
+          "down-right"
+        ],
+        "words": {
+          "min": 10,
+          "max": 12
+        },
+        "puzzles": 7,
+        "supported": true
+      },
+      {
+        "id": "standard",
+        "label": "Standard",
+        "rank": 2,
+        "origin": "plan",
+        "profile": null,
+        "width": 15,
+        "height": 15,
+        "directions": [
+          "right",
+          "down",
+          "down-right",
+          "up-right"
+        ],
+        "words": {
+          "min": 12,
+          "max": 15
+        },
+        "puzzles": 0,
+        "supported": true
+      },
+      {
+        "id": "challenge",
+        "label": "Challenge",
+        "rank": 3,
+        "origin": "plan",
+        "profile": null,
+        "width": 17,
+        "height": 17,
+        "directions": [
+          "right",
+          "left",
+          "down",
+          "up",
+          "down-right",
+          "down-left",
+          "up-right",
+          "up-left"
+        ],
+        "words": {
+          "min": 15,
+          "max": 18
+        },
+        "puzzles": 0,
+        "supported": true
+      }
+    ],
+    "progression": [
+      {
+        "id": "engines-01",
+        "title": "Under the Hood",
+        "theme": "engines",
+        "level": "warm-up",
+        "rank": 1,
+        "words": 10
+      },
+      {
+        "id": "maintenance-01",
+        "title": "Service Day",
+        "theme": "maintenance",
+        "level": "warm-up",
+        "rank": 1,
+        "words": 10
+      },
+      {
+        "id": "tools-01",
+        "title": "In the Toolbox",
+        "theme": "tools",
+        "level": "warm-up",
+        "rank": 1,
+        "words": 10
+      },
+      {
+        "id": "systems-01",
+        "title": "Stop and Steer",
+        "theme": "systems",
+        "level": "warm-up",
+        "rank": 1,
+        "words": 10
+      },
+      {
+        "id": "motorsport-01",
+        "title": "Race Day",
+        "theme": "motorsport",
+        "level": "warm-up",
+        "rank": 1,
+        "words": 10
+      },
+      {
+        "id": "history-01",
+        "title": "Early Motoring",
+        "theme": "history",
+        "level": "warm-up",
+        "rank": 1,
+        "words": 10
+      },
+      {
+        "id": "driving-01",
+        "title": "Open Road",
+        "theme": "driving",
+        "level": "warm-up",
+        "rank": 1,
+        "words": 10
+      }
+    ],
+    "vocabulary": [
+      {
+        "theme": "engines",
+        "label": "Engines & Powertrains",
+        "entries": 31,
+        "usable": 31,
+        "invalid": 0,
+        "duplicates": 0,
+        "shared": 1,
+        "assigned": 10,
+        "needed": 50,
+        "sources": {
+          "ai_generated": 31
+        },
+        "words": [
+          {
+            "word": "PISTON",
+            "search": "PISTON",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CYLINDER",
+            "search": "CYLINDER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CRANKSHAFT",
+            "search": "CRANKSHAFT",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CAMSHAFT",
+            "search": "CAMSHAFT",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CONNECTING ROD",
+            "search": "CONNECTINGROD",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "VALVE",
+            "search": "VALVE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SPARK PLUG",
+            "search": "SPARKPLUG",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": true
+          },
+          {
+            "word": "IGNITION COIL",
+            "search": "IGNITIONCOIL",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "FUEL INJECTOR",
+            "search": "FUELINJECTOR",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "THROTTLE BODY",
+            "search": "THROTTLEBODY",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "INTAKE MANIFOLD",
+            "search": "INTAKEMANIFOLD",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "EXHAUST MANIFOLD",
+            "search": "EXHAUSTMANIFOLD",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "TURBOCHARGER",
+            "search": "TURBOCHARGER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SUPERCHARGER",
+            "search": "SUPERCHARGER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "INTERCOOLER",
+            "search": "INTERCOOLER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "TIMING BELT",
+            "search": "TIMINGBELT",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "TIMING CHAIN",
+            "search": "TIMINGCHAIN",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "FLYWHEEL",
+            "search": "FLYWHEEL",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CLUTCH",
+            "search": "CLUTCH",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "GEARBOX",
+            "search": "GEARBOX",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "TRANSMISSION",
+            "search": "TRANSMISSION",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "DIFFERENTIAL",
+            "search": "DIFFERENTIAL",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "DRIVESHAFT",
+            "search": "DRIVESHAFT",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "AXLE",
+            "search": "AXLE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "TORQUE",
+            "search": "TORQUE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "HORSEPOWER",
+            "search": "HORSEPOWER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "COMPRESSION",
+            "search": "COMPRESSION",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "COMBUSTION",
+            "search": "COMBUSTION",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "DIESEL",
+            "search": "DIESEL",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "HYBRID",
+            "search": "HYBRID",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "ELECTRIC MOTOR",
+            "search": "ELECTRICMOTOR",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          }
+        ]
+      },
+      {
+        "theme": "maintenance",
+        "label": "Maintenance & Repair",
+        "entries": 25,
+        "usable": 25,
+        "invalid": 0,
+        "duplicates": 0,
+        "shared": 5,
+        "assigned": 10,
+        "needed": 50,
+        "sources": {
+          "ai_generated": 25
+        },
+        "words": [
+          {
+            "word": "OIL CHANGE",
+            "search": "OILCHANGE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "OIL FILTER",
+            "search": "OILFILTER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "AIR FILTER",
+            "search": "AIRFILTER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CABIN FILTER",
+            "search": "CABINFILTER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "COOLANT",
+            "search": "COOLANT",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "ANTIFREEZE",
+            "search": "ANTIFREEZE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "BRAKE FLUID",
+            "search": "BRAKEFLUID",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "BRAKE PADS",
+            "search": "BRAKEPADS",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": true
+          },
+          {
+            "word": "ROTORS",
+            "search": "ROTORS",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "TIRE ROTATION",
+            "search": "TIREROTATION",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "WHEEL ALIGNMENT",
+            "search": "WHEELALIGNMENT",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "TREAD DEPTH",
+            "search": "TREADDEPTH",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "TIRE PRESSURE",
+            "search": "TIREPRESSURE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "WIPER BLADES",
+            "search": "WIPERBLADES",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "BATTERY",
+            "search": "BATTERY",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": true
+          },
+          {
+            "word": "SPARK PLUG",
+            "search": "SPARKPLUG",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": true
+          },
+          {
+            "word": "SERPENTINE BELT",
+            "search": "SERPENTINEBELT",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "INSPECTION",
+            "search": "INSPECTION",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "TUNE UP",
+            "search": "TUNEUP",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "DIAGNOSTICS",
+            "search": "DIAGNOSTICS",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SERVICE INTERVAL",
+            "search": "SERVICEINTERVAL",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "MILEAGE",
+            "search": "MILEAGE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "GASKET",
+            "search": "GASKET",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "RADIATOR",
+            "search": "RADIATOR",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": true
+          },
+          {
+            "word": "THERMOSTAT",
+            "search": "THERMOSTAT",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": true
+          }
+        ]
+      },
+      {
+        "theme": "tools",
+        "label": "Tools & Workshop",
+        "entries": 26,
+        "usable": 26,
+        "invalid": 0,
+        "duplicates": 0,
+        "shared": 0,
+        "assigned": 10,
+        "needed": 40,
+        "sources": {
+          "ai_generated": 26
+        },
+        "words": [
+          {
+            "word": "WRENCH",
+            "search": "WRENCH",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SOCKET",
+            "search": "SOCKET",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "RATCHET",
+            "search": "RATCHET",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "TORQUE WRENCH",
+            "search": "TORQUEWRENCH",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SCREWDRIVER",
+            "search": "SCREWDRIVER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "PLIERS",
+            "search": "PLIERS",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "HAMMER",
+            "search": "HAMMER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "MALLET",
+            "search": "MALLET",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "FLOOR JACK",
+            "search": "FLOORJACK",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "JACK STANDS",
+            "search": "JACKSTANDS",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CREEPER",
+            "search": "CREEPER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "MULTIMETER",
+            "search": "MULTIMETER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "FEELER GAUGE",
+            "search": "FEELERGAUGE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "OIL DRAIN PAN",
+            "search": "OILDRAINPAN",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "FUNNEL",
+            "search": "FUNNEL",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "PRY BAR",
+            "search": "PRYBAR",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "IMPACT DRIVER",
+            "search": "IMPACTDRIVER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "BREAKER BAR",
+            "search": "BREAKERBAR",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "VISE",
+            "search": "VISE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "WORKBENCH",
+            "search": "WORKBENCH",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "TOOLBOX",
+            "search": "TOOLBOX",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "FLASHLIGHT",
+            "search": "FLASHLIGHT",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "GLOVES",
+            "search": "GLOVES",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SAFETY GLASSES",
+            "search": "SAFETYGLASSES",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "COMPRESSOR",
+            "search": "COMPRESSOR",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "TIRE GAUGE",
+            "search": "TIREGAUGE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          }
+        ]
+      },
+      {
+        "theme": "systems",
+        "label": "Vehicle Systems",
+        "entries": 29,
+        "usable": 29,
+        "invalid": 0,
+        "duplicates": 0,
+        "shared": 4,
+        "assigned": 10,
+        "needed": 50,
+        "sources": {
+          "ai_generated": 29
+        },
+        "words": [
+          {
+            "word": "BRAKES",
+            "search": "BRAKES",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "BRAKE PADS",
+            "search": "BRAKEPADS",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": true
+          },
+          {
+            "word": "CALIPER",
+            "search": "CALIPER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "MASTER CYLINDER",
+            "search": "MASTERCYLINDER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "ABS",
+            "search": "ABS",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "STEERING",
+            "search": "STEERING",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "RACK AND PINION",
+            "search": "RACKANDPINION",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "POWER STEERING",
+            "search": "POWERSTEERING",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SUSPENSION",
+            "search": "SUSPENSION",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SHOCK ABSORBER",
+            "search": "SHOCKABSORBER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "STRUT",
+            "search": "STRUT",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "COIL SPRING",
+            "search": "COILSPRING",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SWAY BAR",
+            "search": "SWAYBAR",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "ALTERNATOR",
+            "search": "ALTERNATOR",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "STARTER",
+            "search": "STARTER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "BATTERY",
+            "search": "BATTERY",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": true
+          },
+          {
+            "word": "FUSE",
+            "search": "FUSE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "RELAY",
+            "search": "RELAY",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "WIRING HARNESS",
+            "search": "WIRINGHARNESS",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "HEADLIGHT",
+            "search": "HEADLIGHT",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "RADIATOR",
+            "search": "RADIATOR",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": true
+          },
+          {
+            "word": "WATER PUMP",
+            "search": "WATERPUMP",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "THERMOSTAT",
+            "search": "THERMOSTAT",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": true
+          },
+          {
+            "word": "FUEL PUMP",
+            "search": "FUELPUMP",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "FUEL TANK",
+            "search": "FUELTANK",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "EXHAUST",
+            "search": "EXHAUST",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "MUFFLER",
+            "search": "MUFFLER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CATALYTIC CONVERTER",
+            "search": "CATALYTICCONVERTER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SENSOR",
+            "search": "SENSOR",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          }
+        ]
+      },
+      {
+        "theme": "motorsport",
+        "label": "Motorsport",
+        "entries": 25,
+        "usable": 25,
+        "invalid": 0,
+        "duplicates": 0,
+        "shared": 0,
+        "assigned": 10,
+        "needed": 40,
+        "sources": {
+          "ai_generated": 25
+        },
+        "words": [
+          {
+            "word": "RACETRACK",
+            "search": "RACETRACK",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "PIT STOP",
+            "search": "PITSTOP",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "PIT LANE",
+            "search": "PITLANE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "GRID",
+            "search": "GRID",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "POLE POSITION",
+            "search": "POLEPOSITION",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CHICANE",
+            "search": "CHICANE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "HAIRPIN",
+            "search": "HAIRPIN",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "APEX",
+            "search": "APEX",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SLIPSTREAM",
+            "search": "SLIPSTREAM",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "DOWNFORCE",
+            "search": "DOWNFORCE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SPOILER",
+            "search": "SPOILER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SLICKS",
+            "search": "SLICKS",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "RALLY",
+            "search": "RALLY",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "DRAG RACE",
+            "search": "DRAGRACE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "ENDURANCE",
+            "search": "ENDURANCE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CHECKERED FLAG",
+            "search": "CHECKEREDFLAG",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "PADDOCK",
+            "search": "PADDOCK",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "QUALIFYING",
+            "search": "QUALIFYING",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "OVERTAKE",
+            "search": "OVERTAKE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SAFETY CAR",
+            "search": "SAFETYCAR",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "STEWARD",
+            "search": "STEWARD",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "HELMET",
+            "search": "HELMET",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "ROLL CAGE",
+            "search": "ROLLCAGE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "KART",
+            "search": "KART",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SPRINT",
+            "search": "SPRINT",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          }
+        ]
+      },
+      {
+        "theme": "history",
+        "label": "Automotive History",
+        "entries": 22,
+        "usable": 22,
+        "invalid": 0,
+        "duplicates": 0,
+        "shared": 1,
+        "assigned": 10,
+        "needed": 30,
+        "sources": {
+          "ai_generated": 22
+        },
+        "words": [
+          {
+            "word": "HORSELESS CARRIAGE",
+            "search": "HORSELESSCARRIAGE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "STEAM CAR",
+            "search": "STEAMCAR",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "ASSEMBLY LINE",
+            "search": "ASSEMBLYLINE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "MODEL YEAR",
+            "search": "MODELYEAR",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "COACHBUILDER",
+            "search": "COACHBUILDER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "RUNNING BOARD",
+            "search": "RUNNINGBOARD",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "HAND CRANK",
+            "search": "HANDCRANK",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CARBURETOR",
+            "search": "CARBURETOR",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CHROME",
+            "search": "CHROME",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "TAILFINS",
+            "search": "TAILFINS",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "GAS STATION",
+            "search": "GASSTATION",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "ROAD TRIP",
+            "search": "ROADTRIP",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": true
+          },
+          {
+            "word": "CLASSIC CAR",
+            "search": "CLASSICCAR",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "VINTAGE",
+            "search": "VINTAGE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "RESTORATION",
+            "search": "RESTORATION",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "PATENT",
+            "search": "PATENT",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "PROTOTYPE",
+            "search": "PROTOTYPE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "ROADSTER",
+            "search": "ROADSTER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "COUPE",
+            "search": "COUPE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SEDAN",
+            "search": "SEDAN",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CONVERTIBLE",
+            "search": "CONVERTIBLE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "STATION WAGON",
+            "search": "STATIONWAGON",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          }
+        ]
+      },
+      {
+        "theme": "driving",
+        "label": "Driving & Road Culture",
+        "entries": 26,
+        "usable": 26,
+        "invalid": 0,
+        "duplicates": 0,
+        "shared": 1,
+        "assigned": 10,
+        "needed": 40,
+        "sources": {
+          "ai_generated": 26
+        },
+        "words": [
+          {
+            "word": "ROAD TRIP",
+            "search": "ROADTRIP",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": true
+          },
+          {
+            "word": "HIGHWAY",
+            "search": "HIGHWAY",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "INTERSTATE",
+            "search": "INTERSTATE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "ROUNDABOUT",
+            "search": "ROUNDABOUT",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "MERGE",
+            "search": "MERGE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "LANE",
+            "search": "LANE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SPEED LIMIT",
+            "search": "SPEEDLIMIT",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CRUISE CONTROL",
+            "search": "CRUISECONTROL",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "PARALLEL PARKING",
+            "search": "PARALLELPARKING",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CAR SHOW",
+            "search": "CARSHOW",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CAR WASH",
+            "search": "CARWASH",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "DRIVE IN",
+            "search": "DRIVEIN",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CAR CLUB",
+            "search": "CARCLUB",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "MOTEL",
+            "search": "MOTEL",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "ROADSIDE",
+            "search": "ROADSIDE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "DETOUR",
+            "search": "DETOUR",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "COMMUTE",
+            "search": "COMMUTE",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "CARPOOL",
+            "search": "CARPOOL",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "ODOMETER",
+            "search": "ODOMETER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SPEEDOMETER",
+            "search": "SPEEDOMETER",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "DASHBOARD",
+            "search": "DASHBOARD",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "GLOVEBOX",
+            "search": "GLOVEBOX",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "TURN SIGNAL",
+            "search": "TURNSIGNAL",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "MIRROR",
+            "search": "MIRROR",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "SEAT BELT",
+            "search": "SEATBELT",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          },
+          {
+            "word": "NAVIGATION",
+            "search": "NAVIGATION",
+            "source": "ai_generated",
+            "valid": true,
+            "duplicate": false,
+            "shared": false
+          }
+        ]
+      }
+    ],
+    "research": {
+      "notes": 4,
+      "evidence": {
+        "unknown": 0,
+        "verified_source": 0,
+        "unverified_source": 2,
+        "author_observation": 0,
+        "hypothesis": 1,
+        "preference": 1
+      },
+      "questions": 4,
+      "open_questions": 4,
+      "blocking_questions": 3,
+      "comparables": 0,
+      "sourced_comparables": 0
+    },
+    "feasibility": [
+      {
+        "code": "puzzle_type",
+        "label": "Puzzle type",
+        "status": "verified",
+        "detail": "Word searches are supported.",
+        "actual": "word_search",
+        "limit": null
+      },
+      {
+        "code": "puzzle_count",
+        "label": "Puzzle count",
+        "status": "unsupported",
+        "detail": "A project holds at most 20 puzzle definitions today. The plan may describe a larger book; producing it needs the cap reviewed first (docs/book-planning.md#generator-limits).",
+        "actual": 60,
+        "limit": 20
+      },
+      {
+        "code": "word_banks",
+        "label": "Word banks",
+        "status": "verified",
+        "detail": "Each theme pool can become one word bank.",
+        "actual": 7,
+        "limit": 20
+      },
+      {
+        "code": "profiles",
+        "label": "Difficulty profiles",
+        "status": "verified",
+        "detail": "Each level can become one difficulty profile.",
+        "actual": 3,
+        "limit": 20
+      },
+      {
+        "code": "generator_settings",
+        "label": "Generator settings",
+        "status": "verified",
+        "detail": "Level grids, directions and word counts are within the generator's limits.",
+        "actual": null,
+        "limit": null
+      },
+      {
+        "code": "print_profile",
+        "label": "Print profile",
+        "status": "unknown",
+        "detail": "Not chosen. Supported: paperback-8.5x11, paperback-8.5x11-cream.",
+        "actual": null,
+        "limit": null
+      },
+      {
+        "code": "puzzle_grids_print",
+        "label": "Puzzle grids on the page",
+        "status": "estimate",
+        "detail": "Each level's grid fits the live area at 9 pt or more before the title and word list are laid out (assuming the paperback-8.5x11 page geometry). The interior layout decides with the real word list.",
+        "actual": null,
+        "limit": null
+      },
+      {
+        "code": "solution_grids_print",
+        "label": "Solution grids",
+        "status": "estimate",
+        "detail": "Each level's solution fits 2 a page at 7 pt or more before captions (assuming the paperback-8.5x11 page geometry).",
+        "actual": null,
+        "limit": null
+      },
+      {
+        "code": "word_fit",
+        "label": "Words fit their grids",
+        "status": "verified",
+        "detail": "All 70 assigned words fit their level's grid in an enabled direction.",
+        "actual": null,
+        "limit": null
+      },
+      {
+        "code": "page_count",
+        "label": "Page count",
+        "status": "estimate",
+        "detail": "About 94-96 logical pages from the plan. The exact count comes from the publication plan; the renderer never pads.",
+        "actual": "94-96",
+        "limit": null
+      },
+      {
+        "code": "spine_text",
+        "label": "Spine text",
+        "status": "estimate",
+        "detail": "Likely: the estimate reaches the 80 pages spine text needs.",
+        "actual": "94-96",
+        "limit": 80
+      },
+      {
+        "code": "generation",
+        "label": "Puzzle generation",
+        "status": "unknown",
+        "detail": "Whether every grid places all its words is known only when production generates and verifies each puzzle. Placement is bounded and may fail for dense grids.",
+        "actual": null,
+        "limit": null
+      },
+      {
+        "code": "cover",
+        "label": "Cover",
+        "status": "unknown",
+        "detail": "Cover size and spine derive from the built interior's real page count and paper; they cannot be planned exactly.",
+        "actual": null,
+        "limit": null
+      }
+    ],
+    "page_estimate": {
+      "minimum": 94,
+      "maximum": 96,
+      "parts": {
+        "puzzles": 60,
+        "solutions": 30,
+        "front_matter": 3,
+        "back_matter": 1
+      }
+    },
+    "findings": [
+      {
+        "code": "question_blocking_open",
+        "gate": "research",
+        "severity": "error",
+        "basis": "author_decision",
+        "message": "Blocking question is unresolved: Should the primary audience be adult car enthusiasts, or automotive students?",
+        "path": "questions.0.resolution",
+        "actual": null,
+        "expected": null,
+        "action": "Research or decide, then record the resolution.",
+        "subjects": [
+          "q-audience"
+        ]
+      },
+      {
+        "code": "question_blocking_open",
+        "gate": "research",
+        "severity": "error",
+        "basis": "author_decision",
+        "message": "Blocking question is unresolved: Which comparable automotive word-search books exist, and what puzzle counts, page counts and trim sizes do they use? Record only books a person has read.",
+        "path": "questions.1.resolution",
+        "actual": null,
+        "expected": null,
+        "action": "Research or decide, then record the resolution.",
+        "subjects": [
+          "q-comparables"
+        ]
+      },
+      {
+        "code": "question_blocking_open",
+        "gate": "research",
+        "severity": "error",
+        "basis": "author_decision",
+        "message": "Blocking question is unresolved: Projects hold at most 20 puzzles today. Raise the cap for a 60-puzzle book in production, or plan a smaller first edition?",
+        "path": "questions.2.resolution",
+        "actual": null,
+        "expected": null,
+        "action": "Research or decide, then record the resolution.",
+        "subjects": [
+          "q-puzzle-cap"
+        ]
+      },
+      {
+        "code": "assumption_unresolved",
+        "gate": "research",
+        "severity": "warning",
+        "basis": "evidence_integrity",
+        "message": "The positioning relies on note r-audience-hypothesis, recorded as hypothesis.",
+        "path": "positioning.evidence",
+        "actual": null,
+        "expected": null,
+        "action": null,
+        "subjects": [
+          "r-audience-hypothesis"
+        ]
+      },
+      {
+        "code": "assumption_unresolved",
+        "gate": "research",
+        "severity": "warning",
+        "basis": "evidence_integrity",
+        "message": "A decision rests on note r-audience-hypothesis, recorded as hypothesis: Work from enthusiasts as the primary audience until this is researched.",
+        "path": "research.2.decision",
+        "actual": null,
+        "expected": null,
+        "action": "Verify the assumption, or record the note as a preference if it is.",
+        "subjects": [
+          "r-audience-hypothesis"
+        ]
+      },
+      {
+        "code": "question_open",
+        "gate": "research",
+        "severity": "info",
+        "basis": "author_decision",
+        "message": "Open question: White or cream interior paper?",
+        "path": "questions.3",
+        "actual": null,
+        "expected": null,
+        "action": null,
+        "subjects": [
+          "q-paper"
+        ]
+      },
+      {
+        "code": "puzzles_unspecified",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "message": "53 of 60 planned puzzles are not yet specified.",
+        "path": "puzzles",
+        "actual": 7,
+        "expected": 60,
+        "action": "Specify each puzzle's theme, level and words.",
+        "subjects": []
+      },
+      {
+        "code": "puzzle_count_unsupported",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "production_cap",
+        "message": "60 planned puzzles exceed the current cap of 20 a project.",
+        "path": "structure.target_puzzles",
+        "actual": 60,
+        "expected": "at most 20",
+        "action": "Keep the target as a plan, but production needs the cap reviewed (Interval 12) or a smaller book.",
+        "subjects": []
+      },
+      {
+        "code": "print_profile_undecided",
+        "gate": "decisions",
+        "severity": "error",
+        "basis": "author_decision",
+        "message": "Choose the print profile: trim and paper. Paper is never assumed.",
+        "path": "structure.print_profile",
+        "actual": null,
+        "expected": null,
+        "action": null,
+        "subjects": []
+      },
+      {
+        "code": "pool_thin",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "quality_measure",
+        "message": "Pool engines has 31 usable words for 10 puzzles of at least 10 words; even reusing each word 2 times fills only 62 of 100 places.",
+        "path": "vocabulary.0",
+        "actual": 31,
+        "expected": "at least 50",
+        "action": null,
+        "subjects": [
+          "engines"
+        ]
+      },
+      {
+        "code": "pool_thin",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "quality_measure",
+        "message": "Pool maintenance has 25 usable words for 10 puzzles of at least 10 words; even reusing each word 2 times fills only 50 of 100 places.",
+        "path": "vocabulary.1",
+        "actual": 25,
+        "expected": "at least 50",
+        "action": null,
+        "subjects": [
+          "maintenance"
+        ]
+      },
+      {
+        "code": "pool_thin",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "quality_measure",
+        "message": "Pool tools has 26 usable words for 8 puzzles of at least 10 words; even reusing each word 2 times fills only 52 of 80 places.",
+        "path": "vocabulary.2",
+        "actual": 26,
+        "expected": "at least 40",
+        "action": null,
+        "subjects": [
+          "tools"
+        ]
+      },
+      {
+        "code": "pool_thin",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "quality_measure",
+        "message": "Pool systems has 29 usable words for 10 puzzles of at least 10 words; even reusing each word 2 times fills only 58 of 100 places.",
+        "path": "vocabulary.3",
+        "actual": 29,
+        "expected": "at least 50",
+        "action": null,
+        "subjects": [
+          "systems"
+        ]
+      },
+      {
+        "code": "pool_thin",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "quality_measure",
+        "message": "Pool motorsport has 25 usable words for 8 puzzles of at least 10 words; even reusing each word 2 times fills only 50 of 80 places.",
+        "path": "vocabulary.4",
+        "actual": 25,
+        "expected": "at least 40",
+        "action": null,
+        "subjects": [
+          "motorsport"
+        ]
+      },
+      {
+        "code": "pool_thin",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "quality_measure",
+        "message": "Pool history has 22 usable words for 6 puzzles of at least 10 words; even reusing each word 2 times fills only 44 of 60 places.",
+        "path": "vocabulary.5",
+        "actual": 22,
+        "expected": "at least 30",
+        "action": null,
+        "subjects": [
+          "history"
+        ]
+      },
+      {
+        "code": "pool_thin",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "quality_measure",
+        "message": "Pool driving has 26 usable words for 8 puzzles of at least 10 words; even reusing each word 2 times fills only 52 of 80 places.",
+        "path": "vocabulary.6",
+        "actual": 26,
+        "expected": "at least 40",
+        "action": null,
+        "subjects": [
+          "driving"
+        ]
+      },
+      {
+        "code": "word_long",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "author_decision",
+        "message": "'CATALYTIC CONVERTER' has 18 letters.",
+        "path": "vocabulary.3.entries.27.word",
+        "actual": 18,
+        "expected": "at most 15",
+        "action": null,
+        "subjects": [
+          "CATALYTIC CONVERTER"
+        ]
+      },
+      {
+        "code": "word_long",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "author_decision",
+        "message": "'HORSELESS CARRIAGE' has 17 letters.",
+        "path": "vocabulary.5.entries.0.word",
+        "actual": 17,
+        "expected": "at most 15",
+        "action": null,
+        "subjects": [
+          "HORSELESS CARRIAGE"
+        ]
+      },
+      {
+        "code": "word_short",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "author_decision",
+        "message": "'ABS' has 3 letters.",
+        "path": "vocabulary.3.entries.4.word",
+        "actual": 3,
+        "expected": "at least 4",
+        "action": null,
+        "subjects": [
+          "ABS"
+        ]
+      },
+      {
+        "code": "level_unused",
+        "gate": "editorial",
+        "severity": "info",
+        "basis": "plan_consistency",
+        "message": "No planned puzzle uses level 'Standard'.",
+        "path": "difficulty.levels.1",
+        "actual": null,
+        "expected": null,
+        "action": null,
+        "subjects": [
+          "standard"
+        ]
+      },
+      {
+        "code": "level_unused",
+        "gate": "editorial",
+        "severity": "info",
+        "basis": "plan_consistency",
+        "message": "No planned puzzle uses level 'Challenge'.",
+        "path": "difficulty.levels.2",
+        "actual": null,
+        "expected": null,
+        "action": null,
+        "subjects": [
+          "challenge"
+        ]
+      },
+      {
+        "code": "vocabulary_ai_generated",
+        "gate": "editorial",
+        "severity": "info",
+        "basis": "author_decision",
+        "message": "184 candidate words are recorded as AI-generated. If they are used, declare the book text's AI involvement in Publishing.",
+        "path": null,
+        "actual": 184,
+        "expected": null,
+        "action": null,
+        "subjects": []
+      },
+      {
+        "code": "word_cross_theme",
+        "gate": "editorial",
+        "severity": "info",
+        "basis": "editorial_heuristic",
+        "message": "BATTERY appears in 2 theme pools: maintenance, systems.",
+        "path": null,
+        "actual": null,
+        "expected": null,
+        "action": null,
+        "subjects": [
+          "BATTERY",
+          "maintenance",
+          "systems"
+        ]
+      },
+      {
+        "code": "word_cross_theme",
+        "gate": "editorial",
+        "severity": "info",
+        "basis": "editorial_heuristic",
+        "message": "BRAKE PADS appears in 2 theme pools: maintenance, systems.",
+        "path": null,
+        "actual": null,
+        "expected": null,
+        "action": null,
+        "subjects": [
+          "BRAKE PADS",
+          "maintenance",
+          "systems"
+        ]
+      },
+      {
+        "code": "word_cross_theme",
+        "gate": "editorial",
+        "severity": "info",
+        "basis": "editorial_heuristic",
+        "message": "RADIATOR appears in 2 theme pools: maintenance, systems.",
+        "path": null,
+        "actual": null,
+        "expected": null,
+        "action": null,
+        "subjects": [
+          "RADIATOR",
+          "maintenance",
+          "systems"
+        ]
+      },
+      {
+        "code": "word_cross_theme",
+        "gate": "editorial",
+        "severity": "info",
+        "basis": "editorial_heuristic",
+        "message": "ROAD TRIP appears in 2 theme pools: history, driving.",
+        "path": null,
+        "actual": null,
+        "expected": null,
+        "action": null,
+        "subjects": [
+          "ROAD TRIP",
+          "history",
+          "driving"
+        ]
+      },
+      {
+        "code": "word_cross_theme",
+        "gate": "editorial",
+        "severity": "info",
+        "basis": "editorial_heuristic",
+        "message": "SPARK PLUG appears in 2 theme pools: engines, maintenance.",
+        "path": null,
+        "actual": null,
+        "expected": null,
+        "action": null,
+        "subjects": [
+          "SPARK PLUG",
+          "engines",
+          "maintenance"
+        ]
+      },
+      {
+        "code": "word_cross_theme",
+        "gate": "editorial",
+        "severity": "info",
+        "basis": "editorial_heuristic",
+        "message": "THERMOSTAT appears in 2 theme pools: maintenance, systems.",
+        "path": null,
+        "actual": null,
+        "expected": null,
+        "action": null,
+        "subjects": [
+          "THERMOSTAT",
+          "maintenance",
+          "systems"
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "code": "concept_missing",
+        "gate": "definition",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "The book concept is stated"
+      },
+      {
+        "code": "subject_missing",
+        "gate": "definition",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "The subject or niche is stated"
+      },
+      {
+        "code": "audience_missing",
+        "gate": "definition",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "A primary audience is chosen"
+      },
+      {
+        "code": "differentiation_missing",
+        "gate": "definition",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "What makes the book different is stated"
+      },
+      {
+        "code": "puzzle_type_missing",
+        "gate": "definition",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "The puzzle type is stated"
+      },
+      {
+        "code": "target_missing",
+        "gate": "definition",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "A target puzzle count is stated"
+      },
+      {
+        "code": "strategy_undecided",
+        "gate": "definition",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "A difficulty strategy is chosen"
+      },
+      {
+        "code": "themes_missing",
+        "gate": "definition",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "At least one theme is planned"
+      },
+      {
+        "code": "levels_missing",
+        "gate": "definition",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "At least one difficulty level is planned"
+      },
+      {
+        "code": "question_blocking_open",
+        "gate": "research",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "Blocking questions are resolved"
+      },
+      {
+        "code": "evidence_source_missing",
+        "gate": "research",
+        "severity": "error",
+        "basis": "evidence_integrity",
+        "title": "Sourced evidence cites its source"
+      },
+      {
+        "code": "comparable_unsourced",
+        "gate": "research",
+        "severity": "error",
+        "basis": "evidence_integrity",
+        "title": "Comparable books cite where they were observed"
+      },
+      {
+        "code": "claim_unsupported",
+        "gate": "research",
+        "severity": "error",
+        "basis": "evidence_integrity",
+        "title": "Positioning claims cite verified evidence"
+      },
+      {
+        "code": "evidence_undated",
+        "gate": "research",
+        "severity": "warning",
+        "basis": "evidence_integrity",
+        "title": "Verified sources record when they were observed"
+      },
+      {
+        "code": "comparable_price_undated",
+        "gate": "research",
+        "severity": "warning",
+        "basis": "evidence_integrity",
+        "title": "Observed prices record when they were observed"
+      },
+      {
+        "code": "source_url_format",
+        "gate": "research",
+        "severity": "warning",
+        "basis": "evidence_integrity",
+        "title": "Source URLs are web addresses"
+      },
+      {
+        "code": "claim_weak_evidence",
+        "gate": "research",
+        "severity": "warning",
+        "basis": "evidence_integrity",
+        "title": "Claims rest on verified rather than reported evidence"
+      },
+      {
+        "code": "assumption_unresolved",
+        "gate": "research",
+        "severity": "warning",
+        "basis": "evidence_integrity",
+        "title": "Decisions do not rest on hypotheses alone"
+      },
+      {
+        "code": "question_open",
+        "gate": "research",
+        "severity": "info",
+        "basis": "author_decision",
+        "title": "Open questions"
+      },
+      {
+        "code": "allocation_missing",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Every theme has a planned allocation"
+      },
+      {
+        "code": "allocation_total_mismatch",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Theme allocations add up to the target"
+      },
+      {
+        "code": "required_theme_empty",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Required themes receive puzzles"
+      },
+      {
+        "code": "puzzles_unspecified",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Every planned puzzle is specified"
+      },
+      {
+        "code": "puzzles_exceed_target",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Specified puzzles do not exceed the target"
+      },
+      {
+        "code": "theme_overspecified",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Specified puzzles stay within their theme's allocation"
+      },
+      {
+        "code": "puzzle_level_missing",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Every planned puzzle has a level"
+      },
+      {
+        "code": "puzzle_words_missing",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Every planned puzzle has words"
+      },
+      {
+        "code": "puzzle_word_count",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Puzzles have the word count their level expects"
+      },
+      {
+        "code": "pool_missing",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Allocated themes have candidate vocabulary"
+      },
+      {
+        "code": "pool_insufficient",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Pools hold enough valid words for one puzzle"
+      },
+      {
+        "code": "level_settings_missing",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Levels state grid and directions"
+      },
+      {
+        "code": "progression_contradicts_strategy",
+        "gate": "content",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Level order follows the strategy"
+      },
+      {
+        "code": "reference_unknown",
+        "gate": "structure",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "References name existing plan items"
+      },
+      {
+        "code": "theme_cycle",
+        "gate": "structure",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Theme parents do not form a cycle"
+      },
+      {
+        "code": "theme_label_duplicate",
+        "gate": "structure",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Theme labels are distinct"
+      },
+      {
+        "code": "level_profile_unknown",
+        "gate": "structure",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Levels name existing project profiles"
+      },
+      {
+        "code": "word_invalid",
+        "gate": "structure",
+        "severity": "error",
+        "basis": "engine_rule",
+        "title": "Words satisfy the generator's input rules"
+      },
+      {
+        "code": "word_duplicate",
+        "gate": "structure",
+        "severity": "error",
+        "basis": "engine_rule",
+        "title": "Words in one pool normalize to distinct forms"
+      },
+      {
+        "code": "word_prohibited",
+        "gate": "structure",
+        "severity": "error",
+        "basis": "quality_measure",
+        "title": "Words are not on the prohibited list"
+      },
+      {
+        "code": "puzzle_word_not_in_pool",
+        "gate": "structure",
+        "severity": "error",
+        "basis": "plan_consistency",
+        "title": "Puzzle words come from their theme's pool"
+      },
+      {
+        "code": "puzzle_word_repeated",
+        "gate": "structure",
+        "severity": "error",
+        "basis": "engine_rule",
+        "title": "A puzzle lists each word once"
+      },
+      {
+        "code": "puzzle_type_unsupported",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "production_cap",
+        "title": "The puzzle type is supported"
+      },
+      {
+        "code": "puzzle_count_unsupported",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "production_cap",
+        "title": "The puzzle count is within the project cap"
+      },
+      {
+        "code": "bank_count_unsupported",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "production_cap",
+        "title": "Theme pools fit the word-bank cap"
+      },
+      {
+        "code": "profile_count_unsupported",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "production_cap",
+        "title": "Levels fit the difficulty-profile cap"
+      },
+      {
+        "code": "grid_unsupported",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "engine_rule",
+        "title": "Level grids are within the generator's limits"
+      },
+      {
+        "code": "grid_print_unsupported",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "print_constant",
+        "title": "Puzzle grids can print at the minimum letter size"
+      },
+      {
+        "code": "solution_print_unsupported",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "print_constant",
+        "title": "Solution grids can print at their minimum"
+      },
+      {
+        "code": "words_per_puzzle_unsupported",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "engine_rule",
+        "title": "Word counts are within the generator's limit"
+      },
+      {
+        "code": "word_cannot_fit",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "engine_rule",
+        "title": "Assigned words fit their level's grid"
+      },
+      {
+        "code": "print_profile_unsupported",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "production_cap",
+        "title": "The print profile is supported"
+      },
+      {
+        "code": "page_estimate_below_minimum",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "print_constant",
+        "title": "The planned book reaches KDP's minimum length"
+      },
+      {
+        "code": "page_estimate_above_maximum",
+        "gate": "feasibility",
+        "severity": "error",
+        "basis": "print_constant",
+        "title": "The planned book stays within KDP's maximum"
+      },
+      {
+        "code": "page_estimate_uncertain",
+        "gate": "feasibility",
+        "severity": "warning",
+        "basis": "print_constant",
+        "title": "The page estimate clears KDP's limits"
+      },
+      {
+        "code": "bank_size_exceeds",
+        "gate": "feasibility",
+        "severity": "warning",
+        "basis": "production_cap",
+        "title": "Pools fit one word bank"
+      },
+      {
+        "code": "print_profile_undecided",
+        "gate": "decisions",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "Print profile (trim and paper) is chosen"
+      },
+      {
+        "code": "solutions_undecided",
+        "gate": "decisions",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "Solution placement is decided"
+      },
+      {
+        "code": "provenance_unknown",
+        "gate": "decisions",
+        "severity": "error",
+        "basis": "author_decision",
+        "title": "Assigned words record where they came from"
+      },
+      {
+        "code": "theme_labels_similar",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "editorial_heuristic",
+        "title": "Theme labels are clearly distinct"
+      },
+      {
+        "code": "theme_vocabulary_overlap",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "editorial_heuristic",
+        "title": "Theme pools do not largely overlap"
+      },
+      {
+        "code": "theme_overrepresented",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "editorial_heuristic",
+        "title": "No theme dominates the allocation"
+      },
+      {
+        "code": "theme_thin",
+        "gate": "editorial",
+        "severity": "info",
+        "basis": "editorial_heuristic",
+        "title": "No theme is much thinner than the others"
+      },
+      {
+        "code": "theme_without_puzzles",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "plan_consistency",
+        "title": "Themes receive puzzles"
+      },
+      {
+        "code": "pool_thin",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "quality_measure",
+        "title": "Pools can fill their puzzles within the reuse limit"
+      },
+      {
+        "code": "word_reuse",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "quality_measure",
+        "title": "Words stay within the reuse limit"
+      },
+      {
+        "code": "duplicate_word_sets",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "quality_measure",
+        "title": "Planned puzzles use different word sets"
+      },
+      {
+        "code": "similar_word_sets",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "quality_measure",
+        "title": "Planned word sets are not too similar"
+      },
+      {
+        "code": "puzzle_titles_duplicate",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "editorial_heuristic",
+        "title": "Planned puzzle titles are distinct"
+      },
+      {
+        "code": "word_short",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "author_decision",
+        "title": "Words meet the authored minimum length"
+      },
+      {
+        "code": "word_long",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "author_decision",
+        "title": "Words meet the authored maximum length"
+      },
+      {
+        "code": "word_contains_prohibited",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "quality_measure",
+        "title": "Words do not contain prohibited forms"
+      },
+      {
+        "code": "word_cross_theme",
+        "gate": "editorial",
+        "severity": "info",
+        "basis": "editorial_heuristic",
+        "title": "Words shared between themes"
+      },
+      {
+        "code": "difficulty_jump",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "editorial_heuristic",
+        "title": "Gradual plans do not skip levels"
+      },
+      {
+        "code": "sections_out_of_order",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "editorial_heuristic",
+        "title": "Difficulty sections run from easiest to hardest"
+      },
+      {
+        "code": "level_order_inverted",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "editorial_heuristic",
+        "title": "Harder levels differ from easier ones"
+      },
+      {
+        "code": "level_unused",
+        "gate": "editorial",
+        "severity": "info",
+        "basis": "plan_consistency",
+        "title": "Every level is used"
+      },
+      {
+        "code": "familiarity_undecided",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "author_decision",
+        "title": "Reader familiarity is stated"
+      },
+      {
+        "code": "audience_repeated",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "editorial_heuristic",
+        "title": "Secondary audience differs from the primary"
+      },
+      {
+        "code": "promotional_language",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "editorial_heuristic",
+        "title": "Positioning avoids promotional wording"
+      },
+      {
+        "code": "vocabulary_ai_generated",
+        "gate": "editorial",
+        "severity": "info",
+        "basis": "author_decision",
+        "title": "AI-generated vocabulary is recorded"
+      },
+      {
+        "code": "licensed_unreferenced",
+        "gate": "editorial",
+        "severity": "warning",
+        "basis": "author_decision",
+        "title": "Licensed vocabulary records its licence"
+      },
+      {
+        "code": "pool_unused",
+        "gate": "editorial",
+        "severity": "info",
+        "basis": "plan_consistency",
+        "title": "Pools belong to allocated themes"
+      },
+      {
+        "code": "approval_stale",
+        "gate": "approval",
+        "severity": "warning",
+        "basis": "author_decision",
+        "title": "Approval covers the current plan"
+      },
+      {
+        "code": "approval_not_ready",
+        "gate": "approval",
+        "severity": "warning",
+        "basis": "author_decision",
+        "title": "Approval is recorded for a ready plan"
+      }
+    ],
+    "boundary": "Planning approval records the author's own review of this plan. It is not publishing approval, KDP acceptance or evidence that the book will sell."
+  },
+  "options": {
+    "print_profiles": [
+      {
+        "id": "paperback-8.5x11",
+        "description": "8.5 x 11 in paperback interior, black ink on white paper, no bleed"
+      },
+      {
+        "id": "paperback-8.5x11-cream",
+        "description": "8.5 x 11 in paperback interior, black ink on cream paper, no bleed"
+      }
+    ],
+    "puzzle_types": [
+      "word_search"
+    ],
+    "directions": [
+      "right",
+      "left",
+      "down",
+      "up",
+      "down-right",
+      "down-left",
+      "up-right",
+      "up-left"
+    ]
+  }
+}

@@ -8,6 +8,7 @@ from . import __version__
 from .book_cli import add_book_command, run_book_command
 from .cover_cli import add_cover_command, run_cover_command
 from .identity import build_identity
+from .planning_cli import add_plan_command, run_plan_command
 from .project import load_project
 from .publish_cli import add_publish_command, run_publish_command
 from .puzzle_cli import add_puzzle_command, run_puzzle_command
@@ -18,8 +19,8 @@ from .wordsearch import WordSearchError
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="puzzlepress",
-        description="Validate projects, generate word searches, build interiors and covers, "
-        "and prepare KDP publishing packages.",
+        description="Plan books, validate projects, generate word searches, build interiors "
+        "and covers, and prepare KDP publishing packages.",
     )
     parser.add_argument("--version", action="version", version=f"PuzzlePress {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -33,6 +34,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     add_book_command(commands)
     add_cover_command(commands)
     add_publish_command(commands)
+    add_plan_command(commands)
     args = parser.parse_args(argv)
     try:
         if args.command == "puzzle":
@@ -43,6 +45,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return run_cover_command(args)
         if args.command == "publish":
             return run_publish_command(args)
+        if args.command == "plan":
+            return run_plan_command(args)
         loaded = load_project(args.project)
     except (ProjectError, WordSearchError) as error:
         for issue in error.issues:

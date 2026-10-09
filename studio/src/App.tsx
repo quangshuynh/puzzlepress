@@ -10,6 +10,7 @@ import { Composer } from './Composer';
 import { Print } from './Print';
 import { Cover } from './Cover';
 import { Publishing } from './Publishing';
+import { Planning } from './Planning';
 import { useDraft } from './draft';
 
 function usePath(allow: (next: string, current: string) => boolean) {
@@ -91,14 +92,17 @@ function ProjectWorkspace({
   const [generationError, setGenerationError] = useState<Error>();
   const [loadingGeneration, setLoadingGeneration] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  // The book draft (book.yaml) and the plan draft (planning.yaml) are separate
+  // documents; leaving the project is guarded while either has unsaved edits.
   const [dirty, setDirty] = useState(false);
-  const trackDirty = useCallback(
-    (next: boolean) => {
-      setDirty(next);
-      onDirty(next);
-    },
-    [onDirty],
-  );
+  const [planDirty, setPlanDirty] = useState(false);
+  const [planningOpened, setPlanningOpened] = useState(section === 'planning');
+  useEffect(() => onDirty(dirty || planDirty), [dirty, planDirty, onDirty]);
+  useEffect(() => {
+    if (section === 'planning') setPlanningOpened(true);
+  }, [section]);
+  const trackDirty = useCallback((next: boolean) => setDirty(next), []);
+  const trackPlanDirty = useCallback((next: boolean) => setPlanDirty(next), []);
   const generationController = useRef<AbortController | null>(null);
   useEffect(() => {
     const controller = new AbortController();
@@ -113,9 +117,15 @@ function ProjectWorkspace({
       generationController.current?.abort();
     };
   }, [projectKey, attempt]);
-  const needsGeneration = !['overview', 'edit', 'book', 'print', 'cover', 'publishing'].includes(
-    section,
-  );
+  const needsGeneration = ![
+    'overview',
+    'edit',
+    'book',
+    'print',
+    'cover',
+    'publishing',
+    'planning',
+  ].includes(section);
   useEffect(() => {
     if (
       !needsGeneration ||
@@ -169,6 +179,9 @@ function ProjectWorkspace({
         <span className="source-note">Local authoring studio</span>
       </header>
       <nav className="project-nav" aria-label="Project">
+        <a href={`${base}/planning`} aria-current={section === 'planning' ? 'page' : undefined}>
+          Planning
+        </a>
         <a href={`${base}/edit`} aria-current={section === 'edit' ? 'page' : undefined}>
           Edit
         </a>
@@ -181,7 +194,7 @@ function ProjectWorkspace({
         <a href={`${base}/cover`} aria-current={section === 'cover' ? 'page' : undefined}>
           Cover
         </a>
-        <a href={`/publishing`} aria-current={section === 'publishing' ? 'page' : undefined}>
+        <a href={`${base}/publishing`} aria-current={section === 'publishing' ? 'page' : undefined}>
           Publishing
         </a>
         <a href={base} aria-current={section === 'overview' ? 'page' : undefined}>
@@ -206,7 +219,13 @@ function ProjectWorkspace({
           }}
         />
       )}
-      {['edit', 'book', 'cover', 'publishing'].includes(section) ? null : section === 'print' ? (
+      {planningOpened && (
+        <div hidden={section !== 'planning'}>
+          <Planning projectKey={projectKey} onDirty={trackPlanDirty} />
+        </div>
+      )}
+      {['edit', 'book', 'cover', 'publishing', 'planning'].includes(section) ? null : section ===
+        'print' ? (
         <Print project={project} dirty={dirty} />
       ) : section === 'overview' ? (
         <Overview project={project} />
@@ -291,7 +310,7 @@ export function App() {
     first.current = false;
   }, [path]);
   const match = path.match(
-    /^\/books\/([^/]+)(?:\/(puzzles|quality|edit|book|print|cover|publishing)(?:\/([^/]+))?)?\/?$/,
+    /^\/books\/([^/]+)(?:\/(puzzles|quality|edit|book|print|cover|publishing|planning)(?:\/([^/]+))?)?\/?$/,
   );
   const isLibrary = path === '/' || path === '/books' || path === '/books/';
   return (
@@ -348,8 +367,9 @@ export function App() {
               <Library />
             ) : match &&
               !(
-                ['quality', 'edit', 'book', 'print', 'cover', 'publishing'].includes(match[2]) &&
-                match[3]
+                ['quality', 'edit', 'book', 'print', 'cover', 'publishing', 'planning'].includes(
+                  match[2],
+                ) && match[3]
               ) ? (
               <ProjectWorkspace
                 key={match[1]}

@@ -178,6 +178,36 @@ same draft as Edit, Book and Cover.
    summary lists the files, digests, location relative to the project and the
    package identity, and the checklist is shown in full. Nothing is uploaded.
 
+## Planning
+
+Choose **Planning** to plan a book before producing it ([book planning](book-planning.md)).
+The plan lives in `planning.yaml` beside `book.yaml`, with its own draft and byte
+revision: saving a plan never changes `book.yaml` or disturbs a book draft, and
+leaving the project is guarded while either draft has unsaved edits.
+
+1. A project without a plan shows **Start a plan**: every decision starts
+   undecided, nothing is approved, and nothing is saved until **Save plan**.
+2. The section list (overview, audience, research, comparable books, themes,
+   puzzle allocation, vocabulary, difficulty, coverage) shows how many findings
+   each section has to fix or review; sections deep-link as `#planning-<section>`
+   and their heading takes focus. Below 850px the list wraps above the editor.
+3. As you type, Python checks the draft (`POST /draft/planning`). Findings appear
+   beside their fields as text with their action; schema problems mark the field
+   and keep the draft. Empty optional fields become null (unknown); typed text is
+   sent exactly. Words are entered one a line; invalid words are reported, never
+   rewritten. Puzzle words are chosen from the theme's vocabulary.
+4. Charts are tables of Python's numbers: puzzles by theme (allocated and
+   specified), usable versus needed words per theme, and level progression in book
+   order with each cell's level number printed (and a table view).
+5. The readiness column lists each gate as Passed or Blocked with its blocking
+   codes, the approval state and every production-feasibility item with how it is
+   known. It moves below the editor under 1280px.
+6. **Approve this plan** is available only for the saved, unedited plan when
+   nothing blocks it; it sends the planning identity Python reported for that
+   revision. Unsaved edits to an approved plan are announced as making the
+   approval stale; after saving, the approval shows as stale until you approve
+   again (restoring the exact content restores it). **Withdraw approval** removes it.
+
 ## Conflict and failure recovery
 
 A save includes the revision loaded with the authoritative source. A competing
@@ -236,6 +266,7 @@ produce identical YAML bytes. No YAML dependency or schema change was added.
   PDFium page rasterizer with its digest-keyed cache (one process-wide PDFium lock).
 - `studio/covering.py`: cover status, draft render, photo import, build and rasters.
 - `studio/publishing.py`: publishing readiness, draft metadata checks and export.
+- `studio/planning.py`: planning status, draft checks, revision-aware plan saves and approval.
 - `studio/server.py`: thin HTTP handlers, expected errors, static assets and launcher.
 - `studio/src/draft.tsx`: shared draft lifecycle and toolbar; `Editor.tsx`,
   `ContentEditor.tsx`, `Composer.tsx`, `editor-fields.tsx`: visual inputs and
@@ -262,6 +293,10 @@ produce identical YAML bytes. No YAML dependency or schema change was added.
 | `GET /api/projects/{key}/publishing` | Readiness report, KDP metadata record, checklist, package identity, export state (`none`, `current`, `stale`, `damaged`), location, built cover digest |
 | `POST /api/projects/{key}/draft/publishing` | `{source}`; `{metadata, upgrade}`: findings and confirmation states with current review identities for the draft, and the version 2 form of a version 1 section; writes nothing |
 | `POST /api/projects/{key}/publishing/export` | `{revision, archive}`; exports the saved revision's package (409 `source_changed`), or returns why not and writes nothing |
+| `GET /api/projects/{key}/planning` | `{book, revision, source, report, options}`; `revision`, `source` and `report` are null without `planning.yaml` |
+| `POST /api/projects/{key}/draft/planning` | `{source}`; `{report}` for an unsaved plan, or 422 `invalid_planning` with field issues; writes nothing |
+| `POST /api/projects/{key}/planning/save` | `{source, revision}`; replaces `planning.yaml` at that revision (`null`: create; 409 `source_changed` otherwise) |
+| `POST /api/projects/{key}/planning/approval` | `{revision, identity}`; approves the saved revision's reviewed identity, or withdraws with `null` (409 `identity_mismatch`, `not_ready`, `source_changed`) |
 
 Revision is `sha256-<digest of exact source bytes>`. It detects cosmetic changes
 and output edits that semantic identity intentionally excludes. Identical bytes
@@ -278,7 +313,7 @@ HTTP 200 batch report. Closing a page does not interrupt already-running Python.
 JSON POSTs require same-origin Origin when supplied, local Host and JSON content
 type. CSP and no-store response headers remain enabled; no CORS, auth or telemetry.
 
-Routes: `/books`, `/books/{key}`, `/books/{key}/edit`, `/books/{key}/book`, `/books/{key}/print`, `/books/{key}/cover`, `/books/{key}/publishing`, `/books/{key}/puzzles`,
+Routes: `/books`, `/books/{key}`, `/books/{key}/edit`, `/books/{key}/book`, `/books/{key}/print`, `/books/{key}/cover`, `/books/{key}/publishing`, `/books/{key}/planning`, `/books/{key}/puzzles`,
 `/books/{key}/puzzles/{id}`, `/books/{key}/quality`. Deep links serve the shell.
 
 ## Design, accessibility and screenshots
@@ -354,6 +389,11 @@ Publishing captures: [overview](images/studio/publishing.png),
 [blocking findings](images/studio/publishing-blocking.png),
 [ready package](images/studio/publishing-ready.png),
 [export](images/studio/publishing-export.png), [390](images/studio/publishing-390.png).
+Planning captures: [overview](images/studio/planning.png),
+[themes](images/studio/planning-themes.png), [vocabulary](images/studio/planning-vocabulary.png),
+[progression](images/studio/planning-progression.png), [coverage](images/studio/planning-coverage.png),
+[approved](images/studio/planning-approved.png), [stale approval](images/studio/planning-stale.png),
+[390](images/studio/planning-390.png).
 Cover captures: [overview](images/studio/cover.png), [start](images/studio/cover-start.png),
 [front crop](images/studio/cover-crop.png), [full wrap](images/studio/cover-wrap.png),
 [overlays](images/studio/cover-overlays.png), [spine](images/studio/cover-spine.png),

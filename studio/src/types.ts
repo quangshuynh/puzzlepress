@@ -561,3 +561,264 @@ export interface PublishingStatus {
     files?: { name: string; sha256: string; bytes: number; purpose: string }[];
   };
 }
+
+// Book planning (planning.yaml). Python validates, analyses and decides readiness;
+// these are the document and report as Python serializes them.
+export type Evidence =
+  | 'unknown'
+  | 'verified_source'
+  | 'unverified_source'
+  | 'author_observation'
+  | 'hypothesis'
+  | 'preference';
+export type WordSource =
+  'unknown' | 'human' | 'public_reference' | 'licensed' | 'ai_assisted' | 'ai_generated';
+export interface PlanWord {
+  word: string;
+  source: WordSource | null;
+  reference: string | null;
+  note: string | null;
+}
+export interface PlanPool {
+  theme: string;
+  source: WordSource;
+  reference: string | null;
+  entries: PlanWord[];
+}
+export interface PlanTheme {
+  id: string;
+  label: string;
+  parent: string | null;
+  required: boolean;
+  puzzles: number | null;
+  notes: string | null;
+}
+export interface PlanLevel {
+  id: string;
+  label: string;
+  profile: string | null;
+  width: number | null;
+  height: number | null;
+  directions: string[];
+  words: { min: number | null; max: number | null };
+  notes: string | null;
+}
+export interface PlannedPuzzle {
+  id: string;
+  theme: string;
+  level: string | null;
+  title: string | null;
+  words: string[];
+  notes: string | null;
+}
+export interface PlanQuestion {
+  id: string;
+  question: string;
+  blocking: boolean;
+  resolution: string | null;
+}
+export interface PlanNote {
+  id: string;
+  question: string | null;
+  observation: string;
+  evidence: Evidence;
+  confidence: 'low' | 'medium' | 'high' | null;
+  source: { citation: string | null; url: string | null; type: string | null };
+  observed: string | null;
+  relevance: string | null;
+  notes: string | null;
+  decision: string | null;
+}
+export interface PlanComparable {
+  id: string;
+  title: string;
+  contributor: string | null;
+  url: string | null;
+  citation: string | null;
+  format: string | null;
+  trim: string | null;
+  pages: number | null;
+  puzzles: number | null;
+  price: { amount: string; currency: string } | null;
+  audience: string | null;
+  strengths: string[];
+  weaknesses: string[];
+  positioning: string | null;
+  observed: string | null;
+  evidence: Evidence;
+}
+export interface PlanningSource {
+  planning_version: number;
+  concept: {
+    summary: string | null;
+    subject: string | null;
+    reader_experience: string | null;
+    scope: string | null;
+  };
+  positioning: {
+    primary_audience: string | null;
+    secondary_audience: string | null;
+    candidate_audiences: string[];
+    familiarity: string;
+    tone: string | null;
+    use_case: string | null;
+    main_benefit: string | null;
+    differentiation: string | null;
+    evidence: string[];
+    claims: { text: string; evidence: string[] }[];
+  };
+  structure: {
+    puzzle_type: string | null;
+    target_puzzles: number | null;
+    print_profile: string | null;
+    solutions: string;
+    solutions_per_page: number | null;
+    front_matter_pages: number | null;
+    back_matter_pages: number | null;
+  };
+  difficulty: { strategy: string; levels: PlanLevel[] };
+  themes: PlanTheme[];
+  vocabulary: PlanPool[];
+  puzzles: PlannedPuzzle[];
+  constraints: {
+    min_letters: number | null;
+    max_letters: number | null;
+    max_word_reuse: number | null;
+    prohibited_words: string[];
+    notes: string[];
+  };
+  questions: PlanQuestion[];
+  research: PlanNote[];
+  comparables: PlanComparable[];
+  approval: string | null;
+}
+export interface PlanFinding {
+  code: string;
+  gate: string;
+  severity: 'error' | 'warning' | 'info';
+  basis: string;
+  message: string;
+  path: string | null;
+  actual: string | number | null;
+  expected: string | number | null;
+  action: string | null;
+  subjects: string[];
+}
+export type PlanningState =
+  | 'draft'
+  | 'needs_research'
+  | 'needs_content'
+  | 'structurally_valid'
+  | 'production_feasible'
+  | 'ready_for_approval'
+  | 'approved';
+export interface PlanningReport {
+  report_version: number;
+  ruleset: { id: string; version: number };
+  book: { id: string; title: string };
+  planning_identity: string;
+  state: PlanningState;
+  statement: string;
+  gates: { gate: string; label: string; passed: boolean; blocking: string[] }[];
+  approval: {
+    status: 'none' | 'current' | 'stale';
+    approved_identity: string | null;
+    counts: boolean;
+  };
+  summary: {
+    target_puzzles: number | null;
+    allocated_puzzles: number;
+    specified_puzzles: number;
+    themes: number;
+    levels: number;
+    candidate_words: number;
+    findings: { error: number; warning: number; info: number };
+  };
+  allocation: {
+    id: string;
+    label: string;
+    parent: string | null;
+    depth: number;
+    required: boolean;
+    allocated: number | null;
+    specified: number;
+    share: number | null;
+  }[];
+  levels: {
+    id: string;
+    label: string;
+    rank: number;
+    origin: string;
+    width: number | null;
+    height: number | null;
+    directions: string[];
+    words: { min: number; max: number };
+    puzzles: number;
+    supported: boolean;
+  }[];
+  progression: {
+    id: string;
+    title: string | null;
+    theme: string;
+    level: string | null;
+    rank: number | null;
+    words: number;
+  }[];
+  vocabulary: {
+    theme: string;
+    label: string | null;
+    entries: number;
+    usable: number;
+    invalid: number;
+    duplicates: number;
+    shared: number;
+    assigned: number;
+    needed: number | null;
+    sources: Record<string, number>;
+    words: {
+      word: string;
+      search: string | null;
+      source: WordSource;
+      valid: boolean;
+      duplicate: boolean;
+      shared: boolean;
+    }[];
+  }[];
+  research: {
+    notes: number;
+    evidence: Record<Evidence, number>;
+    questions: number;
+    open_questions: number;
+    blocking_questions: number;
+    comparables: number;
+    sourced_comparables: number;
+  };
+  feasibility: {
+    code: string;
+    label: string;
+    status: 'verified' | 'estimate' | 'unknown' | 'unsupported';
+    detail: string;
+    actual: string | number | null;
+    limit: string | number | null;
+  }[];
+  page_estimate: {
+    minimum: number | null;
+    maximum: number | null;
+    parts: Record<string, number | null>;
+  };
+  findings: PlanFinding[];
+  boundary: string;
+}
+export interface PlanningStatus {
+  key: string;
+  book: { id: string; title: string };
+  revision: string | null;
+  source: PlanningSource | null;
+  report: PlanningReport | null;
+  options: PlanningOptions;
+}
+export interface PlanningOptions {
+  print_profiles: { id: string; description: string }[];
+  puzzle_types: string[];
+  directions: string[];
+}

@@ -2,27 +2,22 @@
 
 ## Completed scope
 
-Interval 10.1 (publishing stabilization) on branch `fix/publishing-stabilization`
-from main `da34c1f` (Interval 10 merged via PR #3); pushed, not merged; no PR, tag,
-release or deployment. No Interval 11 work. Changes:
+Interval 11 (research and book planning) on branch `feat/book-research-planning`
+from main `2ba3a82` (Interval 10.1 merged via PR #4); pushed, not merged; no PR,
+tag, release or deployment. No Interval 12 work. Changes:
 
-- Interior renderer 2: grid frames fit their region by painted extent (frame plus
-  half its stroke). Renderer 1 sized width-limited frames (cover-demo's 14 x 14) to
-  the live width, so the 1 pt stroke painted 0.5 pt past it on ten verso pages.
-  Plan, pagination, puzzle content and supported grid sizes unchanged; interior
-  identity and PDF bytes change, so renderer 1 interiors, their covers and
-  exported packages report stale.
-- Interior preflight ruleset 2 (40 rules): live-area containment is the structural
-  `content_in_live_area`; `kdp_no_printer_marks` keeps its code and judges only the
-  area beyond the trim. cover-demo's interior is now structurally valid and KDP ready.
-- Publishing section version 2: confirmations store review identities of exactly
-  what they cover (docs/publishing.md#author-confirmations); version 1 booleans load
-  and round-trip but never count. Publishing ruleset 2 (47 rules), metadata and
-  readiness reports v2, provenance v2.
-- The unsourced 50-character keyword warning (`keywords_length`) is removed.
+- Planning domain `planning/` and CLI `puzzlepress plan`: a versioned
+  `planning.yaml` beside `book.yaml`, diagnostics, feasibility, readiness gates,
+  identity-bound approval and a printed production handoff (docs/book-planning.md).
+- Studio Planning tab and API (`/planning`, `/draft/planning`, `/planning/save`,
+  `/planning/approval`); Publishing nav link fixed (it pointed to `/publishing`,
+  a missing page, since Interval 10).
+- `books/automotive/planning.yaml`: a demonstration plan for the automotive book.
+- Schema caps and engine limits named (`content.MAX_*`, `wordsearch.validation
+  .MAX_*`) and `yaml_io.load_yaml` shared; no behavior change.
 
-Engine 0.1.0; identity, pipeline, composition, plan, print profile, cover renderer,
-cover profile and cover preflight versions unchanged.
+Engine 0.1.0; identity, pipeline, composition, plan, print profile, renderer,
+cover, publishing and package versions unchanged. No production identity changed.
 
 ## Architecture and launch
 
@@ -53,6 +48,10 @@ cover profile and cover preflight versions unchanged.
   `metadata`, `readiness`, `provenance`,
   `submission`, `package` = only writer); `publish_cli.py`; `studio/publishing.py`;
   `Publishing.tsx`.
+- Planning: `planning/` (`model`, `schema`, `identity`, `store` = only writer of
+  planning.yaml, `rules` = catalogue, `vocabulary`, `analysis`, `feasibility`,
+  `readiness` (state, approval), `handoff`); `planning_cli.py`; `studio/planning.py`;
+  `Planning.tsx`, `planning-draft.ts`, `planning-fields.tsx`, `planning-visuals.tsx`.
 - Studio: `printing.py` (status/build/page adapter, profile choice), `preview.py`
   (PDFium raster, one process-wide lock), `covering.py` (cover adapter); `Print.tsx`,
   `Cover.tsx` plus `service.py`, `editing.py`, `draft.tsx` etc.
@@ -216,6 +215,43 @@ cover profile and cover preflight versions unchanged.
   valid, interior and cover KDP ready, AI disclosure unknown and no confirmations,
   so packaging is blocked until a person decides. Tests/CI decide on temp copies.
 
+## Planning (docs/book-planning.md)
+
+- `planning.yaml` (planning_version 1) beside `book.yaml`: concept, positioning
+  (candidate vs chosen audience, claims with evidence), structure (type, target,
+  print profile, solutions, matter pages), difficulty strategy and levels (grid,
+  directions, word range, or an existing profile), themes (hierarchy, required,
+  allocation), vocabulary pools with provenance (default `unknown`), planned
+  puzzles, constraints, questions, research notes (evidence kind, source, date),
+  comparables (unknown stays null) and `approval`. Missing file = no plan; legacy
+  projects unaffected. Studio and `plan approve` save through `store.write_planning`
+  (revision-checked, staged, verified, atomic; null revision creates only).
+- Schema only checks interpretability; everything else is a finding with a stable
+  code, gate, severity, basis, path and actual/expected (ruleset
+  `puzzlepress-planning` v1, 84 rules). Words use the engine's normalization;
+  reuse/similarity the quality measures (reuse 2, Jaccard 0.8); print fit
+  `fit_grid` on the whole live area (necessary condition); pages, KDP minimum,
+  maximum and spine text from `interior.spec`. Feasibility statuses: verified,
+  estimate, unknown, unsupported.
+- States by first blocking gate: draft, needs_research, needs_content (content or
+  structure), structurally_valid (feasibility blocks), production_feasible
+  (decisions block), ready_for_approval, approved. Editorial findings never block.
+- Identity `pp1-planning-sha256-` over the document without approval, book ID and
+  planning identity version (no engine/toolchain, paths or times). Approval stores
+  the reviewed identity; stale on edit, restored with the content; not counted on a
+  blocked plan; not publishing approval. Handoff (`plan handoff --json`, approved
+  only) prints a versioned document and writes nothing.
+- Demo: 60 puzzles, 7 themes under a parent, 3 levels (gradual), 184 AI-generated
+  candidate words, 7 specified puzzles, 4 research notes (2 unverified KDP citations
+  from repo provenance, 1 hypothesis, 1 preference), no comparables, 3 blocking
+  questions. State needs_research; errors question_blocking_open,
+  puzzles_unspecified, puzzle_count_unsupported, print_profile_undecided; estimate
+  94-96 pages.
+- Generator limits: the 20-puzzle cap is a schema bound for worst-case work (20 x
+  1M attempts); 20 puzzles generate in ~0.08 s; composition and print have no cap;
+  spine text (80+ pages) is untested on a real interior; Studio readiness reruns
+  full preflight per request. Interval 12 must review the cap with these.
+
 ## Composition model
 
 - Optional top-level `composition` (requires `word_search`): `front_matter`
@@ -281,31 +317,40 @@ small external-editor race remains. Drafts memory-only; no autosave/undo/merge.
 
 ## Actual local verification (Windows, Python 3.13.15, Node 24.18.0)
 
-Interval 10.1, 2026-10-08:
+Interval 11, 2026-10-09:
 
-- Baseline on main `da34c1f`: 1114 passed, 4 skipped; cover-demo preflight showed
-  10 `kdp_no_printer_marks` failures (pages 6-24, verso 14 x 14 grids).
-- Python: **1192 passed, 4 skipped** (symlink permission), 1 Starlette httpx
-  warning. Ruff lint and format, strict mypy (81 files), pip check.
-- Frontend: tsc, ESLint, Prettier (only CRLF checkout differences locally; clean
-  with `--end-of-line auto`), 58 Vitest, build (JS 358.70 kB, CSS 38.28 kB).
-  Playwright 15/15 with axe and 1440/1024/768/390 widths; new capture
-  publishing-confirmations.png; print captures change with renderer 2.
-- Installed CLI regressions with expected exits (0/1/2). cover-demo interior:
-  identity `pp1-interior-sha256-90ef5cf2...`, PDF `d7254094...`, 35 pages,
-  structurally valid and KDP ready (only warning `kdp_full_font_embedding`);
-  composition-demo PDF `4e0748fb...` (was 19d5bd5a). cover-demo interior and cover
-  byte-identical across processes, working directories and PYTHONHASHSEED.
-- Real Interval 10 artifacts (built in a temporary worktree of `da34c1f`): new code
-  reports interior stale (renderer), cover stale (interior renderer), exported
-  package stale and legacy confirmations; rebuilding only the interior leaves the
-  cover current with a provenance warning; upgrading and confirming again packages.
+- Baseline on main `2ba3a82`: 1192 passed, 4 skipped (symlink permission).
+- Python: **1307 passed, 5 skipped** (symlink permission), 1 Starlette httpx
+  warning; 115 planning tests (schema, identity, store, diagnostics, feasibility,
+  readiness, approval, handoff, CLI, demo, production boundary, API, docs). Ruff
+  lint and format, strict mypy (94 files), pip check, `git diff --check`.
+- Frontend: tsc, ESLint, Prettier (clean with `--end-of-line auto`; CRLF checkout
+  only), 66 Vitest (8 planning), build (JS 414 kB, CSS 44 kB). Playwright 19/19 (4
+  planning) with axe and 1440/1024/768/390 widths; new captures `planning*.png`;
+  existing captures change only by the Planning tab and the extra test project.
+- Installed CLI with expected exits (0/1/2), including `plan validate|inspect`
+  (0), `plan report` on the demo (1) and `plan inspect` on garden-demo (1). Interiors
+  unchanged: composition-demo PDF `4e0748fb`, cover-demo `d7254094`, interior
+  identity `pp1-interior-sha256-90ef5cf2...`. Report and identity bytes identical
+  across processes, working directories and PYTHONHASHSEED; the new CI planning job
+  was rehearsed locally with Git Bash.
 - Fixture SHA-256 (LF): automotive 209f3fd6, composition-demo b15651cd, cover-demo
-  b906bbda, garden-demo ffd7f7eb unchanged; publishing-demo f0a2d580 (was e49110ea:
-  schema update only, version 1 -> 2 and four confirmations false -> null).
-  Remote CI not verified.
+  b906bbda, garden-demo ffd7f7eb, publishing-demo f0a2d580 unchanged;
+  automotive/planning.yaml 75a412a0 (new).
+- Remote CI run 37926210550 (commit d66d8c6, everything except this CONTEXT update):
+  15/15 jobs passed, including the new planning job on Ubuntu and Windows and
+  Studio Playwright.
 
 ## Limits and decisions for review
+
+Before Interval 12 (automotive production), decide: the puzzle cap (raise it with
+re-stated work bounds and a real long-book fixture through interior, preflight,
+cover spine text and package, or produce a 20-puzzle first edition); the demo's
+three blocking questions (primary audience, comparable books actually read, cap);
+interior paper (white or cream); whether the AI-drafted candidate vocabulary is
+kept, replaced or reviewed (it must be disclosed if used); word-bank and puzzle IDs
+for book.yaml (seeds derive from IDs); and composition text. Planning heuristics
+(label similarity 0.5, pool overlap 0.3, balance 2x/0.5x) are conventions to review.
 
 Paperback only; plain-text descriptions (KDP's HTML subset is a possible future
 enhancement); categories are unverified preferences; contributor roles beyond
