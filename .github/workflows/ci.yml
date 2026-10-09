@@ -108,6 +108,8 @@ jobs:
         run: sha256sum books/cover-demo/book.yaml books/cover-demo/cover-assets/* > fixtures.txt
       - run: puzzlepress validate books/cover-demo
       - run: puzzlepress book build books/cover-demo --output cover-out
+      - name: Interior is KDP ready (grid frames paint inside the live area)
+        run: puzzlepress book preflight books/cover-demo --output cover-out --no-write
       - name: Cover geometry derives from the built interior
         run: |
           puzzlepress cover inspect books/cover-demo --output cover-out --json > inspect.json
