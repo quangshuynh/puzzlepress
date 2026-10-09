@@ -37,6 +37,10 @@ output:
 | `cover` | Optional versioned paperback cover: photograph, crop, type and fill. Requires `composition`. Excluded from build identity. See [cover](cover.md). |
 | `publishing` | Optional versioned KDP paperback metadata, AI disclosure and author confirmations. Requires `composition`. Excluded from build identity. See [publishing](publishing.md). |
 
+A book plan is not part of `book.yaml`: it is a separate versioned document,
+`planning.yaml`, beside it, with its own identity and revision. No build reads it.
+See [book planning](book-planning.md).
+
 Unknown fields are errors, including nested typos. Text is trimmed at its edges;
 internal whitespace, case, and Unicode normalization form are preserved. Omitted
 optional book fields normalize to null. Quote numeric-looking titles/items.

@@ -39,6 +39,12 @@ and local Web Studio share the same core. Read `CONTEXT.md` for current scope.
   boolean never counts. Readiness reruns interior and cover
   preflight and never trusts saved reports. Packages use the inspected bytes only,
   are verified before replacement, and nothing contacts or submits to Amazon.
+- Book plans are authored source in `planning.yaml`, outside every production
+  identity; no build reads them and planning never writes `book.yaml`. Keep
+  research evidence kinds distinct; never fabricate sources, comparables, prices
+  or approvals, or treat an author note as verified. A plan describes targets
+  beyond current caps and reports them unsupported; it never raises a cap or
+  generates content. Approval stores the reviewed planning identity.
 - Keep authored source and disposable generated directories disjoint. Recheck
   filesystem boundaries before any future write or recursive cleanup.
 - Preserve versioned schema and identity contracts. Include output-affecting
@@ -71,6 +77,8 @@ puzzlepress cover build books/cover-demo --output .pytest_cache/cover
 puzzlepress cover preflight books/cover-demo --output .pytest_cache/cover --no-write
 puzzlepress publish validate books/publishing-demo
 puzzlepress publish inspect books/publishing-demo --output .pytest_cache/publishing
+puzzlepress plan validate books/automotive
+puzzlepress plan report books/automotive
 puzzlepress puzzle generate --width 10 --height 8 --seed 2026 --word ENGINE --word PISTON --solution
 git diff --check
 git status --short

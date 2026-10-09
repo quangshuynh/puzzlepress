@@ -11,19 +11,21 @@
 [![mypy: strict](https://img.shields.io/badge/mypy-strict-blue.svg)](https://mypy-lang.org/)
 
 PuzzlePress is a deterministic Python engine and local publishing studio for
-themed puzzle books. Validate authored projects, generate verified word searches,
+themed puzzle books. Plan a book from research to an approved blueprint, validate
+authored projects, generate verified word searches,
 compose them into an ordered book, build a deterministic print interior PDF, preflight
 it, proof every real page, build a full-wrap paperback cover around your own
 photograph, and assemble a verified package for manual KDP upload, all locally.
 
-**Interval 10 complete:** KDP metadata and publishing package. Author the KDP
-paperback details (description, keywords, categories, audience, low-content
-classification, ISBN choice, AI disclosure) beside the book, validate them against
-official KDP limits, confirm what software cannot verify, and export a
-deterministic package: the verified `interior.pdf` and `cover.pdf`, a metadata
-record, fresh preflight reports, provenance and a manual upload checklist.
-Readiness keeps every verdict separate and never trusts a saved report. Nothing is
-uploaded or submitted: you publish in KDP yourself, and Amazon decides.
+**Interval 11 complete:** research and book planning. Plan a book in
+`planning.yaml` beside `book.yaml`: research notes labelled by the kind of
+evidence they are, comparable books you have read, audience and positioning,
+themes and allocations, candidate vocabulary with provenance, planned puzzles and
+difficulty. Python checks coverage, vocabulary (with the generator's own rules) and
+production feasibility against today's caps, reports readiness gate by gate, and
+records your approval of an exact plan. Planning never changes `book.yaml`, never
+stales a built book, and never claims market research or commercial success. See
+[book planning](docs/book-planning.md).
 
 ## Quick start
 
@@ -73,6 +75,10 @@ puzzlepress cover import books/my-book ~/Pictures/harbour.jpg
 puzzlepress publish validate books/publishing-demo
 puzzlepress publish inspect books/publishing-demo
 puzzlepress publish package books/publishing-demo --zip
+puzzlepress plan inspect books/automotive
+puzzlepress plan report books/automotive --json
+puzzlepress plan approve books/my-book --identity pp1-planning-sha256-...
+puzzlepress plan handoff books/my-book --json
 ```
 
 Commands are read-only except `book build`, which writes `interior.pdf` and an
@@ -81,7 +87,9 @@ Commands are read-only except `book build`, which writes `interior.pdf` and an
 `preflight.json` beside them (unless `--no-write`). `cover build` writes `cover.pdf`
 and `cover.json` beside the interior, `cover preflight` writes `cover-preflight.json`
 and `cover import` copies a photograph into the project's `cover-assets/`. `publish package`
-writes `publishing/` (and optionally `publishing.zip`) beside them only when the package is ready. `book preflight` exits 0 only
+writes `publishing/` (and optionally `publishing.zip`) beside them only when the package is ready.
+`plan approve` writes only `planning.yaml`; the other `plan` commands are read-only
+(`plan report` exits 0 only for a plan ready for approval or approved). `book preflight` exits 0 only
 when the interior is structurally valid and KDP ready. `composition-demo` has 11
 pages: structurally valid, not KDP ready (the paperback minimum is 24 pages). Exit codes: **0** success, **1** expected configuration
 or generation failure, **2** usage error. Batch quality findings are warnings
@@ -91,6 +99,9 @@ diagnostics (overflow, digest mismatch, invalid profile) and writes nothing. `py
 
 ## Web Studio
 
+- Plan the book first: research notes, audience, comparable books, themes,
+  vocabulary, puzzle allocation and difficulty, with coverage charts, gate-by-gate
+  readiness, production feasibility and an explicit, identity-bound approval.
 - Discover local projects and inspect metadata, validation and build identity.
 - Edit puzzle titles, themes, IDs, ordered targets and reusable word-bank entries.
 - Add, remove and reorder puzzles; select and configure shared difficulty profiles.
@@ -113,13 +124,13 @@ full-wrap cover over a synthetic stand-in photograph and complete KDP metadata;
 its interior and cover are KDP ready under the modeled rules, and it awaits a
 person's AI disclosure and confirmations before it can be packaged.
 [`cover-demo`](books/cover-demo/book.yaml) has the same puzzles with 14 x 14 grids;
-its cover is KDP ready, but its interior fails the live-area check on ten pages by
-half a grid frame stroke (see [CONTEXT](CONTEXT.md)).
+its interior and cover are KDP ready under the modeled rules.
 [`composition-demo`](books/composition-demo/book.yaml) is a small composed book:
 front matter, four puzzles, grouped solutions and a notes page.
 [`garden-demo`](books/garden-demo/book.yaml) has two themed puzzles without a
 composition. [`automotive`](books/automotive/book.yaml) is a small source fixture
-without word-search definitions. None is presented as a finished publishing product.
+without word-search definitions, with a [demonstration plan](books/automotive/planning.yaml)
+for the upcoming automotive book (60 planned puzzles; not approved, no market research). None is presented as a finished publishing product.
 
 Open a book and choose **Edit**. Make changes, **Validate draft**, then **Preview
 draft** to inspect the grid and quality. **Save changes** validates again and
@@ -207,7 +218,8 @@ both OSes, plus a separate frontend and Chromium job. Symlink tests skip when OS
                                 React / TypeScript
 ```
 
-Project -> generation -> quality -> composition -> publication plan -> layout -> PDF
+planning.yaml -> planning analysis -> readiness -> approved blueprint (handoff only;
+no build reads it). Project -> generation -> quality -> composition -> publication plan -> layout -> PDF
 -> preflight; built interior facts + photograph + cover section -> cover layout ->
 cover.pdf -> cover preflight; metadata + fresh interior and cover preflight ->
 readiness -> verified publishing package for manual KDP upload.
@@ -220,7 +232,7 @@ There is no JavaScript generator, solver, planner or second project validator. B
 identities include engine version and output-affecting inputs. Seeds travel over
 HTTP as decimal strings. Source and disposable build directories stay disjoint.
 
-Contracts: [project format](docs/project-format.md), [word-search engine](docs/word-search.md),
+Contracts: [book planning](docs/book-planning.md), [project format](docs/project-format.md), [word-search engine](docs/word-search.md),
 [batch and quality](docs/batch-quality.md), [book composition](docs/book-composition.md),
 [print interior](docs/print-interior.md), [preflight and preview](docs/preflight.md),
 [paperback cover](docs/cover.md), [KDP publishing package](docs/publishing.md),
@@ -233,6 +245,9 @@ ASCII A-Z targets, at most 20 definitions per batch, and bounded greedy generati
 that can fail on feasible inputs. Quality is descriptive, with explicit scan
 limits and no built-in prohibited-word list or automatic repair. Profile names
 are authored settings, not calibrated difficulty scores.
+Planning reports a plan larger than the 20-puzzle cap as unsupported rather than
+raising the cap; its heuristics are review prompts, and no research is verified by
+PuzzlePress.
 
 Studio edits only existing `book.yaml` projects within its configured books root.
 It has no arbitrary filesystem browser, accounts, cloud services or telemetry.

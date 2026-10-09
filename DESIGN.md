@@ -140,6 +140,13 @@ Small status marks differ in shape as well as color. The supplied logo is preser
   with their official sources. Python findings sit beside their fields as text.
   Nothing is preselected for the author; export is one deliberate action and its
   summary never implies submission. No success banners or statistics.
+- Planning: a research notebook and book blueprint. A ruled section list (with
+  counts to fix or review) beside one section's fields and a readiness column with
+  each gate as a text verdict, the approval and feasibility items saying how each
+  is known. Research notes say what kind of statement they are; nothing implies a
+  verified market. Charts are semantic tables of Python's numbers in one green,
+  values as text, level progression as numbered cells. Approval is one deliberate
+  action on the saved plan; nothing is preselected or approved for the author.
 - States: text and recovery actions for errors, meaningful empty states, polite
   loading status. A single loading-line animation respects reduced motion.
 
@@ -161,3 +168,5 @@ Small status marks differ in shape as well as color. The supplied logo is preser
 - Don't imply preflight readiness means Amazon will accept a book.
 - Don't preselect a declaration, confirmation or ISBN choice for the author, or
   present a local export as a KDP submission.
+- Don't present research notes as verified market findings, invent comparable
+  books or metrics, or imply planning approval is publishing approval.
