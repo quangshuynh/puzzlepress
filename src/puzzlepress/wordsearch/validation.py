@@ -7,6 +7,11 @@ from dataclasses import replace
 from ..errors import MAX_SEED, ValidationIssue
 from .models import Direction, GenerationConfig, Target, TargetEntry, WordSearchError
 
+# Engine input limits (docs/word-search.md).
+MAX_TARGETS = 100
+MAX_SEARCH_LETTERS = 50
+MAX_GRID_SIDE = 50
+
 
 def normalize_targets(entries: Sequence[TargetEntry]) -> tuple[Target, ...]:
     """Preserve display casing/spacing except edge ASCII spaces; grid uses A-Z.
@@ -18,8 +23,10 @@ def normalize_targets(entries: Sequence[TargetEntry]) -> tuple[Target, ...]:
     targets: list[Target] = []
     ids: set[str] = set()
     forms: set[str] = set()
-    if not 1 <= len(entries) <= 100:
-        raise WordSearchError((ValidationIssue("targets", "count", "Use 1..100 targets."),))
+    if not 1 <= len(entries) <= MAX_TARGETS:
+        raise WordSearchError(
+            (ValidationIssue("targets", "count", f"Use 1..{MAX_TARGETS} targets."),)
+        )
     for index, entry in enumerate(entries):
         path = f"targets.{index}"
         if not isinstance(entry.id, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", entry.id):
@@ -47,8 +54,12 @@ def normalize_targets(entries: Sequence[TargetEntry]) -> tuple[Target, ...]:
         search = display.replace(" ", "").upper()
         if not search:
             issues.append(ValidationIssue(f"{path}.display", "empty", "A target needs letters."))
-        elif len(search) > 50:
-            issues.append(ValidationIssue(f"{path}.display", "length", "Use at most 50 letters."))
+        elif len(search) > MAX_SEARCH_LETTERS:
+            issues.append(
+                ValidationIssue(
+                    f"{path}.display", "length", f"Use at most {MAX_SEARCH_LETTERS} letters."
+                )
+            )
         elif search in forms:
             issues.append(
                 ValidationIssue(
@@ -66,8 +77,8 @@ def normalize_targets(entries: Sequence[TargetEntry]) -> tuple[Target, ...]:
 def normalize_config(config: GenerationConfig) -> GenerationConfig:
     issues: list[ValidationIssue] = []
     for name, value, low, high in (
-        ("width", config.size.width, 1, 50),
-        ("height", config.size.height, 1, 50),
+        ("width", config.size.width, 1, MAX_GRID_SIDE),
+        ("height", config.size.height, 1, MAX_GRID_SIDE),
         ("max_restarts", config.max_restarts, 0, 100),
         ("max_attempts", config.max_attempts, 1, 1_000_000),
     ):

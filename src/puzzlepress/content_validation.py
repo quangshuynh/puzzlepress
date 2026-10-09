@@ -4,7 +4,18 @@ import math
 import re
 from typing import cast
 
-from .content import DifficultyProfile, PuzzleDefinition, QualityConfig, WordBank, WordSearchContent
+from .content import (
+    MAX_BANK_ENTRIES,
+    MAX_BANKS,
+    MAX_PROFILES,
+    MAX_PUZZLE_TARGETS,
+    MAX_PUZZLES,
+    DifficultyProfile,
+    PuzzleDefinition,
+    QualityConfig,
+    WordBank,
+    WordSearchContent,
+)
 from .errors import ValidationIssue
 from .wordsearch.models import Direction, GenerationConfig, GridSize, TargetEntry, WordSearchError
 from .wordsearch.validation import normalize_config, normalize_targets, validate_fit
@@ -79,7 +90,9 @@ def validate_word_search_content(
     banks = _banks(reader, root.get("banks"))
     profiles = _profiles(reader, root.get("profiles"))
     puzzles: list[PuzzleDefinition] = []
-    for i, raw in enumerate(reader.sequence(root.get("puzzles"), "word_search.puzzles", 20)):
+    for i, raw in enumerate(
+        reader.sequence(root.get("puzzles"), "word_search.puzzles", MAX_PUZZLES)
+    ):
         path = f"word_search.puzzles.{i}"
         data = reader.mapping(
             raw, path, {"id", "title", "theme", "bank", "target_ids", "difficulty"}
@@ -91,7 +104,7 @@ def validate_word_search_content(
         target_ids = tuple(
             reader.text(item, f"{path}.target_ids.{j}", True)
             for j, item in enumerate(
-                reader.sequence(data.get("target_ids"), f"{path}.target_ids", 100)
+                reader.sequence(data.get("target_ids"), f"{path}.target_ids", MAX_PUZZLE_TARGETS)
             )
         )
         reader.unique(list(target_ids), f"{path}.target_ids")
@@ -135,13 +148,15 @@ def validate_word_search_content(
 def _banks(reader: _Reader, raw: object) -> list[WordBank]:
     banks: list[WordBank] = []
     ids: list[str] = []
-    for i, item in enumerate(reader.sequence(raw, "word_search.banks", 20)):
+    for i, item in enumerate(reader.sequence(raw, "word_search.banks", MAX_BANKS)):
         path = f"word_search.banks.{i}"
         data = reader.mapping(item, path, {"id", "entries"})
         identifier = reader.text(data.get("id"), f"{path}.id", True)
         ids.append(identifier)
         entries: list[TargetEntry] = []
-        for j, raw_entry in enumerate(reader.sequence(data.get("entries"), f"{path}.entries", 100)):
+        for j, raw_entry in enumerate(
+            reader.sequence(data.get("entries"), f"{path}.entries", MAX_BANK_ENTRIES)
+        ):
             entry_path = f"{path}.entries.{j}"
             entry = reader.mapping(raw_entry, entry_path, {"id", "display"})
             entry_id = reader.text(entry.get("id"), f"{entry_path}.id", True)
@@ -163,7 +178,7 @@ def _banks(reader: _Reader, raw: object) -> list[WordBank]:
 def _profiles(reader: _Reader, raw: object) -> list[DifficultyProfile]:
     profiles: list[DifficultyProfile] = []
     ids: list[str] = []
-    for i, item in enumerate(reader.sequence(raw, "word_search.profiles", 20)):
+    for i, item in enumerate(reader.sequence(raw, "word_search.profiles", MAX_PROFILES)):
         path = f"word_search.profiles.{i}"
         data = reader.mapping(
             item, path, {"id", "width", "height", "directions", "max_restarts", "max_attempts"}
