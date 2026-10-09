@@ -1,0 +1,404 @@
+# A DEMONSTRATION plan for the upcoming automotive book (docs/book-planning.md).
+# It is not the production book and contains no market research: no comparable
+# books are recorded until a person has read and cited them. Audiences are
+# working assumptions. The candidate vocabulary was drafted with an AI model for
+# this demonstration and is recorded as ai_generated. KDP facts are cited from
+# PuzzlePress's own recorded provenance and marked unverified for this book.
+# Nothing here is approved. book.yaml beside it is untouched by planning.
+planning_version: 1
+concept:
+  summary: >-
+    An adult word-search book about how cars work and how people look after them:
+    engines, maintenance, tools, vehicle systems, motorsport, automotive history and
+    driving culture, each puzzle built from factual, generic automotive terms.
+  subject: Automotive technology, maintenance and car culture
+  reader_experience: >-
+    Relaxed solving with vocabulary a car enthusiast recognizes; difficulty rises
+    gently from warm-up grids to larger challenge grids.
+  scope: Seven themes on vehicle technology, care and culture. No brand or model names.
+positioning:
+  primary_audience: Adult car enthusiasts (working assumption, not validated)
+  secondary_audience: Automotive students and hobby mechanics (candidate, not validated)
+  candidate_audiences:
+    - Car enthusiasts
+    - Mechanics
+    - Automotive students
+    - General vehicle hobbyists
+    - Adults who enjoy themed word searches
+  familiarity: enthusiast
+  tone: Knowledgeable and friendly, with plain factual theme titles
+  use_case: Leisure solving at home or while travelling
+  main_benefit: Themed puzzles built from real automotive vocabulary rather than general car words.
+  differentiation: >-
+    Hypothesis to test: themes organized around how vehicles work and are maintained,
+    using technical terms, rather than a general mix of car-related words.
+  evidence:
+    - r-audience-hypothesis
+  claims: []
+structure:
+  puzzle_type: word_search
+  target_puzzles: 60
+  print_profile: null
+  solutions: end
+  solutions_per_page: 2
+  front_matter_pages: 3
+  back_matter_pages: 1
+difficulty:
+  strategy: gradual
+  levels:
+    - id: warm-up
+      label: Warm-up
+      width: 13
+      height: 13
+      directions: [right, down, down-right]
+      words: {min: 10, max: 12}
+    - id: standard
+      label: Standard
+      width: 15
+      height: 15
+      directions: [right, down, down-right, up-right]
+      words: {min: 12, max: 15}
+    - id: challenge
+      label: Challenge
+      width: 17
+      height: 17
+      directions: [right, left, down, up, down-right, down-left, up-right, up-left]
+      words: {min: 15, max: 18}
+themes:
+  - id: automotive
+    label: Automotive
+  - id: engines
+    label: Engines & Powertrains
+    parent: automotive
+    required: true
+    puzzles: 10
+  - id: maintenance
+    label: Maintenance & Repair
+    parent: automotive
+    required: true
+    puzzles: 10
+  - id: tools
+    label: Tools & Workshop
+    parent: automotive
+    puzzles: 8
+  - id: systems
+    label: Vehicle Systems
+    parent: automotive
+    required: true
+    puzzles: 10
+  - id: motorsport
+    label: Motorsport
+    parent: automotive
+    puzzles: 8
+  - id: history
+    label: Automotive History
+    parent: automotive
+    puzzles: 6
+  - id: driving
+    label: Driving & Road Culture
+    parent: automotive
+    puzzles: 8
+vocabulary:
+  - theme: engines
+    source: ai_generated
+    entries:
+      - word: PISTON
+      - word: CYLINDER
+      - word: CRANKSHAFT
+      - word: CAMSHAFT
+      - word: CONNECTING ROD
+      - word: VALVE
+      - word: SPARK PLUG
+      - word: IGNITION COIL
+      - word: FUEL INJECTOR
+      - word: THROTTLE BODY
+      - word: INTAKE MANIFOLD
+      - word: EXHAUST MANIFOLD
+      - word: TURBOCHARGER
+      - word: SUPERCHARGER
+      - word: INTERCOOLER
+      - word: TIMING BELT
+      - word: TIMING CHAIN
+      - word: FLYWHEEL
+      - word: CLUTCH
+      - word: GEARBOX
+      - word: TRANSMISSION
+      - word: DIFFERENTIAL
+      - word: DRIVESHAFT
+      - word: AXLE
+      - word: TORQUE
+      - word: HORSEPOWER
+      - word: COMPRESSION
+      - word: COMBUSTION
+      - word: DIESEL
+      - word: HYBRID
+      - word: ELECTRIC MOTOR
+  - theme: maintenance
+    source: ai_generated
+    entries:
+      - word: OIL CHANGE
+      - word: OIL FILTER
+      - word: AIR FILTER
+      - word: CABIN FILTER
+      - word: COOLANT
+      - word: ANTIFREEZE
+      - word: BRAKE FLUID
+      - word: BRAKE PADS
+      - word: ROTORS
+      - word: TIRE ROTATION
+      - word: WHEEL ALIGNMENT
+      - word: TREAD DEPTH
+      - word: TIRE PRESSURE
+      - word: WIPER BLADES
+      - word: BATTERY
+      - word: SPARK PLUG
+      - word: SERPENTINE BELT
+      - word: INSPECTION
+      - word: TUNE UP
+      - word: DIAGNOSTICS
+      - word: SERVICE INTERVAL
+      - word: MILEAGE
+      - word: GASKET
+      - word: RADIATOR
+      - word: THERMOSTAT
+  - theme: tools
+    source: ai_generated
+    entries:
+      - word: WRENCH
+      - word: SOCKET
+      - word: RATCHET
+      - word: TORQUE WRENCH
+      - word: SCREWDRIVER
+      - word: PLIERS
+      - word: HAMMER
+      - word: MALLET
+      - word: FLOOR JACK
+      - word: JACK STANDS
+      - word: CREEPER
+      - word: MULTIMETER
+      - word: FEELER GAUGE
+      - word: OIL DRAIN PAN
+      - word: FUNNEL
+      - word: PRY BAR
+      - word: IMPACT DRIVER
+      - word: BREAKER BAR
+      - word: VISE
+      - word: WORKBENCH
+      - word: TOOLBOX
+      - word: FLASHLIGHT
+      - word: GLOVES
+      - word: SAFETY GLASSES
+      - word: COMPRESSOR
+      - word: TIRE GAUGE
+  - theme: systems
+    source: ai_generated
+    entries:
+      - word: BRAKES
+      - word: BRAKE PADS
+      - word: CALIPER
+      - word: MASTER CYLINDER
+      - word: ABS
+      - word: STEERING
+      - word: RACK AND PINION
+      - word: POWER STEERING
+      - word: SUSPENSION
+      - word: SHOCK ABSORBER
+      - word: STRUT
+      - word: COIL SPRING
+      - word: SWAY BAR
+      - word: ALTERNATOR
+      - word: STARTER
+      - word: BATTERY
+      - word: FUSE
+      - word: RELAY
+      - word: WIRING HARNESS
+      - word: HEADLIGHT
+      - word: RADIATOR
+      - word: WATER PUMP
+      - word: THERMOSTAT
+      - word: FUEL PUMP
+      - word: FUEL TANK
+      - word: EXHAUST
+      - word: MUFFLER
+      - word: CATALYTIC CONVERTER
+      - word: SENSOR
+  - theme: motorsport
+    source: ai_generated
+    entries:
+      - word: RACETRACK
+      - word: PIT STOP
+      - word: PIT LANE
+      - word: GRID
+      - word: POLE POSITION
+      - word: CHICANE
+      - word: HAIRPIN
+      - word: APEX
+      - word: SLIPSTREAM
+      - word: DOWNFORCE
+      - word: SPOILER
+      - word: SLICKS
+      - word: RALLY
+      - word: DRAG RACE
+      - word: ENDURANCE
+      - word: CHECKERED FLAG
+      - word: PADDOCK
+      - word: QUALIFYING
+      - word: OVERTAKE
+      - word: SAFETY CAR
+      - word: STEWARD
+      - word: HELMET
+      - word: ROLL CAGE
+      - word: KART
+      - word: SPRINT
+  - theme: history
+    source: ai_generated
+    entries:
+      - word: HORSELESS CARRIAGE
+      - word: STEAM CAR
+      - word: ASSEMBLY LINE
+      - word: MODEL YEAR
+      - word: COACHBUILDER
+      - word: RUNNING BOARD
+      - word: HAND CRANK
+      - word: CARBURETOR
+      - word: CHROME
+      - word: TAILFINS
+      - word: GAS STATION
+      - word: ROAD TRIP
+      - word: CLASSIC CAR
+      - word: VINTAGE
+      - word: RESTORATION
+      - word: PATENT
+      - word: PROTOTYPE
+      - word: ROADSTER
+      - word: COUPE
+      - word: SEDAN
+      - word: CONVERTIBLE
+      - word: STATION WAGON
+  - theme: driving
+    source: ai_generated
+    entries:
+      - word: ROAD TRIP
+      - word: HIGHWAY
+      - word: INTERSTATE
+      - word: ROUNDABOUT
+      - word: MERGE
+      - word: LANE
+      - word: SPEED LIMIT
+      - word: CRUISE CONTROL
+      - word: PARALLEL PARKING
+      - word: CAR SHOW
+      - word: CAR WASH
+      - word: DRIVE IN
+      - word: CAR CLUB
+      - word: MOTEL
+      - word: ROADSIDE
+      - word: DETOUR
+      - word: COMMUTE
+      - word: CARPOOL
+      - word: ODOMETER
+      - word: SPEEDOMETER
+      - word: DASHBOARD
+      - word: GLOVEBOX
+      - word: TURN SIGNAL
+      - word: MIRROR
+      - word: SEAT BELT
+      - word: NAVIGATION
+# The opening warm-up section only. The other 53 puzzles are not specified yet.
+puzzles:
+  - id: engines-01
+    theme: engines
+    level: warm-up
+    title: Under the Hood
+    words: [PISTON, CYLINDER, CRANKSHAFT, CAMSHAFT, VALVE, SPARK PLUG, FLYWHEEL, TIMING BELT, TORQUE, AXLE]
+  - id: maintenance-01
+    theme: maintenance
+    level: warm-up
+    title: Service Day
+    words: [OIL CHANGE, OIL FILTER, AIR FILTER, COOLANT, BRAKE FLUID, WIPER BLADES, BATTERY, RADIATOR, GASKET, INSPECTION]
+  - id: tools-01
+    theme: tools
+    level: warm-up
+    title: In the Toolbox
+    words: [WRENCH, SOCKET, RATCHET, PLIERS, HAMMER, SCREWDRIVER, FLOOR JACK, CREEPER, FUNNEL, VISE]
+  - id: systems-01
+    theme: systems
+    level: warm-up
+    title: Stop and Steer
+    words: [BRAKES, CALIPER, STEERING, SUSPENSION, STRUT, COIL SPRING, SWAY BAR, ALTERNATOR, STARTER, FUSE]
+  - id: motorsport-01
+    theme: motorsport
+    level: warm-up
+    title: Race Day
+    words: [RACETRACK, PIT STOP, GRID, CHICANE, HAIRPIN, APEX, SPOILER, RALLY, PADDOCK, HELMET]
+  - id: history-01
+    theme: history
+    level: warm-up
+    title: Early Motoring
+    words: [STEAM CAR, ASSEMBLY LINE, HAND CRANK, RUNNING BOARD, CARBURETOR, ROADSTER, COUPE, SEDAN, PATENT, PROTOTYPE]
+  - id: driving-01
+    theme: driving
+    level: warm-up
+    title: Open Road
+    words: [ROAD TRIP, HIGHWAY, ROUNDABOUT, MERGE, SPEED LIMIT, CAR WASH, MOTEL, DETOUR, ODOMETER, SEAT BELT]
+constraints:
+  min_letters: 4
+  max_letters: 15
+  max_word_reuse: 2
+  prohibited_words: []
+  notes:
+    - Generic terms only. No brand, model, team or driver names.
+    - Factual terminology. No slang that could read as offensive.
+questions:
+  - id: q-audience
+    question: Should the primary audience be adult car enthusiasts, or automotive students?
+    blocking: true
+  - id: q-comparables
+    question: >-
+      Which comparable automotive word-search books exist, and what puzzle counts,
+      page counts and trim sizes do they use? Record only books a person has read.
+    blocking: true
+  - id: q-puzzle-cap
+    question: >-
+      Projects hold at most 20 puzzles today. Raise the cap for a 60-puzzle book in
+      production, or plan a smaller first edition?
+    blocking: true
+  - id: q-paper
+    question: White or cream interior paper?
+research:
+  - id: r-kdp-minimum
+    question: q-puzzle-cap
+    observation: KDP paperbacks need at least 24 pages.
+    evidence: unverified_source
+    source:
+      citation: >-
+        KDP help, Paperback Submission Guidelines, as recorded in PuzzlePress
+        docs/cover.md (KDP provenance, read 2026-10-07). Not re-read for this book.
+      type: official
+    relevance: Even a 20-puzzle first edition clears the minimum with solutions and front matter.
+  - id: r-spine-text
+    observation: >-
+      Spine text needs at least 80 pages under the stricter reading of KDP's wording
+      ("more than 79" and "at least 79").
+    evidence: unverified_source
+    source:
+      citation: >-
+        KDP help, Create a Paperback Cover, as recorded in PuzzlePress docs/cover.md
+        (KDP provenance, read 2026-10-07). Not re-read for this book.
+      type: official
+    relevance: Sixty puzzles with two solutions a page are estimated near 95 pages.
+    decision: Plan two solutions a page so a full book can carry spine text.
+  - id: r-audience-hypothesis
+    question: q-audience
+    observation: Car enthusiasts may prefer technical vocabulary to general car words.
+    evidence: hypothesis
+    confidence: low
+    decision: Work from enthusiasts as the primary audience until this is researched.
+  - id: r-generic-terms
+    observation: >-
+      Brand, model and team names may be trademarks; generic technical terms avoid
+      that question entirely.
+    evidence: preference
+    decision: Use generic terms only.
+comparables: []
+approval: null
