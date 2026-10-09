@@ -24,7 +24,8 @@ puzzlepress publish package books/publishing-demo --zip
 ```
 
 Code lives in `puzzlepress.publishing`: `rules` (catalogue, KDP values, sources),
-`metadata` (validation, AI disclosure meaning, confirmations), `isbn`, `text`
+`metadata` (validation, AI disclosure meaning, confirmation states), `review`
+(review identities), `isbn`, `text`
 (detectors), `identity`, `readiness`, `provenance`, `submission` (metadata record,
 checklist) and `package` (assembly, verification, the only writer). The schema is
 `publishing_config.py` / `publishing_validation.py`; the CLI is `publish_cli.py`;
@@ -41,7 +42,7 @@ KDP description.)
 
 ```yaml
 publishing:
-  version: 1                       # required; other versions are rejected
+  version: 2                       # required; 1 is read as legacy, others rejected
   description: |-                  # plain text, line breaks allowed
     Twenty word searches from harbour walls, tide pools and lighthouse paths.
   keywords: [coastal word puzzles, harbour vocabulary]
@@ -53,7 +54,11 @@ publishing:
   edition: 1                       # or null
   series: null                     # or {title, number}
   ai_disclosure: {text: human, images: human, translations: none}
-  attestations: {rights: true, ai_disclosure: true, metadata: true, isbn: false}
+  attestations:                    # review identities you confirmed, or null
+    rights: pp1-review-sha256-...
+    ai_disclosure: pp1-review-sha256-...
+    metadata: pp1-review-sha256-...
+    isbn: null
   notes: null
 ```
 
@@ -70,7 +75,7 @@ publishing:
 | `edition` | 1..999 or null | no |
 | `series` | `title` (title rules apply), optional `number` | no |
 | `ai_disclosure` | per `text`, `images`, `translations`: `human`, `ai_assisted`, `ai_generated`, `unknown`; `translations` also `none` | no `unknown` |
-| `attestations` | booleans, default false | rights, ai_disclosure, metadata; isbn with an own ISBN |
+| `attestations` | review identity or null (version 1: booleans) | rights, ai_disclosure, metadata; isbn with an own ISBN, each current |
 | `notes` | plain text for the author, shown in the checklist | no |
 
 Schema validation only decides whether values are interpretable; generous
@@ -109,7 +114,6 @@ required values, the action a person must take and the Studio area that fixes it
 | `description_claims` | error | Puzzle counts in the description equal the book's puzzles; no mention of solutions the book omits |
 | `keywords_count` | error | At most 7 |
 | `keywords_format` | error | No quotation marks, HTML, Amazon program names or exact duplicates |
-| `keywords_length` | warning (ambiguous) | 50 characters: the KDP page only says to watch the field's limit |
 | `keywords_review` | warning | Spacing/plural variants, subjective or time-sensitive words, generic words, repeats of title, contributors or categories |
 | `keywords_present` | info | None entered |
 | `categories_count` | error | At most 3 |
@@ -127,7 +131,7 @@ required values, the action a person must take and the Studio area that fixes it
 | `series_eligibility` | error | Low-content books cannot have a series |
 | `ai_disclosure_complete` | error | Every content kind declared |
 | `ai_disclosure_required` | info | What must be disclosed as AI-generated in KDP |
-| `attestations` | error | Each required confirmation given |
+| `attestations` | error | Each required confirmation given for the content as it is now |
 
 Detectors are deterministic patterns that quote what they matched. Unambiguous
 patterns are errors; pattern guesses (testimonials, promotion, stuffing) are
@@ -138,7 +142,10 @@ grid") and counts of other things ("8 words in each puzzle").
 ### Keywords and categories
 
 Up to seven keywords; PuzzlePress does not estimate search volume, research
-competitors or suggest keywords. Categories are stored as the author's
+competitors or suggest keywords. KDP's keywords page states no per-keyword length
+(only that the text field has a limit), so PuzzlePress checks none; the 200-character
+schema bound only keeps a draft interpretable. Ruleset 1 warned above an assumed
+50 characters; ruleset 2 removed that unsourced rule. Categories are stored as the author's
 preferences. KDP's category list differs by marketplace and format and changes
 over time, so PuzzlePress has no taxonomy and never calls a category available:
 the checklist asks you to select it in KDP's selector.
@@ -191,14 +198,47 @@ AI-generated or human-made.
 | --- | --- |
 | `rights` | I hold the rights to publish this book's text, word lists and cover photograph. |
 | `ai_disclosure` | I reviewed the AI content declaration above, and it is accurate. |
-| `metadata` | The description, keywords and categories accurately represent this book. |
+| `metadata` | The title, author and other book details, description, keywords, categories and audience accurately represent this book. |
 | `isbn` | My ISBN is registered with this title, author and imprint exactly as entered (own ISBN only). |
 
-They default to false, are never set by PuzzlePress, carry no timestamp, and are
-part of the publishing identity. They are booleans: editing metadata after
-confirming does not clear them, so review them before exporting. Copyright,
-authorship, ISBN ownership and the accuracy of an AI declaration are never
-claimed as verified.
+A confirmation records exactly what was reviewed. Each stores the **review
+identity** of the content its statement covers (`publishing.review`):
+`pp1-review-sha256-` over canonical JSON of the review version, book ID,
+confirmation name and these values. No timestamps, paths, file names or labels;
+the photograph counts by its pinned SHA-256.
+
+| Confirmation | Covers |
+| --- | --- |
+| `rights` | puzzle titles, themes and word lists (as printed), front and back matter text, the solutions heading, the cover's back text, the photograph |
+| `ai_disclosure` | the declaration, everything `rights` covers, and the description |
+| `metadata` | title, subtitle, author, contributors, series, edition, language, description, keywords, categories, audience |
+| `isbn` | ISBN option and number, title, subtitle, author, imprint |
+
+States: **confirmed** (the stored identity equals the current one), **stale**
+(it names other content: something covered changed), **unconfirmed** (null) and
+**legacy** (a version 1 `true`). Only confirmed counts. Editing covered content
+asks for review again; edits outside a confirmation's scope (crop, cover design,
+seeds, solution layout, puzzle order, notes, low-content, output directory)
+leave it current. Semantics are identity, not time: restoring exactly the
+reviewed content makes a stale confirmation apply again. Confirmations are not
+part of any review identity, so confirming one never stales another.
+
+Python computes identities and states; Studio and the CLI only display them. To
+confirm, Studio records the identity Python reported for the draft; on the
+command line, `publish validate` prints each pending statement's current
+identity to copy into `book.yaml` after you review it. They are never set by
+PuzzlePress and are part of the publishing identity. A digest identifies
+content: copyright, authorship, ISBN ownership and the accuracy of an AI
+declaration are never claimed as verified.
+
+**Version 1.** Sections written before identity binding (`version: 1`) stored
+booleans. They still load and save unchanged, but a `true` never counts: it
+reports "Review again" because nothing recorded what was reviewed. Studio offers
+**Upgrade publishing section** (the version 2 form Python returns, with every
+confirmation null and all metadata kept); by hand, set `version: 2`, set every
+confirmation to null, then confirm again. A boolean in a version 2 section is a
+schema error (`confirmation_identity`). Bump `REVIEW_VERSION` if what a
+confirmation covers ever changes: every stored confirmation then goes stale.
 
 ## Readiness
 
@@ -337,6 +377,10 @@ pinned fonts, Pillow and ReportLab versions).
 
 ## Official sources
 
+Ruleset 2 (Interval 10.1): confirmations bind to reviewed content and the
+unsourced 50-character keyword warning is gone. Plain-text descriptions remain a
+PuzzlePress rule; KDP's HTML subset is a possible future enhancement, not a blocker.
+
 Read on 2026-10-08 from official KDP help pages; search results were used only to
 locate pages. Values live in `publishing.rules` only.
 
@@ -361,8 +405,7 @@ Classification of what is encoded:
   explicit-content answer; AI-generated disclosure.
 - **KDP recommendations**: keyword advice (variants, subjective words), low-content
   guidance for puzzle books.
-- **Ambiguous**: title length wording (stricter applies); keyword field length
-  (50 assumed, warning only); contributor roles beyond author, editor,
+- **Ambiguous**: title length wording (stricter applies); contributor roles beyond author, editor,
   illustrator and translator are taken from KDP's form, not its help pages; the
   language-name to tag mapping is PuzzlePress's (for example Provençal as `oc`).
 - **PuzzlePress rules**: a description is required, descriptions are plain text,
@@ -390,6 +433,7 @@ Paperback only, one trim, black ink, white or cream paper. Plain-text
 descriptions (no KDP HTML subset). No category taxonomy, keyword research,
 ISBN purchase or assignment, barcode, pricing, royalties or marketing. No KDP
 login, browser automation, upload or submission, and no ebook or hardcover.
-Confirmations are booleans without history. Heuristic detectors can miss or
+Confirmations bind to content, not to a person or time, and keep no history.
+Heuristic detectors can miss or
 over-report; warnings exist for that reason. KDP may apply checks PuzzlePress does
 not model; its Print Previewer and reviewers decide.

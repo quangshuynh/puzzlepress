@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, expect, test, vi } from 'vitest';
 import { App } from './App';
 import { starterPublishing } from './Publishing';
-import type { PublishingStatus } from './types';
+import type { PublishingDraftCheck, PublishingStatus } from './types';
 import blocked from './fixtures/publishing-blocked.json';
 import draftCheck from './fixtures/publishing-draft.json';
 import exported from './fixtures/publishing-exported.json';
@@ -17,14 +17,15 @@ afterEach(() => vi.restoreAllMocks());
 function setup({
   status = blocked as object,
   source = project as object,
-}: { status?: object; source?: object } = {}) {
+  draft = draftCheck as object,
+}: { status?: object; source?: object; draft?: object } = {}) {
   let saved = structuredClone(source) as typeof project;
   const calls: Call[] = [];
   vi.spyOn(globalThis, 'fetch').mockImplementation(async (url, options) => {
     const path = String(url);
     const body = options?.body ? JSON.parse(String(options.body)) : {};
     calls.push({ url: path, body });
-    if (path.endsWith('/draft/publishing')) return new Response(JSON.stringify(draftCheck));
+    if (path.endsWith('/draft/publishing')) return new Response(JSON.stringify(draft));
     if (path.endsWith('/publishing/export')) return new Response(JSON.stringify(exported));
     if (path.endsWith('/publishing')) return new Response(JSON.stringify(status));
     if (path.endsWith('/draft/save')) {
@@ -63,7 +64,7 @@ test('never preselects disclosure or confirmations', async () => {
   setup();
   await screen.findByText('AI content disclosure is not yet declared.');
   for (const name of ['rights', 'AI content declaration', 'accurately represent'])
-    expect(screen.getByRole('checkbox', { name: new RegExp(name) })).not.toBeChecked();
+    expect(await screen.findByRole('checkbox', { name: new RegExp(name) })).not.toBeChecked();
   const text = screen.getByRole('group', { name: /Text \(word lists/ });
   expect(within(text).getByRole('radio', { name: /Not yet reviewed/ })).toBeChecked();
   const starter = starterPublishing();
@@ -102,16 +103,90 @@ test('confirmations save through the shared draft and block export until saved',
   const user = userEvent.setup();
   const exportButton = within(readiness()).getByRole('button', { name: 'Export package' });
   expect(exportButton).toBeEnabled();
-  await user.click(screen.getByRole('checkbox', { name: /accurately represent/ }));
+  await user.click(await screen.findByRole('checkbox', { name: /accurately represent/ }));
   expect(within(workspace()).getByText('Unsaved changes')).toBeVisible();
   expect(exportButton).toBeDisabled();
   expect(screen.getByText(/Save the draft first: packages build from saved source/)).toBeVisible();
   await user.click(screen.getByRole('button', { name: 'Save changes' }));
   await waitFor(() => expect(calls.some((c) => c.url.endsWith('/draft/save'))).toBe(true));
   const save = calls.find((c) => c.url.endsWith('/draft/save'))!;
-  const saved = (save.body.source as { publishing: { attestations: Record<string, boolean> } })
+  const saved = (save.body.source as { publishing: { attestations: Record<string, unknown> } })
     .publishing.attestations;
-  expect(saved.metadata).toBe(true);
+  // The browser records the review identity Python reported; it never computes one.
+  const reported = (draftCheck as unknown as PublishingDraftCheck).metadata.confirmations.find(
+    (c) => c.name === 'metadata',
+  )!.current;
+  expect(saved.metadata).toBe(reported);
+  expect(saved.rights).toBeNull();
+});
+
+function withConfirmation(state: 'confirmed' | 'stale' | 'legacy', upgrade = false) {
+  const check = structuredClone(draftCheck) as unknown as PublishingDraftCheck;
+  const metadata = check.metadata.confirmations.find((c) => c.name === 'metadata')!;
+  metadata.state = state;
+  metadata.message =
+    state === 'stale'
+      ? 'Something it covers changed after you confirmed it: title, keywords. Review and confirm again.'
+      : metadata.message;
+  if (upgrade)
+    check.upgrade = { ...structuredClone(project.source.publishing), version: 2 } as never;
+  return check;
+}
+
+test('a stale confirmation is unchecked and says why review is needed again', async () => {
+  setup({ draft: withConfirmation('stale') });
+  const box = await screen.findByRole('checkbox', { name: /accurately represent/ });
+  expect(box).not.toBeChecked();
+  const state = document.getElementById(box.getAttribute('aria-describedby')!)!;
+  expect(state.textContent).toContain('Review again');
+  expect(state.textContent).toContain('changed after you confirmed it');
+  const confirmed = await screen.findByRole('checkbox', { name: /hold the rights/ });
+  expect(confirmed).not.toBeChecked(); // Unconfirmed in the fixture: never preselected.
+});
+
+test('a confirmed statement shows its state and can be withdrawn', async () => {
+  const check = withConfirmation('confirmed');
+  const confirmedSource = structuredClone(project);
+  const attestations = confirmedSource.source.publishing.attestations as Record<string, unknown>;
+  attestations.metadata = check.metadata.confirmations.find((c) => c.name === 'metadata')!.current;
+  const calls = setup({ source: confirmedSource, draft: check });
+  const user = userEvent.setup();
+  const box = await screen.findByRole('checkbox', { name: /accurately represent/ });
+  expect(box).toBeChecked();
+  const state = document.getElementById(box.getAttribute('aria-describedby')!)!;
+  expect(state.textContent).toContain('Confirmed');
+  box.focus();
+  await user.keyboard(' ');
+  await user.click(screen.getByRole('button', { name: 'Save changes' }));
+  await waitFor(() => expect(calls.some((c) => c.url.endsWith('/draft/save'))).toBe(true));
+  const save = calls.find((c) => c.url.endsWith('/draft/save'))!;
+  const source = save.body.source as { publishing: { attestations: Record<string, unknown> } };
+  expect(source.publishing.attestations.metadata).toBeNull();
+});
+
+test('version 1 confirmations never count and the section upgrades on request', async () => {
+  const legacy = structuredClone(project);
+  const section = legacy.source.publishing as unknown as Record<string, unknown>;
+  section.version = 1;
+  section.attestations = { rights: true, ai_disclosure: true, metadata: true, isbn: false };
+  const calls = setup({ source: legacy, draft: withConfirmation('legacy', true) });
+  const user = userEvent.setup();
+  const upgrade = await screen.findByRole('button', { name: 'Upgrade publishing section' });
+  const box = screen.getByRole('checkbox', { name: /accurately represent/ });
+  expect(box).not.toBeChecked();
+  expect(box).toBeDisabled();
+  await user.click(upgrade);
+  await user.click(screen.getByRole('button', { name: 'Save changes' }));
+  await waitFor(() => expect(calls.some((c) => c.url.endsWith('/draft/save'))).toBe(true));
+  const save = calls.find((c) => c.url.endsWith('/draft/save'))!;
+  const saved = (save.body.source as { publishing: Record<string, unknown> }).publishing;
+  expect(saved.version).toBe(2);
+  expect(saved.attestations).toEqual({
+    rights: null,
+    ai_disclosure: null,
+    metadata: null,
+    isbn: null,
+  });
 });
 
 test('exports the saved revision and summarizes the files without claiming submission', async () => {

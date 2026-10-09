@@ -13,7 +13,9 @@ from ..interior.model import Box
 # Report layout version, and the version of the rule set whose verdicts it holds.
 REPORT_VERSION = 1
 RULESET_ID = "puzzlepress-kdp-paperback"
-RULESET_VERSION = 1
+# 2: live-area containment is the structural `content_in_live_area` rule;
+# `kdp_no_printer_marks` judges only the area beyond the trim.
+RULESET_VERSION = 2
 KDP_RULES_CHECKED = "2026-10-07"
 
 

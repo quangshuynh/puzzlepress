@@ -3,10 +3,12 @@ import { ApiError, request } from './api';
 import { DraftToolbar, type Draft } from './draft';
 import { FieldErrors, type Source } from './editor-fields';
 import type {
+  Confirmation,
   ContentOrigin,
   Issue,
   MetadataReport,
   PublishingConfig,
+  PublishingDraftCheck,
   PublishingFinding,
   PublishingStatus,
 } from './types';
@@ -19,7 +21,7 @@ import { ErrorState, Loading, Status } from './ui';
 
 export function starterPublishing(): PublishingConfig {
   return {
-    version: 1,
+    version: 2,
     description: null,
     keywords: [],
     categories: [],
@@ -30,7 +32,7 @@ export function starterPublishing(): PublishingConfig {
     edition: null,
     series: null,
     ai_disclosure: { text: 'unknown', images: 'unknown', translations: 'unknown' },
-    attestations: { rights: false, ai_disclosure: false, metadata: false, isbn: false },
+    attestations: { rights: null, ai_disclosure: null, metadata: null, isbn: null },
     notes: null,
   };
 }
@@ -51,12 +53,14 @@ const ORIGINS: [ContentOrigin, string, string][] = [
   ['ai_generated', 'AI-generated', 'Created by an AI tool, even if edited later. Disclose in KDP'],
   ['unknown', 'Not yet reviewed', 'Blocks the package until you decide'],
 ];
-const ATTESTATIONS: [keyof PublishingConfig['attestations'], string][] = [
-  ['rights', "I hold the rights to publish this book's text, word lists and cover photograph."],
-  ['ai_disclosure', 'I reviewed the AI content declaration above, and it is accurate.'],
-  ['metadata', 'The description, keywords and categories accurately represent this book.'],
-  ['isbn', 'My ISBN is registered with this title, author and imprint exactly as entered.'],
-];
+// Statement, required flag and state come from Python's draft check (Confirmation).
+const CONFIRMATION_STATE: Record<Confirmation['state'], [Tone, string]> = {
+  confirmed: ['pass', 'Confirmed'],
+  stale: ['review', 'Review again'],
+  legacy: ['review', 'Review again'],
+  unconfirmed: ['neutral', 'Not confirmed'],
+};
+type Tone = 'pass' | 'review' | 'fail' | 'neutral';
 const SEVERITY = {
   error: ['fail', 'Blocking'],
   warning: ['review', 'Review'],
@@ -242,12 +246,16 @@ function Metadata({
   update,
   issues,
   findings,
+  check,
+  replaceSection,
 }: {
   d: Draft;
   pub: PublishingConfig;
   update: (next: Partial<PublishingConfig>) => void;
   issues: Issue[];
   findings: PublishingFinding[];
+  check: PublishingDraftCheck | undefined;
+  replaceSection: (next: PublishingConfig) => void;
 }) {
   const book = d.draft.book;
   const base = `/books/${encodeURIComponent(d.key)}`;
@@ -596,30 +604,17 @@ function Metadata({
       <section aria-labelledby="pub-confirm">
         <h3 id="pub-confirm">Your confirmations</h3>
         <p className="small muted">
-          Only you can confirm these. PuzzlePress records your answer in book.yaml, with no date,
-          and cannot verify rights, authorship, ISBN registration or AI use.
+          Only you can confirm these. Each confirmation records exactly what you reviewed, with no
+          date; editing anything it covers asks you to review it again. PuzzlePress cannot verify
+          rights, authorship, ISBN registration or AI use.
         </p>
-        <fieldset className="choice-group" id="publishing.attestations">
-          <legend className="visually-hidden">Confirmations</legend>
-          {ATTESTATIONS.filter(([name]) => name !== 'isbn' || pub.isbn.mode === 'own').map(
-            ([name, statement]) => (
-              <label key={name} className="check">
-                <input
-                  type="checkbox"
-                  checked={pub.attestations[name]}
-                  onChange={(e) =>
-                    update({ attestations: { ...pub.attestations, [name]: e.target.checked } })
-                  }
-                />
-                <span>{statement}</span>
-              </label>
-            ),
-          )}
-          <FieldErrors
-            id="publishing.attestations"
-            issues={matching(issues, 'publishing.attestations')}
-          />
-        </fieldset>
+        <Confirmations
+          pub={pub}
+          check={check}
+          update={update}
+          replaceSection={replaceSection}
+          issues={issues}
+        />
       </section>
 
       <section aria-labelledby="pub-notes">
@@ -634,6 +629,78 @@ function Metadata({
         )}
       </section>
     </div>
+  );
+}
+
+function Confirmations({
+  pub,
+  check,
+  update,
+  replaceSection,
+  issues,
+}: {
+  pub: PublishingConfig;
+  check: PublishingDraftCheck | undefined;
+  update: (next: Partial<PublishingConfig>) => void;
+  replaceSection: (next: PublishingConfig) => void;
+  issues: Issue[];
+}) {
+  // Until Python has checked this exact draft, nothing shows as confirmed.
+  const rows = check?.metadata.confirmations.filter((c) => c.required) ?? [];
+  const upgrade = check?.upgrade ?? null;
+  return (
+    <fieldset
+      className="choice-group confirmations"
+      id="publishing.attestations"
+      aria-busy={check ? undefined : true}
+    >
+      <legend className="visually-hidden">Confirmations</legend>
+      {upgrade && (
+        <div className="notice confirmation-upgrade">
+          <p>
+            This publishing section is version 1, which saved confirmations as yes or no without
+            recording what you reviewed. They no longer count. Upgrade to version 2 to confirm the
+            current content again; your metadata is kept and nothing is confirmed for you.
+          </p>
+          <button type="button" onClick={() => replaceSection(upgrade)}>
+            Upgrade publishing section
+          </button>
+        </div>
+      )}
+      {!check && <p className="small muted">Checking confirmations…</p>}
+      {rows.map((c) => {
+        const [tone, label] = CONFIRMATION_STATE[c.state];
+        const stateId = `confirm-${c.name}-state`;
+        return (
+          <div className="confirmation" key={c.name}>
+            <label className="check">
+              <input
+                type="checkbox"
+                checked={c.state === 'confirmed'}
+                disabled={upgrade !== null}
+                aria-describedby={stateId}
+                onChange={(e) =>
+                  update({
+                    attestations: {
+                      ...pub.attestations,
+                      [c.name]: e.target.checked ? c.current : null,
+                    },
+                  })
+                }
+              />
+              <span>{c.statement}</span>
+            </label>
+            <p className="small confirmation-state" id={stateId}>
+              <Status tone={tone}>{label}</Status> {c.message}
+            </p>
+          </div>
+        );
+      })}
+      <FieldErrors
+        id="publishing.attestations"
+        issues={matching(issues, 'publishing.attestations')}
+      />
+    </fieldset>
   );
 }
 
@@ -1060,7 +1127,8 @@ export function Publishing({ d }: { d: Draft }) {
   const [status, setStatus] = useState<PublishingStatus>();
   const [statusError, setStatusError] = useState<Error>();
   const [attempt, setAttempt] = useState(0);
-  const [check, setCheck] = useState<MetadataReport>();
+  // The latest draft check and the draft it describes; confirmations need an exact match.
+  const [check, setCheck] = useState<{ signature: string; data: PublishingDraftCheck }>();
   const [checkIssues, setCheckIssues] = useState<Issue[]>([]);
   const [busy, setBusy] = useState(false);
   const [archive, setArchive] = useState(false);
@@ -1083,12 +1151,12 @@ export function Publishing({ d }: { d: Draft }) {
     if (!pub) return;
     const controller = new AbortController();
     const timer = setTimeout(() => {
-      request<{ metadata: MetadataReport }>(`${base}/draft/publishing`, controller.signal, {
+      request<PublishingDraftCheck>(`${base}/draft/publishing`, controller.signal, {
         source: latest.current,
       })
         .then((data) => {
           if (controller.signal.aborted) return;
-          setCheck(data.metadata);
+          setCheck({ signature, data });
           setCheckIssues([]);
         })
         .catch((err: Error) => {
@@ -1151,7 +1219,9 @@ export function Publishing({ d }: { d: Draft }) {
       </section>
     );
   const issues = [...d.issues, ...checkIssues];
-  const findings = check?.findings ?? [];
+  const metadata: MetadataReport | undefined = check?.data.metadata;
+  const findings = metadata?.findings ?? [];
+  const fresh = check?.signature === signature ? check.data : undefined;
   return (
     <div className="editor publishing">
       <DraftToolbar
@@ -1174,14 +1244,22 @@ export function Publishing({ d }: { d: Draft }) {
             <>
               <p className="small muted publishing-draft-note">
                 Fields are checked by Python as you type
-                {check ? `: ${check.verdicts.metadata} metadata` : ''}. Blocking items must be
+                {metadata ? `: ${metadata.verdicts.metadata} metadata` : ''}. Blocking items must be
                 resolved; review items are for your judgment.
               </p>
               <FieldErrors
                 id="publishing"
                 issues={matching(issues, 'publishing').filter((i) => i.path === 'publishing')}
               />
-              <Metadata d={d} pub={pub} update={update} issues={issues} findings={findings} />
+              <Metadata
+                d={d}
+                pub={pub}
+                update={update}
+                issues={issues}
+                findings={findings}
+                check={fresh}
+                replaceSection={(next) => d.change({ ...d.draft, publishing: next } as Source)}
+              />
             </>
           ) : (
             <section className="publishing-start" aria-labelledby="pub-start">

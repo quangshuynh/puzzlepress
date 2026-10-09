@@ -11,10 +11,12 @@ import json
 
 from .. import __version__
 from ..content import PIPELINE_VERSION
-from .metadata import ATTESTATION_TEXT, kdp_ai_answers, required_attestations
+from .metadata import ATTESTATION_TEXT, kdp_ai_answers
 from .readiness import PublishingReadinessReport
+from .review import COVERS
 
-PROVENANCE_VERSION = 1
+# 2: each confirmation records the review identity it was given for.
+PROVENANCE_VERSION = 2
 LIMITS = (
     "SHA-256 digests identify exact bytes. They do not prove authorship, copyright or "
     "ownership of the text, word lists or photograph.",
@@ -58,12 +60,19 @@ def provenance_record(report: PublishingReadinessReport) -> dict[str, object]:
     cover_toolchain = cover.get("toolchain")
     declarations: dict[str, object] | None = None
     if config is not None:
-        given = config.attestations.to_dict()
         declarations = {
             "ai_disclosure": kdp_ai_answers(config.ai_disclosure),
             "confirmations": [
-                {"name": name, "statement": ATTESTATION_TEXT[name], "confirmed": given[name]}
-                for name in required_attestations(config)
+                {
+                    "name": c.name,
+                    "statement": ATTESTATION_TEXT[c.name],
+                    "covers": COVERS[c.name],
+                    "confirmed": c.state == "confirmed",
+                    "state": c.state,
+                    "review_identity": c.confirmed if c.state == "confirmed" else None,
+                }
+                for c in report.metadata.confirmations
+                if c.required
             ],
             "low_content": config.low_content,
             "isbn_mode": config.isbn.mode.value,

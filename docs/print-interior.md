@@ -115,6 +115,13 @@ Elements are `TextLine` (measured, with bounds), `Rule` and `LetterGrid`
 capsules). Origin is the bottom-left of the trim box. The renderer draws exactly
 these elements, so layout is tested without parsing PDFs.
 
+Every element's `bounds` is its painted extent: a text line's advance width with
+the font's ascent and descent, a rule including its stroke width, and a grid frame
+plus half its stroke on every side (strokes are centered on their path). Grids are
+fitted so this whole extent fits their region: the cell is the largest that leaves
+room for the frame stroke, and the painted frame is centered and top-aligned.
+Validation, collision checks and preflight measure the same painted extents.
+
 A 24 pt folio band is reserved at the foot of every live area.
 
 - **Title page:** title, a short rule, subtitle and author from book metadata;
@@ -123,7 +130,8 @@ A 24 pt folio band is reserved at the foot of every live area.
 - **Instructions / about:** heading, then text wrapped in a 5.5 in measure.
 - **Notes:** heading, then ruled writing lines (0.75 pt, gray).
 - **Puzzle:** title, theme, framed grid and word list centered together below
-  the header. Cells are square, largest that fit, capped at 20 pt letters.
+  the header. Cells are square, largest whose painted frame fits, capped at 20 pt
+  letters; the word list starts 22 pt below the painted frame.
   Words keep their display text and authored order, column-major in up to five
   equal columns.
 - **Solutions:** the first page carries the plan's heading. Template by the
@@ -174,6 +182,12 @@ ReportLab draws the layout with invariant mode (fixed 2000-01-01 dates, fixed
 document ID), page compression and empty title/author/subject/keywords. Fonts
 are embedded as TrueType subsets with deterministic subset names. No
 annotations, outlines, links, crop or trim marks.
+
+Renderer version 2 is current. Renderer 1 fitted grid frames without their stroke,
+so a width-limited grid (14 x 14 in `cover-demo`) painted 0.5 pt (0.007 in) past
+the live area. Version 2 reserves the stroke: grid geometry and PDF bytes change,
+pagination, plan and puzzle content do not, and renderer 1 interiors report stale
+(`toolchain_current`) until rebuilt. The supported grid sizes are unchanged.
 
 Guarantee: identical project source, profile, engine/renderer version, bundled
 fonts and ReportLab version produce byte-identical `interior.pdf` and

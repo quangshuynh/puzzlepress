@@ -1,5 +1,5 @@
 {
-  "checklist": "# KDP paperback checklist: Harbour Light Word Searches\n\nPrepared by PuzzlePress 0.1.0 for manual submission in Amazon KDP. Nothing on this list has been done in KDP. PuzzlePress does not contact Amazon; KDP reviews the book and decides whether to publish it.\n\nReadiness: Ready for manual KDP submission: the supported KDP checks passed and the author's confirmations are complete. Amazon KDP reviews and decides.\n\nPublishing identity: `pp1-publishing-sha256-98d39a3a1fa6c99cc84fe328fb1f86365ffa548b80981fb2aeba87c19027f2a0`\n\nWork through KDP's three pages in order: Paperback Details, Paperback Content, and Paperback Rights & Pricing. Values come from `metadata.json`.\n\n## 1. Paperback details\n\n- [ ] On your KDP Bookshelf, create a paperback (or open this title's paperback draft).\n- [ ] Language: English\n- [ ] Book title: Harbour Light Word Searches\n- [ ] Subtitle: Twenty puzzles from the coast\n- [ ] Series: none\n- [ ] Edition number: 1\n- [ ] Primary author: PuzzlePress Examples\n- [ ] Contributors: none\n- [ ] Description (275 of 4,000 characters, plain text): paste it, then check the paragraphs in KDP's editor.\n    > Twenty word searches from harbour walls, tide pools, dunes and lighthouse paths. Each puzzle has its own large-print page with a themed word list, and every grid is generated deterministically and independently verified.\n    >\n    > Solutions are at the back of the book, two to a page.\n- [ ] Publishing rights: choose the option that applies to this book. PuzzlePress does not model public-domain content.\n- [ ] Sexually explicit images or title: No\n- [ ] Reading age: leave unset\n- [ ] Primary marketplace: choose in KDP (not modeled by PuzzlePress).\n- [ ] Categories: select up to three in KDP's category selector. Your saved preferences (not verified as currently available):\n    - Humor & Entertainment > Puzzles & Games > Word Search\n- [ ] Low-content book: leave unchecked\n- [ ] Keywords (5 of 7), one per box:\n    1. coastal word puzzles\n    2. harbour vocabulary\n    3. seaside activity for adults\n    4. lighthouse and sailing words\n    5. tide pool word games\n- [ ] AI-generated content: answer KDP's question from your declaration:\n    - Text: created by people (no disclosure required)\n    - Images: created by people (no disclosure required)\n    - Translations: not a translation (not applicable)\n\n## 2. Paperback content\n\n- [ ] ISBN: get a free KDP ISBN. KDP assigns the number; it can be used only on KDP and lists the imprint as Independently published.\n- [ ] Ink and paper: black ink on white paper\n- [ ] Trim size: 8.5 x 11 in\n- [ ] Bleed settings: No bleed (the interior has none; the cover has its own)\n- [ ] Paperback cover finish: choose matte or glossy (not modeled by PuzzlePress)\n- [ ] Manuscript: upload `interior.pdf` (35 pages, SHA-256 4f8f9baf9bb8e83c23101a644842ed70d91cc5ddb0b8862ca97c396d62d87e80).\n- [ ] Book cover: choose to upload a print-ready PDF cover and upload `cover.pdf`, 17.3288 x 11.25 in with a 0.0788 in spine (SHA-256 5dcaf42d430cac877dd7acf1ba5ed99d393e7ab377f34d7d76e22b18c6ce5ba2).\n- [ ] Launch KDP's Print Previewer. Check every page, the spine, margins and the barcode area.\n- [ ] Review every issue the Previewer reports. PuzzlePress checks do not replace KDP's.\n- [ ] Approve the preview only after reviewing it yourself.\n\n## 3. Rights and pricing\n\n- [ ] Territories, pricing and royalty: decide in KDP (not modeled by PuzzlePress).\n- [ ] Order a printed proof (optional in KDP) to check color, trim and binding before publishing; the cover is RGB and KDP prints CMYK.\n- [ ] Submit for publishing yourself when satisfied. KDP then reviews the book.\n\n## Warnings to review\n\n- [isbn_imprint] With a free KDP ISBN, KDP lists the imprint as 'Independently published', not 'PuzzlePress Demonstration'. The imprint printed on your cover is unchanged.\n- [interior_warnings] Interior: 3 font(s) are subset-embedded. Review against KDP's wording; subsets contain every glyph the interior uses.\n- [cover_warnings] Cover: The photograph is RGB; KDP recommends CMYK and converts RGB itself. Review color in a printed proof.\n- [categories_unverified] Categories are saved preferences. KDP's list differs by marketplace and format and changes over time; confirm each one is available when you select it in KDP.\n\n## Your confirmations recorded in book.yaml\n\n- Confirmed: I hold the rights to publish this book's text, word lists and cover photograph.\n- Confirmed: I reviewed the AI content declaration above, and it is accurate.\n- Confirmed: The description, keywords and categories accurately represent this book.\n\nThese are your statements. PuzzlePress cannot verify rights, authorship, ISBN registration or the accuracy of an AI declaration.\n",
+  "checklist": "# KDP paperback checklist: Harbour Light Word Searches\n\nPrepared by PuzzlePress 0.1.0 for manual submission in Amazon KDP. Nothing on this list has been done in KDP. PuzzlePress does not contact Amazon; KDP reviews the book and decides whether to publish it.\n\nReadiness: Ready for manual KDP submission: the supported KDP checks passed and the author's confirmations are complete. Amazon KDP reviews and decides.\n\nPublishing identity: `pp1-publishing-sha256-00f8af78b54a0becaa2eada3815e08ad44cad33ace525d199baa7486f150304b`\n\nWork through KDP's three pages in order: Paperback Details, Paperback Content, and Paperback Rights & Pricing. Values come from `metadata.json`.\n\n## 1. Paperback details\n\n- [ ] On your KDP Bookshelf, create a paperback (or open this title's paperback draft).\n- [ ] Language: English\n- [ ] Book title: Harbour Light Word Searches\n- [ ] Subtitle: Twenty puzzles from the coast\n- [ ] Series: none\n- [ ] Edition number: 1\n- [ ] Primary author: PuzzlePress Examples\n- [ ] Contributors: none\n- [ ] Description (275 of 4,000 characters, plain text): paste it, then check the paragraphs in KDP's editor.\n    > Twenty word searches from harbour walls, tide pools, dunes and lighthouse paths. Each puzzle has its own large-print page with a themed word list, and every grid is generated deterministically and independently verified.\n    >\n    > Solutions are at the back of the book, two to a page.\n- [ ] Publishing rights: choose the option that applies to this book. PuzzlePress does not model public-domain content.\n- [ ] Sexually explicit images or title: No\n- [ ] Reading age: leave unset\n- [ ] Primary marketplace: choose in KDP (not modeled by PuzzlePress).\n- [ ] Categories: select up to three in KDP's category selector. Your saved preferences (not verified as currently available):\n    - Humor & Entertainment > Puzzles & Games > Word Search\n- [ ] Low-content book: leave unchecked\n- [ ] Keywords (5 of 7), one per box:\n    1. coastal word puzzles\n    2. harbour vocabulary\n    3. seaside activity for adults\n    4. lighthouse and sailing words\n    5. tide pool word games\n- [ ] AI-generated content: answer KDP's question from your declaration:\n    - Text: created by people (no disclosure required)\n    - Images: created by people (no disclosure required)\n    - Translations: not a translation (not applicable)\n\n## 2. Paperback content\n\n- [ ] ISBN: get a free KDP ISBN. KDP assigns the number; it can be used only on KDP and lists the imprint as Independently published.\n- [ ] Ink and paper: black ink on white paper\n- [ ] Trim size: 8.5 x 11 in\n- [ ] Bleed settings: No bleed (the interior has none; the cover has its own)\n- [ ] Paperback cover finish: choose matte or glossy (not modeled by PuzzlePress)\n- [ ] Manuscript: upload `interior.pdf` (35 pages, SHA-256 08275ec3bbd7d387e5a1caf5443404b3a7edac968bfad9932464c7ad6592c2b0).\n- [ ] Book cover: choose to upload a print-ready PDF cover and upload `cover.pdf`, 17.3288 x 11.25 in with a 0.0788 in spine (SHA-256 5dcaf42d430cac877dd7acf1ba5ed99d393e7ab377f34d7d76e22b18c6ce5ba2).\n- [ ] Launch KDP's Print Previewer. Check every page, the spine, margins and the barcode area.\n- [ ] Review every issue the Previewer reports. PuzzlePress checks do not replace KDP's.\n- [ ] Approve the preview only after reviewing it yourself.\n\n## 3. Rights and pricing\n\n- [ ] Territories, pricing and royalty: decide in KDP (not modeled by PuzzlePress).\n- [ ] Order a printed proof (optional in KDP) to check color, trim and binding before publishing; the cover is RGB and KDP prints CMYK.\n- [ ] Submit for publishing yourself when satisfied. KDP then reviews the book.\n\n## Warnings to review\n\n- [isbn_imprint] With a free KDP ISBN, KDP lists the imprint as 'Independently published', not 'PuzzlePress Demonstration'. The imprint printed on your cover is unchanged.\n- [interior_warnings] Interior: 3 font(s) are subset-embedded. Review against KDP's wording; subsets contain every glyph the interior uses.\n- [cover_warnings] Cover: The photograph is RGB; KDP recommends CMYK and converts RGB itself. Review color in a printed proof.\n- [categories_unverified] Categories are saved preferences. KDP's list differs by marketplace and format and changes over time; confirm each one is available when you select it in KDP.\n\n## Your confirmations recorded in book.yaml\n\n- Confirmed: I hold the rights to publish this book's text, word lists and cover photograph.\n- Confirmed: I reviewed the AI content declaration above, and it is accurate.\n- Confirmed: The title, author and other book details, description, keywords, categories and audience accurately represent this book.\n\nThese are your statements. PuzzlePress cannot verify rights, authorship, ISBN registration or the accuracy of an AI declaration.\n",
   "cover_preview": {
     "pdf_sha256": "5dcaf42d430cac877dd7acf1ba5ed99d393e7ab377f34d7d76e22b18c6ce5ba2"
   },
@@ -10,7 +10,7 @@
         "bytes": 17846,
         "name": "cover-preflight.json",
         "purpose": "Fresh cover preflight report for these exact bytes.",
-        "sha256": "4d7c876701a5b63e5c26f7f1a4a85b41e1d488d9e32ea31675ef9f29b53d700e"
+        "sha256": "6416d45ec3ae46921195f33791c31661afa12fe964e9a2186149fe4a98c9e4c2"
       },
       {
         "bytes": 1795988,
@@ -19,43 +19,43 @@
         "sha256": "5dcaf42d430cac877dd7acf1ba5ed99d393e7ab377f34d7d76e22b18c6ce5ba2"
       },
       {
-        "bytes": 32518,
+        "bytes": 33200,
         "name": "interior-preflight.json",
         "purpose": "Fresh interior preflight report for these exact bytes.",
-        "sha256": "b0b1ff649bf85e95b3e7fa03f985a81af7f59cceb065615f56aaab815ad6f0a7"
+        "sha256": "b4ddcc7029ce301f66869204c685ec641b7338a3476361a05ba47ba9f7135892"
       },
       {
-        "bytes": 163450,
+        "bytes": 163600,
         "name": "interior.pdf",
         "purpose": "Upload as the manuscript in KDP (Paperback Content).",
-        "sha256": "4f8f9baf9bb8e83c23101a644842ed70d91cc5ddb0b8862ca97c396d62d87e80"
+        "sha256": "08275ec3bbd7d387e5a1caf5443404b3a7edac968bfad9932464c7ad6592c2b0"
       },
       {
-        "bytes": 4712,
+        "bytes": 4760,
         "name": "kdp-checklist.md",
         "purpose": "Manual submission steps for a person to follow in KDP.",
-        "sha256": "1e22715eb4fd764c8d0650cec3f48c7652a185eb4a4d6154874e42fe5462d7f8"
+        "sha256": "625fd3b07c8b71aa45cdf71db5eca7484086bb4538548b323da55e4913ac3dd1"
       },
       {
         "bytes": 2221,
         "name": "metadata.json",
         "purpose": "Values to enter in KDP's Paperback Details, exactly as authored.",
-        "sha256": "9af4ad1e67bf3dfe59a164e6541d76666b2aac5973039db00eba085072184976"
+        "sha256": "cc55f93b7bc693463f2a191f4bce44203880194143ca4148c3087e898f224af0"
       },
       {
-        "bytes": 2893,
+        "bytes": 3797,
         "name": "provenance.json",
         "purpose": "Machine facts and author declarations, kept separate.",
-        "sha256": "0676247595ad43c223a28b08a42db9372bea51308e7e171b30e3a6cd1172fad8"
+        "sha256": "156f467e015181f3da9005abb7c6001a0936a65e3365b34e0e27d18cb31e9bdf"
       },
       {
-        "bytes": 24378,
+        "bytes": 26322,
         "name": "readiness.json",
         "purpose": "Publishing readiness: every verdict, finding and rule with its source.",
-        "sha256": "c25122163442082341caac05d44b582432631d06df97558bc19314d33ae28d6e"
+        "sha256": "835c8651a052889f6b8451427bbd15629d7da531256420395aad814e741c6fc7"
       }
     ],
-    "identity": "pp1-package-sha256-dd0281cda694340110710f92042973432d0097909330d76a97f850f86df1710a",
+    "identity": "pp1-package-sha256-09656fc2ecbd80a374cbed96eea857cbd8cbcf74903cc2bfd32eb589c89b1d73",
     "success": true
   },
   "key": "publishing-demo",
@@ -142,7 +142,7 @@
         11.0
       ]
     },
-    "publishing_identity": "pp1-publishing-sha256-98d39a3a1fa6c99cc84fe328fb1f86365ffa548b80981fb2aeba87c19027f2a0",
+    "publishing_identity": "pp1-publishing-sha256-00f8af78b54a0becaa2eada3815e08ad44cad33ace525d199baa7486f150304b",
     "series": null,
     "subtitle": "Twenty puzzles from the coast",
     "title": "Harbour Light Word Searches"
@@ -150,7 +150,7 @@
   "package": {
     "archive": "../../build/publishing-demo/publishing.zip",
     "export": {
-      "identity": "pp1-package-sha256-dd0281cda694340110710f92042973432d0097909330d76a97f850f86df1710a",
+      "identity": "pp1-package-sha256-09656fc2ecbd80a374cbed96eea857cbd8cbcf74903cc2bfd32eb589c89b1d73",
       "problem": null,
       "state": "current"
     },
@@ -192,14 +192,14 @@
         "purpose": "File list, digests and the package identity."
       }
     ],
-    "identity": "pp1-package-sha256-dd0281cda694340110710f92042973432d0097909330d76a97f850f86df1710a",
+    "identity": "pp1-package-sha256-09656fc2ecbd80a374cbed96eea857cbd8cbcf74903cc2bfd32eb589c89b1d73",
     "location": "../../build/publishing-demo/publishing"
   },
   "readiness": {
     "artifacts": {
       "cover_manifest": {
         "bytes": 6328,
-        "sha256": "96fb3ef45fed21d32c272ff878327dfb04662b336a3334c8b383dd7a2dfad409"
+        "sha256": "fd6c89471b44b7926a46ebe3a7ea17c27a66368f027a6a06efd93a01f206f830"
       },
       "cover_pdf": {
         "bytes": 1795988,
@@ -207,20 +207,62 @@
       },
       "interior_manifest": {
         "bytes": 2211,
-        "sha256": "9ae07afb6af814e76b84d9d3d602bf5fb0d9fb2ed3481da99be9c0db611df29e"
+        "sha256": "4eb933399fa3951670e614e074207210ddb914db666cce9b72c39d89fb11b91e"
       },
       "interior_pdf": {
-        "bytes": 163450,
-        "sha256": "4f8f9baf9bb8e83c23101a644842ed70d91cc5ddb0b8862ca97c396d62d87e80"
+        "bytes": 163600,
+        "sha256": "08275ec3bbd7d387e5a1caf5443404b3a7edac968bfad9932464c7ad6592c2b0"
       }
     },
     "book_id": "publishing-demo",
+    "confirmations": [
+      {
+        "confirmed": "pp1-review-sha256-f2ba21b28a0928c49bdfdcf7bc5a6ccc06ac1b3bc9ad7cba33582198a35b2d69",
+        "covers": "puzzle titles, themes and word lists, front and back matter text, the solutions heading, the cover's back text and the cover photograph",
+        "current": "pp1-review-sha256-f2ba21b28a0928c49bdfdcf7bc5a6ccc06ac1b3bc9ad7cba33582198a35b2d69",
+        "message": "It applies to the content as it is now.",
+        "name": "rights",
+        "required": true,
+        "state": "confirmed",
+        "statement": "I hold the rights to publish this book's text, word lists and cover photograph."
+      },
+      {
+        "confirmed": "pp1-review-sha256-0de16064e93c028bf3806445bd5c4de21f3ce0ed65d7d49ecefaef5049979e5f",
+        "covers": "the AI content declaration and what it describes: the content the rights confirmation covers, plus the description",
+        "current": "pp1-review-sha256-0de16064e93c028bf3806445bd5c4de21f3ce0ed65d7d49ecefaef5049979e5f",
+        "message": "It applies to the content as it is now.",
+        "name": "ai_disclosure",
+        "required": true,
+        "state": "confirmed",
+        "statement": "I reviewed the AI content declaration above, and it is accurate."
+      },
+      {
+        "confirmed": "pp1-review-sha256-c37a5449e8e4698c3e1a476185edffa8b861e1db57604f990b789551930f7723",
+        "covers": "title, subtitle, author, contributors, series, edition, language, description, keywords, categories and audience",
+        "current": "pp1-review-sha256-c37a5449e8e4698c3e1a476185edffa8b861e1db57604f990b789551930f7723",
+        "message": "It applies to the content as it is now.",
+        "name": "metadata",
+        "required": true,
+        "state": "confirmed",
+        "statement": "The title, author and other book details, description, keywords, categories and audience accurately represent this book."
+      },
+      {
+        "confirmed": null,
+        "covers": "the ISBN option and number, title, subtitle, author and imprint",
+        "current": "pp1-review-sha256-d8ad02557fd8e442ea54887e3bab489a5685888e719bacd302935d48d095a589",
+        "message": "It covers the ISBN option and number, title, subtitle, author and imprint.",
+        "name": "isbn",
+        "required": false,
+        "state": "unconfirmed",
+        "statement": "My ISBN is registered with this title, author and imprint exactly as entered."
+      }
+    ],
     "counts": {
       "outcome": {
         "failed": 4,
         "not_applicable": 2,
         "not_evaluated": 0,
-        "passed": 42
+        "passed": 41
       },
       "severity": {
         "error": 0,
@@ -308,17 +350,17 @@
         "recorded": "pp1-cover-sha256-be2ba6c00a9357e0f5a0286d55343c15701eac667f86b191ec2417cce85856eb"
       },
       "interior": {
-        "expected": "pp1-interior-sha256-cb0364617e32051cf2507e9f076edc52d8b7576b56e4890133ab1c305902b6ea",
-        "recorded": "pp1-interior-sha256-cb0364617e32051cf2507e9f076edc52d8b7576b56e4890133ab1c305902b6ea"
+        "expected": "pp1-interior-sha256-e7046e5d4db15b7e8857c0a54075e1ceb59e63241ee0509d36a362eea6b18f45",
+        "recorded": "pp1-interior-sha256-e7046e5d4db15b7e8857c0a54075e1ceb59e63241ee0509d36a362eea6b18f45"
       },
-      "publishing": "pp1-publishing-sha256-98d39a3a1fa6c99cc84fe328fb1f86365ffa548b80981fb2aeba87c19027f2a0",
+      "publishing": "pp1-publishing-sha256-00f8af78b54a0becaa2eada3815e08ad44cad33ace525d199baa7486f150304b",
       "source": "pp1-sha256-8703370cf1e035a05a0b7463685c9ae119b4d05f06ad871df4a7bdcfe8588501"
     },
     "preflight": {
       "cover": {
         "report": {
           "bytes": 17846,
-          "sha256": "4d7c876701a5b63e5c26f7f1a4a85b41e1d488d9e32ea31675ef9f29b53d700e"
+          "sha256": "6416d45ec3ae46921195f33791c31661afa12fe964e9a2186149fe4a98c9e4c2"
         },
         "ruleset": {
           "id": "puzzlepress-kdp-cover",
@@ -328,13 +370,13 @@
       },
       "interior": {
         "report": {
-          "bytes": 32518,
-          "sha256": "b0b1ff649bf85e95b3e7fa03f985a81af7f59cceb065615f56aaab815ad6f0a7"
+          "bytes": 33200,
+          "sha256": "b4ddcc7029ce301f66869204c685ec641b7338a3476361a05ba47ba9f7135892"
         },
         "ruleset": {
           "id": "puzzlepress-kdp-paperback",
           "kdp_rules_checked": "2026-10-07",
-          "version": 1
+          "version": 2
         }
       }
     },
@@ -359,7 +401,7 @@
         11.0
       ]
     },
-    "report_version": 1,
+    "report_version": 2,
     "rules": [
       {
         "basis": "puzzlepress_rule",
@@ -584,20 +626,6 @@
           "url": "https://kdp.amazon.com/en_US/help/topic/G201298500"
         },
         "title": "Keyword format"
-      },
-      {
-        "basis": "kdp_ambiguous",
-        "code": "keywords_length",
-        "findings": 0,
-        "note": null,
-        "outcome": "passed",
-        "scope": "metadata",
-        "severity": "warning",
-        "source": {
-          "title": "KDP help: Make Your Book More Discoverable with Keywords",
-          "url": "https://kdp.amazon.com/en_US/help/topic/G201298500"
-        },
-        "title": "Keyword length"
       },
       {
         "basis": "kdp_recommendation",
@@ -1037,7 +1065,7 @@
     "ruleset": {
       "id": "puzzlepress-kdp-publishing",
       "kdp_rules_checked": "2026-10-08",
-      "version": 1
+      "version": 2
     },
     "statement": "Ready for manual KDP submission: the supported KDP checks passed and the author's confirmations are complete. Amazon KDP reviews and decides.",
     "verdicts": {
@@ -1058,5 +1086,5 @@
       "package": "ready"
     }
   },
-  "revision": "sha256-83db3fb9cc527d9affe5a5f7e71f1d980a7315e305cf53ba5cf1560bae3549c3"
+  "revision": "sha256-1a8c7758fcb06f1bfa9bf7bf1ca3b35ebf9af449f30e06fede2ad6fae740e76f"
 }

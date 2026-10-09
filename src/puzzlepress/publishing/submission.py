@@ -10,7 +10,7 @@ import hashlib
 
 from .. import __version__
 from ..publishing_config import ContentOrigin, IsbnMode
-from .metadata import ATTESTATION_TEXT, kdp_ai_answers, required_attestations
+from .metadata import ATTESTATION_TEXT, kdp_ai_answers
 from .readiness import PublishingReadinessReport
 from .rules import KDP_METADATA, PAPERBACK_LANGUAGES
 
@@ -285,11 +285,12 @@ def checklist_markdown(report: PublishingReadinessReport) -> str:
         lines += [f"- BLOCKING [{f.rule.code}] {f.message}" for f in blocking]
     lines += [f"- [{f.rule.code}] {f.message}" for f in reviews] or ["- None."]
     if config is not None:
-        given = config.attestations.to_dict()
+        labels = {"confirmed": "Confirmed", "unconfirmed": "NOT CONFIRMED"}
         lines += ["", "## Your confirmations recorded in book.yaml", ""]
         lines += [
-            f"- {'Confirmed' if given[name] else 'NOT CONFIRMED'}: {ATTESTATION_TEXT[name]}"
-            for name in required_attestations(config)
+            f"- {labels.get(c.state, 'NEEDS REVIEW AGAIN')}: {ATTESTATION_TEXT[c.name]}"
+            for c in report.metadata.confirmations
+            if c.required
         ]
         lines += [
             "",

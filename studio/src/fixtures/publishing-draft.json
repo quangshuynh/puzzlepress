@@ -1,6 +1,48 @@
 {
   "metadata": {
     "book_id": "publishing-demo",
+    "confirmations": [
+      {
+        "confirmed": null,
+        "covers": "puzzle titles, themes and word lists, front and back matter text, the solutions heading, the cover's back text and the cover photograph",
+        "current": "pp1-review-sha256-f2ba21b28a0928c49bdfdcf7bc5a6ccc06ac1b3bc9ad7cba33582198a35b2d69",
+        "message": "It covers puzzle titles, themes and word lists, front and back matter text, the solutions heading, the cover's back text and the cover photograph.",
+        "name": "rights",
+        "required": true,
+        "state": "unconfirmed",
+        "statement": "I hold the rights to publish this book's text, word lists and cover photograph."
+      },
+      {
+        "confirmed": null,
+        "covers": "the AI content declaration and what it describes: the content the rights confirmation covers, plus the description",
+        "current": "pp1-review-sha256-ebca5b96c0265eaa76856bfd90901b20cf2c53c195976dc435efb9ef1cb19b67",
+        "message": "It covers the AI content declaration and what it describes: the content the rights confirmation covers, plus the description.",
+        "name": "ai_disclosure",
+        "required": true,
+        "state": "unconfirmed",
+        "statement": "I reviewed the AI content declaration above, and it is accurate."
+      },
+      {
+        "confirmed": null,
+        "covers": "title, subtitle, author, contributors, series, edition, language, description, keywords, categories and audience",
+        "current": "pp1-review-sha256-92cfdce9e02c2c924f75d210a5660e275c5b8bb84f6d334844a4c46c6599d67a",
+        "message": "It covers title, subtitle, author, contributors, series, edition, language, description, keywords, categories and audience.",
+        "name": "metadata",
+        "required": true,
+        "state": "unconfirmed",
+        "statement": "The title, author and other book details, description, keywords, categories and audience accurately represent this book."
+      },
+      {
+        "confirmed": null,
+        "covers": "the ISBN option and number, title, subtitle, author and imprint",
+        "current": "pp1-review-sha256-d8ad02557fd8e442ea54887e3bab489a5685888e719bacd302935d48d095a589",
+        "message": "It covers the ISBN option and number, title, subtitle, author and imprint.",
+        "name": "isbn",
+        "required": false,
+        "state": "unconfirmed",
+        "statement": "My ISBN is registered with this title, author and imprint exactly as entered."
+      }
+    ],
     "findings": [
       {
         "action": "Remove keywords until seven remain.",
@@ -118,7 +160,7 @@
         "basis": "human_review",
         "code": "attestations",
         "field": "publishing.attestations.metadata",
-        "message": "Not confirmed: The description, keywords and categories accurately represent this book.",
+        "message": "Not confirmed: The title, author and other book details, description, keywords, categories and audience accurately represent this book.",
         "related": null,
         "required": null,
         "scope": "attestation",
@@ -201,8 +243,8 @@
         }
       }
     ],
-    "publishing_identity": "pp1-publishing-sha256-6532077c5295e59edc9b5affcf0f437151a333fd42ee1d4de585499c391256b6",
-    "report_version": 1,
+    "publishing_identity": "pp1-publishing-sha256-ef4e477000831abf718225c9001dc6d207c50da34d5c8ad150efbdc63879c04b",
+    "report_version": 2,
     "rules": [
       {
         "basis": "puzzlepress_rule",
@@ -427,20 +469,6 @@
           "url": "https://kdp.amazon.com/en_US/help/topic/G201298500"
         },
         "title": "Keyword format"
-      },
-      {
-        "basis": "kdp_ambiguous",
-        "code": "keywords_length",
-        "findings": 0,
-        "note": null,
-        "outcome": "passed",
-        "scope": "metadata",
-        "severity": "warning",
-        "source": {
-          "title": "KDP help: Make Your Book More Discoverable with Keywords",
-          "url": "https://kdp.amazon.com/en_US/help/topic/G201298500"
-        },
-        "title": "Keyword length"
       },
       {
         "basis": "kdp_recommendation",
@@ -712,12 +740,13 @@
     "ruleset": {
       "id": "puzzlepress-kdp-publishing",
       "kdp_rules_checked": "2026-10-08",
-      "version": 1
+      "version": 2
     },
     "verdicts": {
       "attestations": "incomplete",
       "disclosure": "incomplete",
       "metadata": "invalid"
     }
-  }
+  },
+  "upgrade": null
 }

@@ -34,7 +34,9 @@ and local Web Studio share the same core. Read `CONTEXT.md` for current scope.
   Rendered covers carry only pixels, never source EXIF/GPS/XMP metadata.
 - Publishing metadata is authored source with its own identity, outside build
   identity. Never declare AI use, rights or other attestations for the author or
-  invent an ISBN; undecided values block. Readiness reruns interior and cover
+  invent an ISBN; undecided values block. A confirmation stores the Python-computed
+  review identity of what it covers and applies only while that matches; a legacy
+  boolean never counts. Readiness reruns interior and cover
   preflight and never trusts saved reports. Packages use the inspected bytes only,
   are verified before replacement, and nothing contacts or submits to Amazon.
 - Keep authored source and disposable generated directories disjoint. Recheck

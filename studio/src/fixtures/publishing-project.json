@@ -2,7 +2,7 @@
   "engine_version": "0.1.0",
   "identity": "pp1-sha256-8703370cf1e035a05a0b7463685c9ae119b4d05f06ad871df4a7bdcfe8588501",
   "key": "publishing-demo",
-  "revision": "sha256-e49110ea6993de26a53dee2dd4d8e2db63ec12e899bbbea65ece7ca6787e2e35",
+  "revision": "sha256-f0a2d580662567de7dce79afeba37f6c360678ae0c8f0ec25dca4db154a687b6",
   "source": {
     "book": {
       "author": "PuzzlePress Examples",
@@ -89,10 +89,10 @@
         "translations": "unknown"
       },
       "attestations": {
-        "ai_disclosure": false,
-        "isbn": false,
-        "metadata": false,
-        "rights": false
+        "ai_disclosure": null,
+        "isbn": null,
+        "metadata": null,
+        "rights": null
       },
       "audience": {
         "reading_age": {
@@ -121,7 +121,7 @@
       "low_content": false,
       "notes": null,
       "series": null,
-      "version": 1
+      "version": 2
     },
     "schema_version": 1,
     "word_search": {

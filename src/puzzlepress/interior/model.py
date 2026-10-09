@@ -27,6 +27,11 @@ class Box:
     def top(self) -> float:
         return self.y + self.height
 
+    def expanded(self, margin: float) -> "Box":
+        return Box(
+            self.x - margin, self.y - margin, self.width + 2 * margin, self.height + 2 * margin
+        )
+
     def contains(self, other: "Box", tolerance: float) -> bool:
         return (
             other.x >= self.x - tolerance
@@ -125,7 +130,8 @@ class LetterGrid:
 
     @property
     def bounds(self) -> Box:
-        return self.frame
+        """Painted extent: the frame stroke is centered, so half of it lies outside."""
+        return self.frame.expanded(self.frame_width / 2)
 
 
 Element = TextLine | Rule | LetterGrid

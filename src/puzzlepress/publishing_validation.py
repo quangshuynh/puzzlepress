@@ -11,6 +11,8 @@ from typing import TypeVar
 from .content_validation import _Reader
 from .errors import ValidationIssue
 from .publishing_config import (
+    CONFIRMATIONS,
+    LEGACY_PUBLISHING_VERSION,
     MAX_CATEGORIES,
     MAX_CATEGORY,
     MAX_CONTRIBUTORS,
@@ -23,6 +25,7 @@ from .publishing_config import (
     MAX_READING_AGE,
     MAX_SERIES_NUMBER,
     PUBLISHING_VERSION,
+    REVIEW_IDENTITY,
     AiDisclosure,
     Attestations,
     Audience,
@@ -70,12 +73,13 @@ def validate_publishing(
             "Publishing metadata requires a book composition: a package needs a built interior.",
         )
     version = data.get("version")
-    if type(version) is not int or version != PUBLISHING_VERSION:
+    if type(version) is not int or version not in (LEGACY_PUBLISHING_VERSION, PUBLISHING_VERSION):
         reader.issue(
             f"{path}.version",
             "unsupported_version",
-            f"Publishing version {version!r} is not supported. "
-            f"Supported versions: {PUBLISHING_VERSION}.",
+            f"Publishing version {version!r} is not supported. Supported versions: "
+            f"{PUBLISHING_VERSION}, and {LEGACY_PUBLISHING_VERSION} (yes/no confirmations, "
+            "read as unconfirmed).",
         )
         return None, tuple(reader.issues)
     description = _optional_text(
@@ -94,7 +98,9 @@ def validate_publishing(
     edition = _optional_int(reader, data.get("edition"), f"{path}.edition", 1, MAX_EDITION)
     series = _series(reader, data.get("series"), f"{path}.series")
     disclosure = _disclosure(reader, data.get("ai_disclosure", {}), f"{path}.ai_disclosure")
-    attestations = _attestations(reader, data.get("attestations", {}), f"{path}.attestations")
+    attestations = _attestations(
+        reader, data.get("attestations", {}), f"{path}.attestations", version
+    )
     notes = _optional_text(reader, data.get("notes"), f"{path}.notes", MAX_NOTES, multiline=True)
     if reader.issues:
         return None, tuple(reader.issues)
@@ -112,6 +118,7 @@ def validate_publishing(
             ai_disclosure=disclosure,
             attestations=attestations,
             notes=notes,
+            version=version,
         ),
         (),
     )
@@ -263,14 +270,40 @@ def _disclosure(reader: _Reader, value: object, path: str) -> AiDisclosure:
     return AiDisclosure(text, images, translations)
 
 
-def _attestations(reader: _Reader, value: object, path: str) -> Attestations:
-    names = ("rights", "ai_disclosure", "metadata", "isbn")
-    data = reader.mapping(value, path, set(names))
-    values: dict[str, bool] = {}
-    for name in names:
-        raw = data.get(name, False)
-        if not isinstance(raw, bool):
-            reader.issue(f"{path}.{name}", "type", "Expected true or false.")
-            raw = False
-        values[name] = raw
-    return Attestations(**values)
+def _attestations(reader: _Reader, value: object, path: str, version: int) -> Attestations:
+    data = reader.mapping(value, path, set(CONFIRMATIONS))
+    if version == LEGACY_PUBLISHING_VERSION:
+        # Version 1 answers are kept for round-trips; they never count as confirmed.
+        legacy: set[str] = set()
+        for name in CONFIRMATIONS:
+            raw = data.get(name, False)
+            if not isinstance(raw, bool):
+                reader.issue(f"{path}.{name}", "type", "Expected true or false (version 1).")
+            elif raw:
+                legacy.add(name)
+        return Attestations(legacy=frozenset(legacy))
+    values: dict[str, str | None] = {}
+    for name in CONFIRMATIONS:
+        raw = data.get(name)
+        if isinstance(raw, bool):
+            reader.issue(
+                f"{path}.{name}",
+                "confirmation_identity",
+                "A confirmation records what you reviewed, not yes or no: confirm in "
+                "Studio, or set the review identity `puzzlepress publish validate` prints, "
+                "or null.",
+            )
+        elif raw is not None and (not isinstance(raw, str) or not REVIEW_IDENTITY.fullmatch(raw)):
+            reader.issue(
+                f"{path}.{name}",
+                "confirmation_identity",
+                "Expected null or a review identity (pp1-review-sha256-...).",
+            )
+        else:
+            values[name] = raw
+    return Attestations(
+        rights=values.get("rights"),
+        ai_disclosure=values.get("ai_disclosure"),
+        metadata=values.get("metadata"),
+        isbn=values.get("isbn"),
+    )

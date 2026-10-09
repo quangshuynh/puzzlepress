@@ -34,7 +34,8 @@ from .metadata import MetadataReport, validate_metadata
 from .model import Area, Collector, Finding, Outcome, RuleResult, Severity
 from .rules import CODES, KDP_RULES_CHECKED, RULES, RULESET_ID, RULESET_VERSION
 
-REPORT_VERSION = 1
+# 2: confirmations carry the review identity they apply to and their state.
+REPORT_VERSION = 2
 # Interior preflight rules whose failure means the interior predates its inputs.
 INTERIOR_STALE_RULES = (
     "source_current",
@@ -231,6 +232,7 @@ class PublishingReadinessReport:
             "book_id": self.book_id,
             "statement": self.statement(),
             "verdicts": self.verdicts(),
+            "confirmations": [c.to_dict() for c in self.metadata.confirmations],
             "identities": self.identities(),
             "print": self.print_configuration(),
             "artifacts": {

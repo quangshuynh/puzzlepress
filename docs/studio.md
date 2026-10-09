@@ -163,10 +163,17 @@ same draft as Edit, Book and Cover.
    are shown read-only, linking to Edit and Book.
 4. As you type, Python checks the draft (`POST /draft/publishing`); blocking and
    review findings appear beside their fields as text.
-5. The readiness column (saved source) lists what is done and what is left with
+5. Confirmations come from that check. Each shows **Confirmed**, **Review
+   again** (with what it covers and that it changed) or **Not confirmed**; a box
+   is checked only when Python reports the current draft confirmed, and shows
+   nothing while a newer draft is being checked. Ticking one records the review
+   identity Python reported; editing covered content unticks it, and nothing is
+   reconfirmed for you. A version 1 section shows **Upgrade publishing section**
+   and its old answers never count. Native checkboxes; Space toggles.
+6. The readiness column (saved source) lists what is done and what is left with
    links to Print or Cover, the readiness statement, grouped findings with their
    KDP sources, and every check. It moves above the form below 1000px.
-6. **Save changes**, then **Export package** (saved revision only; disabled while
+7. **Save changes**, then **Export package** (saved revision only; disabled while
    the draft is dirty or anything blocks). Optionally write `publishing.zip`. The
    summary lists the files, digests, location relative to the project and the
    package identity, and the checklist is shown in full. Nothing is uploaded.
@@ -253,7 +260,7 @@ produce identical YAML bytes. No YAML dependency or schema change was added.
 | `POST /api/projects/{key}/cover/assets` | `?name=`; raw `image/jpeg` or `image/png` body (the only non-JSON POST); imports and returns the asset |
 | `POST /api/projects/{key}/cover/build` | `{revision}`; builds saved source, writes `cover.pdf`, `cover.json`, `cover-preflight.json` |
 | `GET /api/projects/{key}/publishing` | Readiness report, KDP metadata record, checklist, package identity, export state (`none`, `current`, `stale`, `damaged`), location, built cover digest |
-| `POST /api/projects/{key}/draft/publishing` | `{source}`; metadata, disclosure and confirmation findings for the draft; writes nothing |
+| `POST /api/projects/{key}/draft/publishing` | `{source}`; `{metadata, upgrade}`: findings and confirmation states with current review identities for the draft, and the version 2 form of a version 1 section; writes nothing |
 | `POST /api/projects/{key}/publishing/export` | `{revision, archive}`; exports the saved revision's package (409 `source_changed`), or returns why not and writes nothing |
 
 Revision is `sha256-<digest of exact source bytes>`. It detects cosmetic changes

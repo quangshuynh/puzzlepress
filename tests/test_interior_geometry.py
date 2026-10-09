@@ -146,29 +146,48 @@ def test_asymmetric_margins_expose_mirroring_bugs():
 
 
 @pytest.mark.parametrize(("columns", "rows"), [(5, 5), (10, 8), (8, 10), (15, 15), (20, 12)])
-def test_grid_cells_are_square_centered_and_inside_frame(columns, rows):
+@pytest.mark.parametrize("stroke", [0.75, 1.0, 2.0])
+def test_grid_cells_are_square_centered_and_paint_inside_the_region(columns, rows, stroke):
     region = Box(54, 100, 522, 500)
-    geometry = fit_grid(columns, rows, region, 20, max_cell_for_letter(20))
+    geometry = fit_grid(columns, rows, region, 20, stroke, max_cell_for_letter(20))
     span_x, span_y = columns + 2 * GRID_PADDING, rows + 2 * GRID_PADDING
-    expected = min(522 / span_x, 500 / span_y, max_cell_for_letter(20))
+    expected = min((522 - stroke) / span_x, (500 - stroke) / span_y, max_cell_for_letter(20))
     assert abs(geometry.cell - expected) < TOL
-    frame = geometry.frame
+    frame, painted = geometry.frame, geometry.bounds
     assert abs(frame.width - geometry.cell * span_x) < TOL
     assert abs(frame.height - geometry.cell * span_y) < TOL
-    assert region.contains(frame, TOL)
+    # The stroke is centered on the frame: half of it paints outside.
+    half = stroke / 2
+    assert (painted.x, painted.y) == (frame.x - half, frame.y - half)
+    assert (painted.right, painted.top) == pytest.approx((frame.right + half, frame.top + half))
+    assert region.contains(painted, TOL)
     assert abs((frame.x - region.x) - (region.right - frame.right)) < TOL  # centered
-    assert abs(frame.top - region.top) < TOL  # top-aligned
+    assert abs(painted.top - region.top) < TOL  # top-aligned by painted extent
     assert abs(geometry.origin_x - (frame.x + geometry.cell * GRID_PADDING)) < TOL
     assert geometry.letter_size <= 20 and geometry.letter_size <= geometry.cell * 0.56 + TOL
 
 
+@pytest.mark.parametrize(("columns", "rows"), [(14, 14), (25, 10), (8, 30)])
+def test_a_grid_limited_by_the_region_paints_exactly_to_its_edge(columns, rows):
+    """The cover-demo defect: a width-limited frame used to overhang by half its stroke."""
+    region = Box(36, 69, 522, 600)
+    geometry = fit_grid(columns, rows, region, 20, 1.0, max_cell_for_letter(20))
+    painted = geometry.bounds
+    assert region.contains(painted, 1e-9)
+    limited = (painted.x, painted.right) if columns >= rows else (painted.y, painted.top)
+    edges = (region.x, region.right) if columns >= rows else (region.y, region.top)
+    assert limited == pytest.approx(edges, abs=1e-9)
+    assert not region.contains(geometry.frame.expanded(0.5 + 1e-6), 1e-9)
+
+
 def test_grid_letters_scale_down_and_report_tiny_sizes():
     region = Box(54, 69, 522, 600)
-    assert fit_grid(10, 10, region, 20, max_cell_for_letter(20)).letter_size == 20
-    large = fit_grid(50, 50, region, 20, max_cell_for_letter(20))
+    assert fit_grid(10, 10, region, 20, 1.0, max_cell_for_letter(20)).letter_size == 20
+    large = fit_grid(50, 50, region, 20, 1.0, max_cell_for_letter(20))
     assert large.letter_size < 9  # Callers must reject this against the profile minimum.
     moved = large.moved(-10)
     assert moved.frame.y == large.frame.y - 10 and moved.top == large.top - 10
+    assert moved.stroke == large.stroke and moved.bounds.y == large.bounds.y - 10
 
 
 @pytest.mark.parametrize(("density", "shape"), [(1, (1, 1)), (2, (1, 2)), (4, (2, 2)), (6, (2, 3))])

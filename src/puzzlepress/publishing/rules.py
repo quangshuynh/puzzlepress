@@ -13,7 +13,9 @@ from dataclasses import dataclass
 from .model import Basis, Rule, Scope, Severity, Source
 
 RULESET_ID = "puzzlepress-kdp-publishing"
-RULESET_VERSION = 1
+# 2: confirmations bind to the reviewed content (publishing.review); the assumed
+# 50-character keyword warning (`keywords_length`, no KDP source) is removed.
+RULESET_VERSION = 2
 KDP_RULES_CHECKED = "2026-10-08"
 
 
@@ -47,9 +49,8 @@ class KdpMetadataConstraints:
     max_title_and_subtitle: int = 199
     max_description: int = 4000  # Write a Book Description.
     max_keywords: int = 7  # "Use up to seven keywords or short phrases."
-    # The keywords page only says to watch "the character limit in the text field";
-    # 50 is a PuzzlePress assumption reported as a warning, never a block.
-    keyword_field_length: int = 50
+    # The keywords page names no per-keyword length (it only mentions the text
+    # field's limit), so none is modeled; KDP's form enforces its own.
     max_categories: int = 3  # "you can select 3 categories".
     max_imprint: int = 100  # "The Imprint field has a limit of 100 characters."
     # Reading age bands named by KDP; 18 in the schema stands for "18 and over".
@@ -232,14 +233,6 @@ _RULES: tuple[Rule, ...] = (
         Severity.ERROR,
         "Keyword format",
         Basis.KDP_REQUIREMENT,
-        KEYWORDS,
-    ),
-    Rule(
-        "keywords_length",
-        Scope.METADATA,
-        Severity.WARNING,
-        "Keyword length",
-        Basis.KDP_AMBIGUOUS,
         KEYWORDS,
     ),
     Rule(

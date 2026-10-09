@@ -27,7 +27,7 @@ from puzzlepress.publishing.package import (
 from puzzlepress.publishing.readiness import evaluate_readiness
 from tests.cover_helpers import LEAKS, photo_bytes
 from tests.helpers import ROOT
-from tests.publishing_helpers import publishing_project
+from tests.publishing_helpers import publishing_project, reconfirm
 
 
 def evaluate(source, output):
@@ -101,6 +101,8 @@ def test_identity_tracks_metadata_and_artifacts(ready):
     assert first.identity.startswith("pp1-package-sha256-")
     assert package_of(source, output).identity == first.identity
     edit(source, "- seaside puzzles", "- harbour puzzles")
+    assert not evaluate(source, output).package_ready  # The metadata confirmation is stale.
+    reconfirm(source, "metadata")
     changed = package_of(source, output)
     assert changed.identity != first.identity
     assert changed.file("interior.pdf") == first.file("interior.pdf")
@@ -128,6 +130,7 @@ def test_export_replaces_its_own_package_and_reports_staleness(ready):
     first = package_of(source, output)
     write_package(first, output, source)
     edit(source, "- seaside puzzles", "- harbour puzzles")
+    reconfirm(source, "metadata")
     second = package_of(source, output)
     state = export_state(output, source, second.book_id, second.identity)
     assert state.state == "stale" and state.identity == first.identity
@@ -135,6 +138,44 @@ def test_export_replaces_its_own_package_and_reports_staleness(ready):
     assert export_state(output, source, second.book_id, second.identity).state == "current"
     leftovers = [p.name for p in output.iterdir() if p.name.startswith(".publishing-")]
     assert leftovers == []
+
+
+def test_renderer_change_stales_interior_cover_and_package(tmp_path, monkeypatch):
+    """Interior renderer -> interior identity -> cover freshness -> package identity."""
+    from puzzlepress.interior import build as interior_build
+    from puzzlepress.interior import build_interior, print_profile, write_interior
+
+    monkeypatch.setattr(interior_build, "RENDERER_VERSION", 1)  # Built before renderer 2.
+    source, output = publishing_project(tmp_path / "book")
+    old = package_of(source, output)
+    write_package(old, output, source)
+    old_cover = json.loads((output / "cover.json").read_bytes())
+    monkeypatch.undo()
+
+    report = evaluate(source, output)
+    verdicts = report.verdicts()
+    assert verdicts["interior"]["state"] == "stale" and verdicts["cover"]["state"] == "stale"
+    assert not report.package_ready
+    assert any(
+        f.message == "Interior is out of date: Renderer version changed after this interior "
+        "was built."
+        for f in report.findings
+    )
+    assert export_state(output, source, old.book_id, None).state == "stale"
+    assert report.identities()["publishing"] == old.manifest["identities"]["publishing"]
+
+    # Rebuilding only the interior: the cover's geometry and bytes are unaffected, so it
+    # stays current (its provenance warns); the package identity changes.
+    project = load_project(source).project
+    write_interior(build_interior(project, print_profile("paperback-8.5x11")), output, source)
+    report = evaluate(source, output)
+    assert report.verdicts()["interior"]["state"] == "current"
+    assert report.verdicts()["cover"]["state"] == "current" and report.package_ready
+    assert any(f.related == "cover_interior_provenance" for f in report.findings)
+    assert json.loads((output / "cover.json").read_bytes()) == old_cover
+    new = assemble_package(report)
+    assert new.identity != old.identity
+    assert export_state(output, source, new.book_id, new.identity).state == "stale"
 
 
 def test_damaged_exports_are_detected(ready):
@@ -186,6 +227,7 @@ def test_failed_export_leaves_the_previous_package(ready, monkeypatch):
     write_package(first, output, source)
     before = snapshot(output / "publishing", skip=())
     edit(source, "- seaside puzzles", "- harbour puzzles")
+    reconfirm(source, "metadata")
     second = package_of(source, output)
     calls = {"n": 0}
     real = package_module._write

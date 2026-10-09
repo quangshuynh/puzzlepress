@@ -105,6 +105,7 @@ Formatting Issues" and "Print Options".
 | `raster_images` | No raster images (the renderer draws none). |
 | `blank_pages` | Plan blanks have no text or painting. |
 | `folios_printed` | Every displayed page number is in the page text. |
+| `content_in_live_area` | Every element's painted extent lies inside the profile's live area. |
 
 ### KDP
 
@@ -124,7 +125,7 @@ Formatting Issues" and "Print Options".
 | `kdp_no_annotations` | No annotations, comments, forms, bookmarks | Submission Guidelines | requirement |
 | `kdp_not_encrypted` | Not locked or encrypted | Submission Guidelines | requirement |
 | `kdp_flattened` | No transparency or layers | Submission Guidelines | requirement |
-| `kdp_no_printer_marks` | No slug area; content inside live area | Submission Guidelines | requirement |
+| `kdp_no_printer_marks` | No slug area beyond the trim for crop or registration marks | Submission Guidelines | requirement |
 | `kdp_image_resolution` | Raster images at least 300 DPI | Submission Guidelines | requirement |
 | `kdp_blank_page_runs` | At most 4 consecutive blanks (10 at end) | Formatting Issues | requirement |
 | `kdp_page_number_parity` | Even numbers on left (verso) pages | Submission Guidelines | requirement |
@@ -163,6 +164,14 @@ tables and image effective resolution (images make readiness fail as unverified)
    and update `KDP_RULES_CHECKED`. Project and interior identities do not change:
    the ruleset belongs to inspection, not authored semantics.
 4. Add boundary tests for the new value (`tests/test_preflight.py`).
+
+Ruleset history. **v2**: version 1's `kdp_no_printer_marks` also failed any element
+outside the profile's live area. That area is PuzzlePress's own margin choice
+(0.75/0.5/0.625 in), not a KDP rule, and an element past it is not a printer's mark.
+Containment is now the structural `content_in_live_area` rule; `kdp_no_printer_marks`
+keeps its code and judges only the area beyond the trim; KDP margins remain
+`kdp_gutter` and `kdp_outside_margins`. Saved v1 reports are outdated and are
+recomputed, never trusted.
 
 ## Report
 

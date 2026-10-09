@@ -435,6 +435,10 @@ export interface CoverStatus {
 }
 // Publishing. Metadata rules, readiness verdicts and the package come from Python.
 export type ContentOrigin = 'unknown' | 'human' | 'ai_assisted' | 'ai_generated' | 'none';
+export type ConfirmationName = 'rights' | 'ai_disclosure' | 'metadata' | 'isbn';
+// Version 2 stores the review identity Python reported for the confirmed content, or
+// null; version 1 stored booleans, which Python never treats as current confirmations.
+export type StoredConfirmation = string | boolean | null;
 export interface PublishingConfig {
   version: number;
   description: string | null;
@@ -450,8 +454,18 @@ export interface PublishingConfig {
   edition: number | null;
   series: { title: string; number: number | null } | null;
   ai_disclosure: { text: ContentOrigin; images: ContentOrigin; translations: ContentOrigin };
-  attestations: { rights: boolean; ai_disclosure: boolean; metadata: boolean; isbn: boolean };
+  attestations: Record<ConfirmationName, StoredConfirmation>;
   notes: string | null;
+}
+export interface Confirmation {
+  name: ConfirmationName;
+  statement: string;
+  covers: string;
+  required: boolean;
+  state: 'confirmed' | 'stale' | 'unconfirmed' | 'legacy';
+  current: string;
+  confirmed: string | null;
+  message: string;
 }
 export interface PublishingFinding {
   code: string;
@@ -497,8 +511,14 @@ export interface MetadataReport {
   ruleset: { id: string; version: number; kdp_rules_checked: string };
   publishing_identity: string | null;
   verdicts: PublishingVerdicts;
+  confirmations: Confirmation[];
   findings: PublishingFinding[];
   rules: PublishingRule[];
+}
+export interface PublishingDraftCheck {
+  metadata: MetadataReport;
+  // The section as version 2, every confirmation unconfirmed; only for version 1.
+  upgrade: PublishingConfig | null;
 }
 export interface ReadinessReport extends MetadataReport {
   statement: string;

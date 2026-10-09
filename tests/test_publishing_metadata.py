@@ -10,7 +10,7 @@ from puzzlepress.publishing.model import Basis, Outcome, Severity
 from puzzlepress.publishing.rules import PAPERBACK_LANGUAGES
 from puzzlepress.publishing_config import AiDisclosure, ContentOrigin
 from tests.helpers import demo_variant
-from tests.publishing_helpers import complete_section
+from tests.publishing_helpers import complete_section, confirm_current
 
 
 def project(book: dict | None = None, mutate=None, puzzles: int | None = None, **overrides):
@@ -20,7 +20,7 @@ def project(book: dict | None = None, mutate=None, puzzles: int | None = None, *
     data["book"].update(book or {})
     if mutate:
         mutate(data)
-    return validate_project(data).require_project()
+    return validate_project(confirm_current(data)).require_project()
 
 
 def report(**kwargs):
@@ -275,11 +275,14 @@ def test_keyword_variants_and_review_items_are_warnings():
     ]
 
 
-def test_keyword_length_is_an_ambiguous_warning():
-    assert "keywords_length" not in codes(report(keywords=["k" * 50]))
-    result = report(keywords=["k" * 51])
-    assert codes(result, "warning") == ["keywords_length"]
-    assert RULES["keywords_length"].basis is Basis.KDP_AMBIGUOUS
+def test_no_unsourced_keyword_length_limit_is_applied():
+    """KDP's keywords page states no per-keyword length; PuzzlePress invents none."""
+    long = "harbour and lighthouse word search puzzles for quiet coastal afternoons"
+    assert len(long) > 50
+    result = report(keywords=[long, "k" * 200])
+    assert codes(result, "error") == [] and codes(result, "warning") == []
+    assert "keywords_length" not in RULES
+    assert not hasattr(KDP_METADATA, "keyword_field_length")
 
 
 def test_no_keywords_is_only_a_note():
