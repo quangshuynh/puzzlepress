@@ -71,7 +71,7 @@ def test_demo_inspect_validate_and_report(capsysbinary: pytest.CaptureFixture[by
     code, out, _ = run(capsysbinary, "plan", "validate", str(AUTOMOTIVE))
     assert code == 0 and b"References and vocabulary: valid" in out
     code, out, _ = run(capsysbinary, "plan", "report", str(AUTOMOTIVE))
-    assert code == 1 and b"puzzle_count_unsupported" in out and b"not publishing approval" in out
+    assert code == 1 and b"question_blocking_open" in out and b"not publishing approval" in out
     code, out, _ = run(capsysbinary, "plan", "report", str(AUTOMOTIVE), "--json")
     assert code == 1 and out == report_bytes(report)
     assert run(capsysbinary, "plan", "report", str(AUTOMOTIVE), "--json")[1] == out

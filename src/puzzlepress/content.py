@@ -5,14 +5,19 @@ from dataclasses import asdict, dataclass
 from .wordsearch.models import GenerationConfig, TargetEntry
 
 PIPELINE_VERSION = 1
-# Schema caps for a project's word_search section. They bound generation work (at
-# most MAX_PUZZLES x 1,000,000 candidate checks per batch); planning reports a
-# larger plan against them rather than changing them (docs/book-planning.md).
+# Schema caps for a project's word_search section; planning reports a larger plan
+# against them rather than changing them (docs/book-planning.md). 100 puzzles were
+# verified through generation, interior, preflight, cover and publishing
+# (docs/automotive-production.md#generator-scaling).
 MAX_BANKS = 20
 MAX_BANK_ENTRIES = 100
 MAX_PROFILES = 20
-MAX_PUZZLES = 20
+MAX_PUZZLES = 100
 MAX_PUZZLE_TARGETS = 100
+# Worst-case generation work for a whole batch: the sum of every puzzle's profile
+# max_attempts. It equals the bound before the cap was raised (20 puzzles x the
+# 1,000,000-attempt maximum), so raising the puzzle cap never raises worst-case work.
+MAX_BATCH_ATTEMPTS = 20_000_000
 
 
 @dataclass(frozen=True)

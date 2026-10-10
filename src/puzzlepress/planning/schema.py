@@ -46,7 +46,7 @@ from .model import (
 )
 
 # Generous bounds: they keep files reasonable, not books small. Production caps
-# (20 puzzles, 100 words a bank, 50-cell grids) are findings, not schema limits.
+# (100 puzzles, 100 words a bank, 50-cell grids) are findings, not schema limits.
 MAX_SHORT = 300
 MAX_LONG = 4000
 MAX_URL = 2000

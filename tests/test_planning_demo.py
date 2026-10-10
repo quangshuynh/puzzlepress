@@ -46,11 +46,11 @@ def test_demo_shows_structure_allocation_and_progression() -> None:
     }
 
 
-def test_demo_reports_the_puzzle_cap_honestly() -> None:
+def test_demo_fits_the_raised_puzzle_cap() -> None:
     r = report()
     codes = {f.rule.code for f in r.findings}
-    assert "puzzle_count_unsupported" in codes
-    assert next(i for i in r.feasibility if i.code == "puzzle_count").status == "unsupported"
+    assert "puzzle_count_unsupported" not in codes
+    assert next(i for i in r.feasibility if i.code == "puzzle_count").status == "verified"
     assert {"puzzles_unspecified", "question_blocking_open", "print_profile_undecided"} <= codes
     assert "pool_thin" in codes  # The candidate pools are too small for 60 puzzles.
 

@@ -307,7 +307,7 @@ jobs:
       - run: python -m pip install -e .
       - name: Record fixture digests
         run: sha256sum books/*/book.yaml books/automotive/planning.yaml > fixtures.txt
-      - name: Demo plan validates and reports honestly (not ready, cap unsupported)
+      - name: Demo plan validates and reports honestly (not ready)
         run: |
           puzzlepress plan validate books/automotive
           puzzlepress plan inspect books/automotive
@@ -322,10 +322,10 @@ jobs:
           assert r["state"] == "needs_research", r["state"]
           assert r["approval"]["status"] == "none"
           errors = {f["code"] for f in r["findings"] if f["severity"] == "error"}
-          assert {"question_blocking_open", "puzzles_unspecified", "puzzle_count_unsupported",
+          assert {"question_blocking_open", "puzzles_unspecified",
                   "print_profile_undecided"} == errors, errors
           items = {i["code"]: i["status"] for i in r["feasibility"]}
-          assert items["puzzle_count"] == "unsupported" and items["word_fit"] == "verified"
+          assert items["puzzle_count"] == "verified" and items["word_fit"] == "verified"
           assert items["generation"] == "unknown" and items["page_count"] == "estimate"
           assert r["page_estimate"] == {"minimum": 94, "maximum": 96, "parts": {
               "puzzles": 60, "solutions": 30, "front_matter": 3, "back_matter": 1}}

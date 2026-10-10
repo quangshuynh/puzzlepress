@@ -303,30 +303,25 @@ overwrites no puzzle definitions and generates nothing.
 
 ## Generator limits
 
-A project holds at most 20 puzzle definitions, 20 word banks of 100 entries and
-20 difficulty profiles (`content.MAX_*`). The 60-puzzle automotive plan is
-therefore reported as `unsupported` for production, and the target is kept.
-What the 20-puzzle cap actually is:
+A project holds at most 100 puzzle definitions, 20 word banks of 100 entries and
+20 difficulty profiles (`content.MAX_*`); a plan beyond them is reported as
+`unsupported` and its target is kept. Interval 12 raised the puzzle cap from 20
+to 100 after measuring 20, 60 and 100-puzzle books through generation, interior,
+preflight, cover and publishing (see
+[automotive production](automotive-production.md#generator-scaling)):
 
 - Schema: a literal bound in `content_validation`; the generator and batch code
   have no other dependency on it.
-- Performance: it bounds worst-case batch work (20 x the 1,000,000-attempt maximum).
-  Typical work is small: the 20-puzzle cover and publishing demos generate in
-  about 0.08 s (measured 2026-10-09). Interior builds and preflight scale with
-  pages, and Studio's readiness rerenders interior and cover preflight on every
-  status request, already the slowest Studio path.
+- Work: a batch work budget (`content.MAX_BATCH_ATTEMPTS`, 20,000,000 candidate
+  checks summed over every puzzle's profile) keeps the worst case where it was
+  with 20 puzzles. Default profiles (100,000 attempts) fit 100 puzzles.
 - Composition and print: no puzzle cap; plans, layout and the KDP gutter table
   handle long books (up to 828 pages; 550 modeled maximum at 8.5 x 11).
-- Cover: the cap keeps every book below 80 pages, so spine text has only been
-  tested with synthetic facts, never a real long interior.
 - Studio: generation, plan preview and publishing readiness are synchronous
-  requests under one lock; long books make them proportionally slower.
-- Tests and fixtures are sized for 20 puzzles or fewer.
+  requests under one lock; long books make them proportionally slower, and
+  reports are cached by the exact bytes they depend on.
 
-Interval 12 needs a reviewed cap (for example 60-80 puzzles) with bounded work
-re-stated, a real long-book fixture through interior, preflight, cover (spine
-text) and package, Studio timing checks, and the review of these questions
-before producing the automotive book. Planning does not change the cap.
+Planning never changes the cap.
 
 ## CLI
 

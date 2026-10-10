@@ -474,14 +474,17 @@ def test_levels_can_reuse_existing_project_profiles() -> None:
 
 def test_puzzle_count_above_the_cap_is_described_but_unsupported() -> None:
     data = complete_plan()
-    data["structure"]["target_puzzles"] = 60  # type: ignore[index]
-    data["themes"][1]["puzzles"] = 54  # type: ignore[index]
+    data["structure"]["target_puzzles"] = 120  # type: ignore[index]
+    data["themes"][1]["puzzles"] = 114  # type: ignore[index]
     report = evaluate(data)
     f = finding(report, "puzzle_count_unsupported")
-    assert (f["actual"], f["expected"]) == (60, "at most 20")
+    assert (f["actual"], f["expected"]) == (120, "at most 100")
     assert item(report, "puzzle_count")["status"] == "unsupported"
-    assert report.document.structure.target_puzzles == 60  # Never lowered.
-    assert report.state is State.NEEDS_CONTENT  # 48 puzzles are also unspecified.
+    assert report.document.structure.target_puzzles == 120  # Never lowered.
+    assert report.state is State.NEEDS_CONTENT  # 108 puzzles are also unspecified.
+    data["structure"]["target_puzzles"] = 100  # type: ignore[index]
+    data["themes"][1]["puzzles"] = 94  # type: ignore[index]
+    assert item(evaluate(data), "puzzle_count")["status"] == "verified"
 
 
 def test_unsupported_grids_words_and_print_sizes() -> None:

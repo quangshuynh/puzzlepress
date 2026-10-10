@@ -36,7 +36,7 @@ test('review the automotive demo plan by section, keyboard and width', async ({ 
   await expect(panel.getByText(/^Needs research: blocking questions/)).toBeVisible();
   await expect(panel.getByText('Producible with current PuzzlePress')).toBeVisible();
   await expect(panel.getByRole('button', { name: 'Approve this plan' })).toBeDisabled();
-  await expect(panel.getByText(/A project holds at most 20 puzzle definitions/)).toBeVisible();
+  await expect(panel.getByText(/Within the project cap of 100 puzzles/)).toBeVisible();
   await expect(page.getByLabel('Target puzzle count')).toHaveValue('60');
   await noAxeViolations(page);
   await page.screenshot({ path: shot('planning'), fullPage: true });

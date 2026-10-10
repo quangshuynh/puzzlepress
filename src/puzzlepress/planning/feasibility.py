@@ -1,7 +1,7 @@
 """Can the current PuzzlePress produce this plan? Each answer says how it is known.
 
 - verified: decided by the engine's own rules or a current cap (a word fits a
-  grid or it does not; 60 puzzles exceed a 20-puzzle cap).
+  grid or it does not; 120 puzzles exceed a 100-puzzle cap).
 - estimate: computed from the plan, not from a built book (page counts before a
   publication plan exists; a grid that fits the page before its title and word
   list are laid out).
