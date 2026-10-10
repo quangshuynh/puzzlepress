@@ -27,10 +27,11 @@ def add_cover_command(commands: "argparse._SubParsersAction[argparse.ArgumentPar
     inspect.add_argument("--output", metavar="DIR", help=output_help)
     inspect.add_argument("--json", action="store_true", help="Print structured facts")
     imported = actions.add_parser(
-        "import", help="Copy a photograph into the project's cover-assets directory"
+        "import",
+        help="Copy a photograph (JPEG, PNG) or font (.ttf, .otf) into the project's cover-assets",
     )
     imported.add_argument("project", help="YAML file or directory containing book.yaml")
-    imported.add_argument("photo", help="JPEG or PNG photograph")
+    imported.add_argument("photo", help="JPEG or PNG photograph, or a .ttf/.otf font")
     imported.add_argument("--json", action="store_true", help="Print a structured result")
     build = actions.add_parser("build", help="Build and write cover.pdf and cover.json")
     build.add_argument("project", help="YAML file or directory containing book.yaml")
@@ -103,6 +104,8 @@ def _import(loaded: LoadedProject, args: argparse.Namespace) -> int:
     from .cover.issues import cover_error
 
     path = Path(args.photo)
+    if path.suffix.lower() in (".ttf", ".otf"):
+        return _import_font(loaded, args, path)
     try:
         data = path.read_bytes()
     except OSError as error:
@@ -123,9 +126,42 @@ def _import(loaded: LoadedProject, args: argparse.Namespace) -> int:
     return 0
 
 
+def _import_font(loaded: LoadedProject, args: argparse.Namespace, path: Path) -> int:
+    from .cover.font_assets import import_font
+    from .cover.issues import cover_error
+
+    try:
+        data = path.read_bytes()
+    except OSError as error:
+        raise cover_error("asset", "font_missing", f"Cannot read {path}: {error}") from error
+    imported = import_font(loaded.source_path.parent, data, path.name)
+    info = imported.info
+    if args.json:
+        _json({"success": True, "path": imported.path, "reused": imported.reused} | info.to_dict())
+        return 0
+    print(f"{'Already present' if imported.reused else 'Imported'}: {imported.path}")
+    print(
+        f"Font: {info.full_name} ({info.postscript_name}), {info.glyphs} characters, "
+        f"embedding {info.embedding.replace('_', ' ')}"
+    )
+    print("Reference it in book.yaml (cover version 2) and record its license and source:")
+    for line in (
+        "cover:",
+        "  fonts:",
+        "  - id: my-font",
+        f"    path: {imported.path}",
+        f"    sha256: {info.sha256}",
+        "    license: null  # e.g. SIL Open Font License 1.1",
+        "    source: null  # where you obtained it",
+    ):
+        print(line)
+    return 0
+
+
 def _inspect(loaded: LoadedProject, args: argparse.Namespace) -> int:
     from .cover.assets import inspect_photo, read_asset
     from .cover.build import read_interior_facts
+    from .cover.font_assets import load_cover_fonts
     from .cover.geometry import cover_geometry
     from .cover.issues import cover_error
     from .cover.layout import CoverCopy, layout_cover
@@ -139,8 +175,9 @@ def _inspect(loaded: LoadedProject, args: argparse.Namespace) -> int:
         interior.page_count, interior.trim_width, interior.trim_height, interior.paper
     )
     photo = inspect_photo(read_asset(loaded.source_path.parent, project.cover.image))
+    fonts = load_cover_fonts(loaded.source_path.parent, project.cover)
     layout = layout_cover(
-        project.book.id, CoverCopy.from_project(project), project.cover, geometry, photo
+        project.book.id, CoverCopy.from_project(project), project.cover, geometry, photo, fonts
     )
     data = {
         "success": True,

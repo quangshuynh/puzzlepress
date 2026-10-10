@@ -243,6 +243,19 @@ def read_asset(project_directory: Path, image: CoverImage) -> bytes:
     return data
 
 
+def read_asset_file(project_directory: Path, reference: str) -> bytes:
+    """Bytes of `cover-assets/<name>` (a listed photograph), boundary-checked."""
+    name = reference.removeprefix(f"{ASSET_DIRECTORY}/")
+    if reference != f"{ASSET_DIRECTORY}/{name}" or not _ASSET_NAME.fullmatch(name):
+        raise _asset_error("asset_unsafe", "The photograph reference is not a project asset.")
+    path = _checked_directory(project_directory, create=False) / name
+    if path.is_symlink() or not path.is_file():
+        raise _asset_error("image_missing", f"{reference} is not in the project.")
+    if path.stat().st_size > MAX_ASSET_BYTES:
+        raise _asset_error("image_unsupported", "The photograph file is too large.")
+    return path.read_bytes()
+
+
 def asset_name(original_name: str, sha256: str, extension: str) -> str:
     stem = Path(original_name.replace("\\", "/").rsplit("/", 1)[-1]).stem.lower()
     stem = re.sub(r"[^a-z0-9]+", "-", stem).strip("-")[:40].strip("-") or "photo"

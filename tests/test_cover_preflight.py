@@ -65,7 +65,7 @@ def test_short_book_is_structurally_valid_but_not_kdp_ready(tmp_path):
     data = report.to_dict()
     assert data["ruleset"] == {
         "id": "puzzlepress-kdp-cover",
-        "version": 1,
+        "version": 2,
         "kdp_rules_checked": "2026-10-07",
     }
     assert data["spine_text"]["reason"] == "page_count"

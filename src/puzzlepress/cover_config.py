@@ -1,21 +1,40 @@
-"""Authored paperback cover configuration: semantic choices, never coordinates.
+"""Authored paperback cover configuration.
 
 The cover is presentation of the printed edition, so it is excluded from the
 project build identity (an edited crop never stales the interior). Its own
 cover identity covers it instead. Cover text comes from `book` metadata; only
 the optional back-cover text is authored here.
+
+Version 1 holds semantic choices only. Version 2 adds per-layer text overrides
+(visibility, display text, font, size, color, alignment, spacing and an offset
+in points from the layout's own position), extra text layers and imported fonts.
+A layer override never changes book metadata: hiding the title on the cover
+leaves `book.title` untouched. Every override is optional; a version 2 cover
+without overrides lays out exactly like version 1.
 """
 
 from dataclasses import dataclass, field
 from enum import StrEnum
 
-COVER_VERSION = 1
+COVER_VERSION = 2
+SUPPORTED_VERSIONS = (1, 2)
 # Project-relative directory for imported photographs, beside book.yaml.
 ASSET_DIRECTORY = "cover-assets"
+# Imported cover fonts live one level below it.
+FONT_DIRECTORY = f"{ASSET_DIRECTORY}/fonts"
 MAX_BACK_TEXT = 1200
 MAX_ZOOM = 4.0
 # Crop values are normalized to this many decimal places.
 CROP_DECIMALS = 4
+# Version 2 bounds. Sizes in points; KDP's 7 pt minimum is a layout finding.
+MAX_LAYER_TEXT = 300
+MAX_EXTRA_LAYERS = 8
+MAX_FONTS = 8
+MIN_TEXT_SIZE = 4.0
+MAX_TEXT_SIZE = 160.0
+MAX_OFFSET = 1200.0  # Points; wider than any supported wrap.
+LINE_SPACING = (0.8, 3.0)
+LETTER_SPACING = (-2.0, 20.0)
 
 
 class CoverLayoutKind(StrEnum):
@@ -49,6 +68,37 @@ class Legibility(StrEnum):
     NONE = "none"
     SHADE = "shade"  # Photo pixels behind text are darkened (or lightened) toward it.
     PANEL = "panel"  # An opaque band of the fill color behind text.
+
+
+class LayerAlign(StrEnum):
+    LEFT = "left"
+    CENTER = "center"
+    RIGHT = "right"
+
+
+class LetterCase(StrEnum):
+    AS_WRITTEN = "as_written"
+    UPPER = "upper"
+
+
+class TextRole(StrEnum):
+    """Cover text that comes from the book (title, subtitle, author, imprint) or
+    from the cover section (back_text)."""
+
+    TITLE = "title"
+    SUBTITLE = "subtitle"
+    AUTHOR = "author"
+    BACK_TEXT = "back_text"
+    IMPRINT = "imprint"
+
+
+# Roles whose words come from book metadata; their display text may be overridden.
+METADATA_ROLES = (TextRole.TITLE, TextRole.SUBTITLE, TextRole.AUTHOR, TextRole.IMPRINT)
+
+
+class LayerPanel(StrEnum):
+    FRONT = "front"
+    BACK = "back"
 
 
 class SpineText(StrEnum):
@@ -96,6 +146,85 @@ class CoverType:
 
 
 @dataclass(frozen=True)
+class TextLayer:
+    """Overrides for one cover text layer; None keeps the layout's own choice.
+
+    `offset` moves the layer from where the layout puts it, in PDF points (x to
+    the right, y upward). `font` names a bundled face or an imported font's id.
+    """
+
+    visible: bool = True
+    text: str | None = None
+    font: str | None = None
+    size: float | None = None
+    color: str | None = None
+    align: LayerAlign | None = None
+    line_spacing: float | None = None  # Multiple of the size, baseline to baseline.
+    letter_spacing: float | None = None  # Points added between characters.
+    case: LetterCase | None = None
+    offset: tuple[float, float] = (0.0, 0.0)
+
+    @property
+    def is_default(self) -> bool:
+        return self == TextLayer()
+
+    def to_dict(self) -> dict[str, object]:
+        """Only the overrides, so the canonical form stays minimal."""
+        data: dict[str, object] = {}
+        if not self.visible:
+            data["visible"] = False
+        for key in ("text", "font", "size", "color", "line_spacing", "letter_spacing"):
+            value = getattr(self, key)
+            if value is not None:
+                data[key] = value
+        if self.align is not None:
+            data["align"] = self.align.value
+        if self.case is not None:
+            data["case"] = self.case.value
+        if self.offset != (0.0, 0.0):
+            data["offset"] = {"x": self.offset[0], "y": self.offset[1]}
+        return data
+
+
+@dataclass(frozen=True)
+class ExtraLayer:
+    """An additional line or paragraph of the author's own text on one panel."""
+
+    id: str
+    panel: LayerPanel
+    text: str
+    layer: TextLayer = field(default_factory=TextLayer)
+
+    def to_dict(self) -> dict[str, object]:
+        overrides = self.layer.to_dict()
+        overrides.pop("text", None)
+        return {"id": self.id, "panel": self.panel.value, "text": self.text, **overrides}
+
+
+@dataclass(frozen=True)
+class CoverFont:
+    """An imported font file, pinned by content, with author-stated provenance.
+
+    `license` and `source` are what the author records (None: unknown); they are
+    never inferred from the file. Embedding permission is read from the font.
+    """
+
+    id: str
+    path: str  # cover-assets/fonts/<name>.ttf|otf
+    sha256: str
+    license: str | None = None
+    source: str | None = None
+
+    def to_dict(self) -> dict[str, object]:
+        data: dict[str, object] = {"id": self.id, "path": self.path, "sha256": self.sha256}
+        if self.license is not None:
+            data["license"] = self.license
+        if self.source is not None:
+            data["source"] = self.source
+        return data
+
+
+@dataclass(frozen=True)
 class CoverConfig:
     image: CoverImage
     layout: CoverLayoutKind = CoverLayoutKind.FULL_WRAP
@@ -105,7 +234,17 @@ class CoverConfig:
     background: str = "#26302b"  # sRGB fill wherever the photograph does not print.
     spine_text: SpineText = SpineText.AUTO
     back_text: str | None = None
-    version: int = COVER_VERSION
+    version: int = 1
+    # Version 2: overrides by role (book order), extra layers and imported fonts.
+    text: tuple[tuple[TextRole, TextLayer], ...] = ()
+    extra: tuple[ExtraLayer, ...] = ()
+    fonts: tuple[CoverFont, ...] = ()
+
+    def layer(self, role: TextRole) -> TextLayer:
+        return dict(self.text).get(role, TextLayer())
+
+    def font(self, font_id: str) -> CoverFont | None:
+        return next((f for f in self.fonts if f.id == font_id), None)
 
     def to_dict(self) -> dict[str, object]:
         data: dict[str, object] = {
@@ -120,6 +259,13 @@ class CoverConfig:
         }
         if self.back_text is not None:
             data["back_text"] = self.back_text
+        text = {role.value: layer.to_dict() for role, layer in self.text if not layer.is_default}
+        if text:
+            data["text"] = text
+        if self.extra:
+            data["extra"] = [layer.to_dict() for layer in self.extra]
+        if self.fonts:
+            data["fonts"] = [font.to_dict() for font in self.fonts]
         return data
 
     def rgb(self) -> tuple[float, float, float]:

@@ -102,6 +102,10 @@ def _text(canvas: Canvas, line: CoverText) -> None:
         Anchor.MIDDLE: canvas.drawCentredString,
         Anchor.END: canvas.drawRightString,
     }[line.anchor]
+    if line.tracking:  # Only horizontal lines are letter-spaced.
+        # They start at their measured left edge; Tc adds the spacing.
+        canvas.drawString(line.bounds.x, line.origin[1], line.text, charSpace=line.tracking)
+        return
     if line.rotated:
         canvas.saveState()
         canvas.translate(*line.origin)

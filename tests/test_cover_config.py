@@ -139,7 +139,7 @@ def test_crop_bounds_are_inclusive():
     ("cover", "expected"),
     [
         ({"version": 1}, [("cover.image", "required")]),
-        ({**MINIMAL, "version": 2}, [("cover.version", "unsupported_version")]),
+        ({**MINIMAL, "version": 3}, [("cover.version", "unsupported_version")]),
         ({"image": MINIMAL["image"]}, [("cover.version", "unsupported_version")]),
         (
             {**MINIMAL, "image": {"path": "cover-assets/a.jpg", "sha256": "AB" * 32}},
