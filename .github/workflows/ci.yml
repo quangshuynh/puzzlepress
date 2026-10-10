@@ -19,8 +19,8 @@ jobs:
       - run: python -m ruff format --check .
       - run: python -m mypy
       - run: python -m pip check
-      - run: puzzlepress validate books/automotive
-      - run: puzzlepress inspect books/automotive
+      - run: puzzlepress validate tests/fixtures/legacy-automotive
+      - run: puzzlepress inspect tests/fixtures/legacy-automotive
       - run: puzzlepress puzzle generate --width 10 --height 8 --seed 2026 --word ENGINE --word CLUTCH --word PISTON --solution
       - run: puzzlepress validate books/garden-demo
       - run: puzzlepress puzzle batch books/garden-demo --json
@@ -28,7 +28,8 @@ jobs:
       - run: puzzlepress book plan books/composition-demo --json
       - run: puzzlepress validate books/cover-demo
       - run: puzzlepress validate books/publishing-demo
-      - run: puzzlepress plan validate books/automotive
+      - run: python tests/production_book.py synthetic/books/production
+      - run: puzzlepress plan validate synthetic/books/production
 
   print:
     # One interior build per OS; the PDF unit tests already run in every matrix entry.
@@ -306,13 +307,14 @@ jobs:
           python-version: "3.13"
       - run: python -m pip install -e .
       - name: Record fixture digests
-        run: sha256sum books/*/book.yaml books/automotive/planning.yaml > fixtures.txt
-      - name: Demo plan validates and reports honestly (not ready)
+        run: sha256sum books/*/book.yaml > fixtures.txt
+      - name: Synthetic production plan validates and reports honestly (not ready)
         run: |
-          puzzlepress plan validate books/automotive
-          puzzlepress plan inspect books/automotive
+          python tests/production_book.py synthetic/books/production
+          puzzlepress plan validate synthetic/books/production
+          puzzlepress plan inspect synthetic/books/production
           set +e
-          puzzlepress plan report books/automotive --json > report.json
+          puzzlepress plan report synthetic/books/production --json > report.json
           status=$?
           set -e
           test "$status" -eq 1
@@ -333,9 +335,9 @@ jobs:
       - name: Report bytes and identity are stable across processes, directories and hash seeds
         run: |
           for seed in 0 1 4242; do
-            PYTHONHASHSEED=$seed puzzlepress plan report books/automotive --json > "r-$seed.json" || true
+            PYTHONHASHSEED=$seed puzzlepress plan report synthetic/books/production --json > "r-$seed.json" || true
           done
-          mkdir elsewhere && (cd elsewhere && puzzlepress plan report ../books/automotive --json > ../r-cwd.json || true)
+          mkdir elsewhere && (cd elsewhere && puzzlepress plan report ../synthetic/books/production --json > ../r-cwd.json || true)
           cmp r-0.json r-1.json && cmp r-0.json r-4242.json && cmp r-0.json r-cwd.json
       - name: Legacy projects have no plan and are unaffected
         run: |
@@ -391,7 +393,8 @@ jobs:
         run: sha256sum -c fixtures.txt
 
   production:
-    # The 60-puzzle automotive book: one generation, two interior builds (for byte
+    # The SYNTHETIC 60-puzzle production book (tests/production_book.py; real books
+    # live in a separate repository): one generation, two interior builds (byte
     # identity), preflight, spine facts and the publishing negative states.
     runs-on: ${{ matrix.os }}
     strategy:
@@ -407,11 +410,12 @@ jobs:
           python-version: "3.13"
       - run: python -m pip install -e .
       - name: Record fixture digests
-        run: sha256sum books/automotive/book.yaml books/automotive/planning.yaml > fixtures.txt
+        run: sha256sum books/*/book.yaml > fixtures.txt
       - name: Sixty puzzles generate, verify and screen clean
         run: |
-          puzzlepress validate books/automotive
-          puzzlepress puzzle batch books/automotive --json --strict-quality > batch.json
+          python tests/production_book.py synthetic/books/production
+          puzzlepress validate synthetic/books/production
+          puzzlepress puzzle batch synthetic/books/production --json --strict-quality > batch.json
           python - <<'EOF'
           import json
           from puzzlepress.batch import derive_puzzle_seed
@@ -427,7 +431,7 @@ jobs:
           EOF
       - name: The book matches its plan, which is not approved
         run: |
-          puzzlepress plan production books/automotive --json > comparison.json
+          puzzlepress plan production synthetic/books/production --json > comparison.json
           python - <<'EOF'
           import json
           c = json.load(open("comparison.json"))
@@ -440,12 +444,12 @@ jobs:
           EOF
       - name: Interior builds, preflights and is byte-identical across runs
         run: |
-          PYTHONHASHSEED=0 puzzlepress book build books/automotive --output prod-a
+          PYTHONHASHSEED=0 puzzlepress book build synthetic/books/production --output prod-a
           mkdir elsewhere
-          (cd elsewhere && PYTHONHASHSEED=4242 puzzlepress book build ../books/automotive --output ../prod-b)
+          (cd elsewhere && PYTHONHASHSEED=4242 puzzlepress book build ../synthetic/books/production --output ../prod-b)
           cmp prod-a/interior.pdf prod-b/interior.pdf
           cmp prod-a/interior.json prod-b/interior.json
-          puzzlepress book preflight books/automotive --output prod-a --json > preflight.json
+          puzzlepress book preflight synthetic/books/production --output prod-a --json > preflight.json
           python - <<'EOF'
           import json
           r = json.load(open("preflight.json"))
@@ -470,11 +474,11 @@ jobs:
       - name: Missing photograph and author decisions block honestly
         run: |
           set +e
-          puzzlepress cover build books/automotive --output prod-a > cover.txt 2>&1
+          puzzlepress cover build synthetic/books/production --output prod-a > cover.txt 2>&1
           cover=$?
-          puzzlepress publish inspect books/automotive --output prod-a --json > readiness.json
+          puzzlepress publish inspect synthetic/books/production --output prod-a --json > readiness.json
           inspect=$?
-          puzzlepress publish package books/automotive --output prod-a > package.txt 2>&1
+          puzzlepress publish package synthetic/books/production --output prod-a > package.txt 2>&1
           package=$?
           set -e
           test "$cover" -eq 1 && grep -q "cover_missing" cover.txt
