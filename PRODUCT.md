@@ -37,8 +37,8 @@ typography-forward. No fabricated publishing metrics or marketing dashboard.
 ## Evidence on Hand
 books/composition-demo is a composed four-puzzle book. books/cover-demo is a
 35-page book with a full-wrap cover over a synthetic stand-in photograph. books/publishing-demo
-adds KDP metadata, leaving AI disclosure and confirmations for a person. books/garden-demo contains two real puzzle definitions. books/automotive is a legacy source fixture
-with a demonstration plan for a 60-puzzle automotive book.
+adds KDP metadata, leaving AI disclosure and confirmations for a person. books/garden-demo contains two real puzzle definitions. books/automotive is the first production book: 60 AI-drafted, not yet human-reviewed
+puzzles with its unapproved plan, no cover photograph and open author decisions.
 
 ## Accessibility & Inclusion
 Keyboard navigation, visible focus, semantic headings and grids, textual solution

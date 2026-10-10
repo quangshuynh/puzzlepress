@@ -12,11 +12,13 @@ and local Web Studio share the same core. Read `CONTEXT.md` for current scope.
 - Use explicit seeds and local random generators. Keep input and direction
   ordering deterministic. Bound generation work; never silently omit targets,
   resize grids, alter words, or enable extra directions.
+- Keep worst-case batch work within the whole-batch attempt budget; raise a
+  content cap only after measuring generation through package at the new size.
 - Solutions come from authoritative placements. Verify them independently.
 - Keep quality findings separate from generation failures. Report incomplete
   screening explicitly. Never silently regenerate or change authored policy.
 - Preflight observes: it never mutates the plan, layout, PDF, manifest or source
-  to make a check pass. Keep structural validity separate from KDP readiness;
+  to make a check pass. Reuse inspected facts only for byte-identical bytes. Keep structural validity separate from KDP readiness;
   unevaluated rules never count as passing. KDP values need official provenance.
 - Preserve per-puzzle seed derivation across batch reordering. Serialize 64-bit
   report seeds as decimal strings so web clients retain exact values.

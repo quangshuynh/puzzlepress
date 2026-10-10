@@ -79,6 +79,7 @@ puzzlepress plan inspect books/automotive
 puzzlepress plan report books/automotive --json
 puzzlepress plan approve books/my-book --identity pp1-planning-sha256-...
 puzzlepress plan handoff books/my-book --json
+puzzlepress plan production books/automotive
 ```
 
 Commands are read-only except `book build`, which writes `interior.pdf` and an
@@ -128,9 +129,14 @@ its interior and cover are KDP ready under the modeled rules.
 [`composition-demo`](books/composition-demo/book.yaml) is a small composed book:
 front matter, four puzzles, grouped solutions and a notes page.
 [`garden-demo`](books/garden-demo/book.yaml) has two themed puzzles without a
-composition. [`automotive`](books/automotive/book.yaml) is a small source fixture
-without word-search definitions, with a [demonstration plan](books/automotive/planning.yaml)
-for the upcoming automotive book (60 planned puzzles; not approved, no market research). None is presented as a finished publishing product.
+composition. [`automotive`](books/automotive/book.yaml) is the first production book:
+60 puzzles in seven themes and three levels, a 95-page interior that preflights
+valid and KDP ready under the modeled rules, and its [plan](books/automotive/planning.yaml)
+(not approved; no comparable books recorded). Its content is AI-drafted and not yet
+human-reviewed, it has no cover photograph, and publishing stays blocked on the
+author's decisions ([production notes](docs/automotive-production.md),
+[content audit](docs/automotive-content-audit.md)). None is presented as a finished
+publishing product.
 
 Open a book and choose **Edit**. Make changes, **Validate draft**, then **Preview
 draft** to inspect the grid and quality. **Save changes** validates again and
@@ -241,11 +247,12 @@ Contribution rules: [AGENTS.md](AGENTS.md). Current handoff: [CONTEXT.md](CONTEX
 
 ## Current limitations
 
-ASCII A-Z targets, at most 20 definitions per batch, and bounded greedy generation
+ASCII A-Z targets, at most 100 definitions per batch within a 20,000,000-check work
+budget, and bounded greedy generation
 that can fail on feasible inputs. Quality is descriptive, with explicit scan
 limits and no built-in prohibited-word list or automatic repair. Profile names
 are authored settings, not calibrated difficulty scores.
-Planning reports a plan larger than the 20-puzzle cap as unsupported rather than
+Planning reports a plan larger than the 100-puzzle cap as unsupported rather than
 raising the cap; its heuristics are review prompts, and no research is verified by
 PuzzlePress.
 
@@ -258,7 +265,7 @@ in, no bleed, black ink on white or cream paper) and one bundled sans family; bo
 with a KDP warning and fail KDP readiness. Preflight models a documented subset of
 KDP rules; some official values are ambiguous (see [preflight](docs/preflight.md)).
 Covers are RGB without CMYK conversion, use one trim and two layouts, and print
-spine text only from 80 pages, which the 20-puzzle limit does not yet reach.
+spine text only from 80 pages and only when the spine holds 7 pt type.
 Publishing is manual: no KDP login, upload, submission, ISBN purchase, category
 taxonomy, keyword research or pricing (see [publishing](docs/publishing.md)).
 

@@ -9,8 +9,8 @@ constants, reports how ready it is, and records the author's approval of an
 exact plan. It never generates puzzles from a plan, edits `book.yaml`, looks
 anything up online, or judges a market.
 
-Example: [`books/automotive/planning.yaml`](../books/automotive/planning.yaml), a
-demonstration plan for the upcoming automotive book (see [Demo](#automotive-demo)).
+Example: [`books/automotive/planning.yaml`](../books/automotive/planning.yaml), the
+plan of the automotive production book (see [Automotive plan](#automotive-plan)).
 
 ## Storage
 
@@ -377,18 +377,20 @@ as making it stale. Charts are tables of Python's numbers: allocation by theme,
 usable versus needed words, and level progression in book order. See
 [studio.md](studio.md#planning).
 
-## Automotive demo
+## Automotive plan
 
-`books/automotive/planning.yaml` plans 60 puzzles in seven themes under one parent,
-three levels with a gradual strategy, 184 candidate words and the opening
-warm-up section (7 puzzles). It is honest about what it is: audiences are
-labelled working assumptions; there are no comparable books, because none has
-been read and cited; KDP facts are cited from PuzzlePress's recorded provenance
-and marked unverified for this book; the vocabulary was drafted with an AI model
-and is recorded as `ai_generated`; nothing is approved. Its report: needs
-research (three blocking questions), 53 puzzles unspecified, the 20-puzzle cap
-unsupported, the print profile undecided, and thin pools for 60 puzzles. Its
-`book.yaml` and build identity are unchanged.
+`books/automotive/planning.yaml` plans the 60-puzzle production book: seven themes
+under one parent, three levels with a gradual strategy, all 60 puzzles specified
+(Interval 11's opening seven keep their IDs and titles) and 807 candidate words in
+seven pools (the 184 Interval 11 candidates plus 623 marked `Added in Interval 12.`),
+all `ai_generated`; unused candidates carry their reason. The author's working
+positioning, white paper and the raised cap are recorded as question resolutions;
+no comparable book has been read and cited, so that blocking question stays open.
+Its report: needs research (only `question_blocking_open`), every other gate passed,
+puzzle count verified within the cap, six pools above one 100-entry bank (production
+splits them), page estimate 94-96. Nothing is approved. `plan production` shows the
+production book matching it with no deviation (see
+[automotive production](automotive-production.md)).
 
 ## Limitations
 
