@@ -47,6 +47,8 @@ and local Web Studio share the same core. Read `CONTEXT.md` for current scope.
   or approvals, or treat an author note as verified. A plan describes targets
   beyond current caps and reports them unsupported; it never raises a cap or
   generates content. Approval stores the reviewed planning identity.
+- Real books live in the separate book repository; the engine, its tests and CI
+  never read or require them. Engine fixtures are small and synthetic.
 - Keep authored source and disposable generated directories disjoint. Recheck
   filesystem boundaries before any future write or recursive cleanup.
 - Preserve versioned schema and identity contracts. Include output-affecting
@@ -72,15 +74,16 @@ python -m ruff check .
 python -m ruff format --check .
 python -m mypy
 python -m pip check
-puzzlepress validate books/automotive
+puzzlepress validate tests/fixtures/legacy-automotive
 puzzlepress book build books/composition-demo --output .pytest_cache/interior
 puzzlepress book build books/cover-demo --output .pytest_cache/cover
 puzzlepress cover build books/cover-demo --output .pytest_cache/cover
 puzzlepress cover preflight books/cover-demo --output .pytest_cache/cover --no-write
 puzzlepress publish validate books/publishing-demo
 puzzlepress publish inspect books/publishing-demo --output .pytest_cache/publishing
-puzzlepress plan validate books/automotive
-puzzlepress plan report books/automotive
+python tests/production_book.py .pytest_cache/synthetic/books/production
+puzzlepress plan validate .pytest_cache/synthetic/books/production
+puzzlepress plan production .pytest_cache/synthetic/books/production
 puzzlepress puzzle generate --width 10 --height 8 --seed 2026 --word ENGINE --word PISTON --solution
 git diff --check
 git status --short

@@ -56,7 +56,7 @@ pypdfium2 (page previews).
 
 ```text
 puzzlepress --version
-puzzlepress validate books/automotive
+puzzlepress validate tests/fixtures/legacy-automotive
 puzzlepress inspect books/garden-demo
 puzzlepress puzzle generate --width 10 --height 8 --seed 2026 --word ENGINE --word PISTON --solution
 puzzlepress puzzle batch books/garden-demo --json
@@ -75,11 +75,12 @@ puzzlepress cover import books/my-book ~/Pictures/harbour.jpg
 puzzlepress publish validate books/publishing-demo
 puzzlepress publish inspect books/publishing-demo
 puzzlepress publish package books/publishing-demo --zip
-puzzlepress plan inspect books/automotive
-puzzlepress plan report books/automotive --json
+python tests/production_book.py build/synthetic/books/production
+puzzlepress plan inspect build/synthetic/books/production
+puzzlepress plan report build/synthetic/books/production --json
 puzzlepress plan approve books/my-book --identity pp1-planning-sha256-...
 puzzlepress plan handoff books/my-book --json
-puzzlepress plan production books/automotive
+puzzlepress plan production build/synthetic/books/production
 ```
 
 Commands are read-only except `book build`, which writes `interior.pdf` and an
@@ -129,14 +130,11 @@ its interior and cover are KDP ready under the modeled rules.
 [`composition-demo`](books/composition-demo/book.yaml) is a small composed book:
 front matter, four puzzles, grouped solutions and a notes page.
 [`garden-demo`](books/garden-demo/book.yaml) has two themed puzzles without a
-composition. [`automotive`](books/automotive/book.yaml) is the first production book:
-60 puzzles in seven themes and three levels, a 95-page interior that preflights
-valid and KDP ready under the modeled rules, and its [plan](books/automotive/planning.yaml)
-(not approved; no comparable books recorded). Its content is AI-drafted and not yet
-human-reviewed, it has no cover photograph, and publishing stays blocked on the
-author's decisions ([production notes](docs/automotive-production.md),
-[content audit](docs/automotive-content-audit.md)). None is presented as a finished
-publishing product.
+composition. [`tests/production_book.py`](tests/production_book.py) writes a
+SYNTHETIC 60-puzzle production book with an unapproved plan. None is presented as a
+finished publishing product. Real books, such as the automotive word search, live
+in the separate private book repository (`quangshuynh/puzzlepress-books`) and are
+opened by path or with `puzzlepress-studio --books` ([production scale](docs/production-scale.md)).
 
 Open a book and choose **Edit**. Make changes, **Validate draft**, then **Preview
 draft** to inspect the grid and quality. **Save changes** validates again and

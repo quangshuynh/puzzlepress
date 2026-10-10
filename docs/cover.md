@@ -158,10 +158,10 @@ Spine text is omitted with a stated reason when the book is too short
 (`page_count`), the spine cannot hold 7 pt type (`spine_too_narrow`: below about 99 white or
 89 cream pages for the editorial preset, 106 or 96 for the sans presets) or the author chose `none`. Text that
 fits across but not along the spine fails with `spine_text_overflow`. Real
-interiors exercise both outcomes (Interval 12): the 95-page automotive book on
-white paper reaches 80 pages but its 0.214 in spine omits text as
-`spine_too_narrow` (tested); a synthetic 100-puzzle, 152-page book's 0.342 in
-spine printed it at 14 pt (measured, docs/automotive-production.md).
+interiors exercise both outcomes: a 95-page book on white paper reaches 80 pages
+but its 0.214 in spine omits text as `spine_too_narrow` (tested with the synthetic
+production book); a synthetic 152-page book's 0.342 in spine printed it at 14 pt
+(measured, [production scale](production-scale.md)).
 
 ## Barcode area
 

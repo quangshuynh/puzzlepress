@@ -8,7 +8,7 @@ PIPELINE_VERSION = 1
 # Schema caps for a project's word_search section; planning reports a larger plan
 # against them rather than changing them (docs/book-planning.md). 100 puzzles were
 # verified through generation, interior, preflight, cover and publishing
-# (docs/automotive-production.md#generator-scaling).
+# (docs/production-scale.md#generator-scaling).
 MAX_BANKS = 20
 MAX_BANK_ENTRIES = 100
 MAX_PROFILES = 20

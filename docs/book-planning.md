@@ -9,8 +9,9 @@ constants, reports how ready it is, and records the author's approval of an
 exact plan. It never generates puzzles from a plan, edits `book.yaml`, looks
 anything up online, or judges a market.
 
-Example: [`books/automotive/planning.yaml`](../books/automotive/planning.yaml), the
-plan of the automotive production book (see [Automotive plan](#automotive-plan)).
+Example: `tests/production_book.py` writes a SYNTHETIC 60-puzzle book with its plan
+([production scale](production-scale.md)); real plans live with their books in the
+separate book repository.
 
 ## Storage
 
@@ -331,7 +332,7 @@ A project holds at most 100 puzzle definitions, 20 word banks of 100 entries and
 `unsupported` and its target is kept. Interval 12 raised the puzzle cap from 20
 to 100 after measuring 20, 60 and 100-puzzle books through generation, interior,
 preflight, cover and publishing (see
-[automotive production](automotive-production.md#generator-scaling)):
+[production scale](production-scale.md#generator-scaling)):
 
 - Schema: a literal bound in `content_validation`; the generator and batch code
   have no other dependency on it.
@@ -377,20 +378,14 @@ as making it stale. Charts are tables of Python's numbers: allocation by theme,
 usable versus needed words, and level progression in book order. See
 [studio.md](studio.md#planning).
 
-## Automotive plan
+## Production plans
 
-`books/automotive/planning.yaml` plans the 60-puzzle production book: seven themes
-under one parent, three levels with a gradual strategy, all 60 puzzles specified
-(Interval 11's opening seven keep their IDs and titles) and 807 candidate words in
-seven pools (the 184 Interval 11 candidates plus 623 marked `Added in Interval 12.`),
-all `ai_generated`; unused candidates carry their reason. The author's working
-positioning, white paper and the raised cap are recorded as question resolutions;
-no comparable book has been read and cited, so that blocking question stays open.
-Its report: needs research (only `question_blocking_open`), every other gate passed,
-puzzle count verified within the cap, six pools above one 100-entry bank (production
-splits them), page estimate 94-96. Nothing is approved. `plan production` shows the
-production book matching it with no deviation (see
-[automotive production](automotive-production.md)).
+A real book's plan lives beside its `book.yaml` in the book repository (see
+[production scale](production-scale.md)), so planning and production identities
+travel with the book. The engine's planning tests use synthetic plans only:
+`tests/planning_helpers.py` (a plan ready for approval) and
+`tests/production_book.py` (an unapproved 60-puzzle plan whose production book
+matches it with no deviation).
 
 ## Limitations
 
