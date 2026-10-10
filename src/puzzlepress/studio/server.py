@@ -16,6 +16,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.staticfiles import StaticFiles
 
 from puzzlepress.cover.assets import MAX_ASSET_BYTES
+from puzzlepress.cover.font_assets import MAX_FONT_BYTES
 from puzzlepress.errors import ProjectError
 
 from .covering import CoverService
@@ -63,10 +64,10 @@ class ApprovalRequest(BuildRequest):
     identity: str | None  # The planning identity reviewed; None withdraws the approval.
 
 
-# The only non-JSON POST: a photograph upload. Image content types are not
+# The only non-JSON POSTs: photograph and font uploads. Their content types are not
 # CORS-safelisted, so another site cannot send one without a refused preflight.
-UPLOAD_PATH = re.compile(r"/api/projects/[^/]+/cover/assets")
-UPLOAD_TYPES = ("image/jpeg", "image/png")
+UPLOAD_PATH = re.compile(r"/api/projects/[^/]+/cover/(assets|fonts)")
+UPLOAD_TYPES = {"assets": ("image/jpeg", "image/png"), "fonts": ("font/ttf", "font/otf")}
 
 
 def error_response(status: int, code: str, message: str) -> JSONResponse:
@@ -90,10 +91,10 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
         # A JSON POST and same-origin check prevent other sites driving local generation.
         origin = request.headers.get("origin")
         kind = request.headers.get("content-type", "").split(";")[0]
-        upload = UPLOAD_PATH.fullmatch(request.url.path) is not None
+        upload = UPLOAD_PATH.fullmatch(request.url.path)
         if request.method == "POST" and (
             (origin is not None and origin != str(request.base_url).rstrip("/"))
-            or (kind not in UPLOAD_TYPES if upload else kind != "application/json")
+            or (kind not in UPLOAD_TYPES[upload[1]] if upload else kind != "application/json")
         ):
             return error_response(403, "origin_rejected", "Use Studio on this local server.")
         response = await call_next(request)
@@ -217,20 +218,48 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
     def cover_assets(key: str) -> dict[str, object]:
         return covers.assets(key)
 
-    @app.post("/api/projects/{key}/cover/assets")
-    async def import_cover_photo(key: str, request: Request, name: str = "photo") -> JSONResponse:
-        limit = MAX_ASSET_BYTES
+    async def read_upload(request: Request, limit: int, code: str, what: str) -> bytes:
         declared = request.headers.get("content-length")
         if declared is not None and (not declared.isdigit() or int(declared) > limit):
-            raise StudioError(413, "image_unsupported", "The photograph file is too large.")
+            raise StudioError(413, code, f"The {what} file is too large.")
         chunks: list[bytes] = []
         size = 0
         async for chunk in request.stream():
             size += len(chunk)
             if size > limit:
-                raise StudioError(413, "image_unsupported", "The photograph file is too large.")
+                raise StudioError(413, code, f"The {what} file is too large.")
             chunks.append(chunk)
-        return JSONResponse(covers.import_photo(key, b"".join(chunks), name[:200]))
+        return b"".join(chunks)
+
+    @app.post("/api/projects/{key}/cover/assets")
+    async def import_cover_photo(key: str, request: Request, name: str = "photo") -> JSONResponse:
+        data = await read_upload(request, MAX_ASSET_BYTES, "image_unsupported", "photograph")
+        return JSONResponse(covers.import_photo(key, data, name[:200]))
+
+    @app.get("/api/projects/{key}/cover/assets/thumbnail")
+    def cover_thumbnail(key: str, path: str) -> Response:
+        return Response(
+            covers.thumbnail(key, path[:200]),
+            media_type="image/jpeg",
+            headers={"Cache-Control": "private, no-cache"},
+        )
+
+    @app.get("/api/projects/{key}/cover/fonts")
+    def cover_fonts(key: str) -> dict[str, object]:
+        return covers.fonts(key)
+
+    @app.post("/api/projects/{key}/cover/fonts")
+    async def import_cover_font(key: str, request: Request, name: str = "font.ttf") -> JSONResponse:
+        data = await read_upload(request, MAX_FONT_BYTES, "font_unsupported", "font")
+        return JSONResponse(covers.import_font(key, data, name[:200]))
+
+    @app.get("/api/projects/{key}/cover/fonts/specimen")
+    def cover_font_specimen(key: str, font: str) -> Response:
+        return Response(
+            covers.specimen(key, font[:200]),
+            media_type="image/png",
+            headers={"Cache-Control": "private, no-cache"},
+        )
 
     @app.get("/api/projects/{key}/cover/preview")
     def cover_preview(key: str, size: str, pdf: str) -> Response:

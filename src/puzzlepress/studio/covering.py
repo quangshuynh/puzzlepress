@@ -5,21 +5,32 @@ module locates the saved project's folders, caches decoded photos and rendered
 draft PDFs in memory, and presents results. Previews are PDFium rasters of real
 cover PDFs (a draft's PDF or cover.pdf), never recreated in the browser. Only
 fixed artifact names and validated project asset references are ever read.
+
+Text layers carry their measured boxes so Studio can select and move them; a move
+becomes an authored offset in points that Python lays out and renders again.
+Font specimens are small PDFs drawn with ReportLab and rasterized by PDFium, the
+same path as the cover itself; photo thumbnails are previews only.
 """
 
 import hashlib
+import io
 import re
 from collections import OrderedDict
 from pathlib import Path
 from threading import Lock
 
+from PIL import Image
+from reportlab.pdfgen.canvas import Canvas
+
 from puzzlepress.cover.assets import (
     MAX_ASSET_BYTES,
+    AssetEntry,
     Photo,
     decode_photo,
     import_photo,
     list_assets,
     read_asset,
+    read_asset_file,
 )
 from puzzlepress.cover.build import (
     PDF_NAME,
@@ -30,14 +41,29 @@ from puzzlepress.cover.build import (
     write_cover,
     write_cover_preflight,
 )
+from puzzlepress.cover.crop import crop_window
+from puzzlepress.cover.font_assets import (
+    MAX_FONT_BYTES,
+    FontEntry,
+    import_font,
+    inspect_font,
+    list_fonts,
+    load_cover_fonts,
+    load_font,
+    read_font_file,
+)
+from puzzlepress.cover.fonts import CoverFace, font_name, missing_characters
 from puzzlepress.cover.issues import CoverError
+from puzzlepress.cover.layout import CoverCopy, cover_display, same_words
 from puzzlepress.cover.model import CoverLayout
 from puzzlepress.cover.preflight import RULESET_VERSION, preflight_cover, report_bytes
 from puzzlepress.cover.validation import panel_of
+from puzzlepress.cover_config import CoverConfig
 from puzzlepress.interior import InteriorError
 from puzzlepress.interior.build import check_output_directory
+from puzzlepress.interior.issues import LayoutIssue
 from puzzlepress.interior.model import Box
-from puzzlepress.interior.spec import KDP
+from puzzlepress.interior.spec import KDP, KDP_COVER
 from puzzlepress.models import Project
 from puzzlepress.project import resolve_output_directory
 
@@ -51,6 +77,26 @@ COVER_SCALES = {"preview": 1.0, "detail": 2.5}
 LOCK_WAIT = 60.0
 DRAFT_BUDGET = 160 * 1024 * 1024
 PHOTO_CACHE = 2
+THUMBNAIL_PIXELS = 360
+SPECIMEN_TEXT = "Aa Bb Cc Gg Qq 0123456789"
+# Bundled faces as Studio's font picker lists them: family, style, key.
+BUNDLED_FONTS = (
+    ("Newsreader Display", "Regular", CoverFace.SERIF_DISPLAY),
+    ("Newsreader", "Regular", CoverFace.SERIF),
+    ("Newsreader", "Italic", CoverFace.SERIF_ITALIC),
+    ("Vera Sans", "Regular", CoverFace.SANS),
+    ("Vera Sans", "Bold", CoverFace.SANS_BOLD),
+    ("Vera Sans", "Oblique", CoverFace.SANS_ITALIC),
+)
+
+
+def _layer_of(role: str) -> str:
+    """The editable layer a measured line belongs to."""
+    if role.startswith(("front_extra:", "back_extra:")):
+        return "extra:" + role.split(":", 1)[1]
+    if role in ("spine_title", "spine_author"):
+        return "spine"
+    return role
 
 
 def _box(box: Box) -> dict[str, float]:
@@ -67,9 +113,11 @@ def present_layout(layout: CoverLayout) -> dict[str, object]:
         "texts": [
             {
                 "role": text.role,
+                "layer": _layer_of(text.role),
                 "text": text.text,
                 "panel": panel_of(text),
                 "size": text.size,
+                "face": text.face,
                 "rotated": text.rotated,
                 "box": _box(text.bounds),
             }
@@ -85,6 +133,76 @@ def present_layout(layout: CoverLayout) -> dict[str, object]:
         "resolution": layout.resolution.to_dict(),
         "spine_text": layout.spine.to_dict(),
     }
+
+
+def display_checks(project: Project) -> list[dict[str, str]]:
+    """How the cover's displayed text relates to the book details (never changed here)."""
+    assert project.cover is not None
+    copy = CoverCopy.from_project(project)
+    details = copy.to_dict()
+    checks: list[dict[str, str]] = []
+    for key, shown in cover_display(project.cover, copy).items():
+        detail = details[key]
+        if shown is None and detail and key in ("title", "author"):
+            checks.append(
+                {
+                    "code": "cover_text_omitted",
+                    "severity": "warning",
+                    "layer": key,
+                    "message": f"The cover does not print the {key}; the book details keep "
+                    f"{detail!r}. Publishing will ask you to confirm this is intended.",
+                }
+            )
+        elif shown is not None and not same_words(shown, str(detail or "")):
+            checks.append(
+                {
+                    "code": "cover_text_differs",
+                    "severity": "error",
+                    "layer": key,
+                    "message": f"The cover prints the {key} as {shown!r}; the book details say "
+                    f"{detail!r}. KDP requires the cover to match the book details, so "
+                    "publishing blocks until they match. Line breaks and capitals may differ.",
+                }
+            )
+    for font in project.cover.fonts:
+        if font.license is None or font.source is None:
+            checks.append(
+                {
+                    "code": "cover_font_license",
+                    "severity": "warning",
+                    "layer": f"font:{font.id}",
+                    "message": f"Record the license and source of font {font.id!r}. PuzzlePress "
+                    "reads its embedding flags but cannot confirm your license.",
+                }
+            )
+    return checks
+
+
+def issue_checks(issues: tuple[LayoutIssue, ...]) -> list[dict[str, str]]:
+    """Layout validation failures of a draft: shown, but the cover will not build."""
+    layers = {
+        "cover.title": "title",
+        "cover.subtitle": "subtitle",
+        "cover.author": "author",
+        "cover.back_text": "back_text",
+        "cover.imprint": "imprint",
+    }
+    checks: list[dict[str, str]] = []
+    for issue in issues:
+        region = issue.region or ""
+        layer = layers.get(region, "")
+        if "_extra:" in region:
+            layer = "extra:" + region.split(":", 1)[1]
+        checks.append(
+            {
+                "code": issue.code,
+                "severity": "error",
+                "layer": layer,
+                "message": f"{issue.message} This draft previews, but the cover will not "
+                "build until it is fixed.",
+            }
+        )
+    return checks
 
 
 def layout_checks(layout: CoverLayout, page_count: int) -> list[dict[str, str]]:
@@ -145,6 +263,10 @@ class CoverService:
         self._pdfs: OrderedDict[str, bytes] = OrderedDict()
         self._pdf_bytes = 0
         self._reports: OrderedDict[tuple[str, ...], dict[str, object]] = OrderedDict()
+        # Header facts by (path, size, mtime): listing photos and fonts stays cheap.
+        self._headers: dict[tuple[str, int, int], object] = {}
+        self._thumbnails: OrderedDict[str, bytes] = OrderedDict()
+        self.specimens = PageRasterizer(budget=16 * 1024 * 1024, scales={"specimen": 2.0})
 
     # ------------------------------------------------------------ locating
 
@@ -189,12 +311,14 @@ class CoverService:
 
     # ------------------------------------------------------------ assets
 
-    def assets(self, key: str) -> dict[str, object]:
-        source = self.store.source(key).parent
+    def _photo_entries(self, source: Path) -> tuple[AssetEntry, ...]:
         try:
-            entries = list_assets(source)
+            return list_assets(source)
         except CoverError as error:
             raise StudioError(422, error.issues[0].code, error.issues[0].message) from error
+
+    def assets(self, key: str) -> dict[str, object]:
+        source = self.store.source(key).parent
         return {
             "assets": [
                 {
@@ -202,9 +326,132 @@ class CoverService:
                     "problem": entry.problem,
                     **(entry.info.to_dict() if entry.info else {}),
                 }
-                for entry in entries
+                for entry in self._photo_entries(source)
             ]
         }
+
+    def thumbnail(self, key: str, reference: str) -> bytes:
+        """A small upright sRGB JPEG of a project photograph, for the photo library only."""
+        source = self.store.source(key).parent
+        try:
+            data = read_asset_file(source, reference)
+        except CoverError as error:
+            raise StudioError(404, error.issues[0].code, error.issues[0].message) from error
+        digest = hashlib.sha256(data).hexdigest()
+        with self._lock:
+            cached = self._thumbnails.get(digest)
+        if cached is not None:
+            return cached
+        try:
+            image = decode_photo(data).image.copy()
+        except CoverError as error:
+            raise StudioError(422, error.issues[0].code, error.issues[0].message) from error
+        image.thumbnail((THUMBNAIL_PIXELS, THUMBNAIL_PIXELS), Image.Resampling.LANCZOS)
+        buffer = io.BytesIO()
+        image.save(buffer, "JPEG", quality=85)
+        jpeg = buffer.getvalue()
+        with self._lock:
+            self._thumbnails[digest] = jpeg
+            while len(self._thumbnails) > 64:
+                self._thumbnails.popitem(last=False)
+        return jpeg
+
+    def _font_entries(self, source: Path) -> tuple[FontEntry, ...]:
+        try:
+            return list_fonts(source)
+        except CoverError as error:
+            raise StudioError(422, error.issues[0].code, error.issues[0].message) from error
+
+    def fonts(self, key: str) -> dict[str, object]:
+        source = self.store.source(key).parent
+        return {"fonts": [_font_entry(entry) for entry in self._font_entries(source)]}
+
+    def import_font(self, key: str, data: bytes, name: str) -> dict[str, object]:
+        if len(data) > MAX_FONT_BYTES:
+            raise StudioError(413, "font_unsupported", "The font file is too large.")
+        source = self.store.source(key).parent
+        try:
+            imported = import_font(source, data, name)
+        except CoverError as error:
+            issue = error.issues[0]
+            status = 503 if issue.code == "write_failed" else 422
+            raise StudioError(status, issue.code, issue.message) from error
+        return {
+            "font": {"path": imported.path, "reused": imported.reused, **imported.info.to_dict()},
+            **self.fonts(key),
+        }
+
+    def specimen(self, key: str, reference: str) -> bytes:
+        """PNG of a font specimen rendered as a PDF by ReportLab, then by PDFium."""
+        source = self.store.source(key).parent
+        if reference.startswith("bundled:"):
+            face = reference.removeprefix("bundled:")
+            if face not in {f.value for f in CoverFace}:
+                raise StudioError(404, "not_found", "Unknown bundled face.")
+            name = font_name(face)
+        else:
+            try:
+                name = load_font(read_font_file(source, reference)).key
+            except CoverError as error:
+                raise StudioError(422, error.issues[0].code, error.issues[0].message) from error
+        pdf = _specimen_pdf(name)
+        digest = hashlib.sha256(pdf).hexdigest()
+        try:
+            return self.specimens.png(pdf, digest, 1, "specimen")
+        except PreviewUnavailable as error:
+            raise StudioError(
+                503, "preview_unavailable", "Install the studio extra (pypdfium2) for previews."
+            ) from error
+
+    def _library(self, source: Path, project: Project, region: Box) -> dict[str, object]:
+        """Photos with the resolution each reaches here; fonts with the characters they lack."""
+        assert project.cover is not None
+        zoom = project.cover.crop.zoom
+        photos = []
+        for entry in self._photo_entries(source):
+            item: dict[str, object] = {"path": entry.path, "problem": entry.problem}
+            if entry.info is not None:
+                item |= entry.info.to_dict()
+                window = crop_window(
+                    entry.info.width, entry.info.height, region, project.cover.crop
+                )
+                item["dpi"] = {
+                    "effective": round(window.effective_dpi, 2),
+                    "max": round(window.max_dpi, 2),
+                    "zoom": zoom,
+                    "minimum": KDP_COVER.min_image_dpi,
+                    "sufficient": window.effective_dpi + 1e-9 >= KDP_COVER.min_image_dpi,
+                }
+            photos.append(item)
+        text = _cover_characters(project)
+        fonts = []
+        for font in self._font_entries(source):
+            listed = _font_entry(font)
+            if font.info is not None:
+                charset = self._charset(source, font)
+                listed["missing"] = sorted({c for c in text if ord(c) not in charset})
+            fonts.append(listed)
+        bundled = [
+            {
+                "key": face.value,
+                "family": family,
+                "style": style,
+                "missing": list(missing_characters("".join(sorted(text)), face)),
+            }
+            for family, style, face in BUNDLED_FONTS
+        ]
+        return {"photos": photos, "fonts": fonts, "bundled_fonts": bundled}
+
+    def _charset(self, source: Path, entry: FontEntry) -> frozenset[int]:
+        assert entry.info is not None
+        cache_key = (entry.info.sha256, 0, 0)
+        cached = self._headers.get(cache_key)
+        if isinstance(cached, frozenset):
+            return cached
+        _, ttf = inspect_font(read_font_file(source, entry.path), entry.info.container)
+        charset = frozenset(ttf.face.charToGlyph)
+        self._headers[cache_key] = charset
+        return charset
 
     def import_photo(self, key: str, data: bytes, name: str) -> dict[str, object]:
         if len(data) > MAX_ASSET_BYTES:
@@ -300,7 +547,10 @@ class CoverService:
             try:
                 interior = read_interior_facts(directory, project, require_current=False)
                 photo = self._photo(source, project)
-                build = render_cover(project, interior, photo)
+                fonts = load_cover_fonts(source, project.cover)
+                build = render_cover(
+                    project, interior, photo, fonts=fonts, allow_layout_issues=True
+                )
             except CoverError as error:
                 return {
                     "success": False,
@@ -317,7 +567,12 @@ class CoverService:
                 },
                 "cover_identity": build.manifest["cover_identity"],
                 "layout": present_layout(build.layout),
-                "checks": layout_checks(build.layout, interior.page_count),
+                "checks": issue_checks(build.layout_issues)
+                + display_checks(project)
+                + layout_checks(build.layout, interior.page_count),
+                "buildable": not build.layout_issues,
+                "display": cover_display(project.cover, CoverCopy.from_project(project)),
+                "library": self._library(source, project, build.layout.photo.region),
                 "preview": {"pdf_sha256": digest, "scales": COVER_SCALES},
             }
 
@@ -357,3 +612,38 @@ def _digest(path: Path) -> str:
     except OSError:
         return "?"
     return "-"
+
+
+def _font_entry(entry: FontEntry) -> dict[str, object]:
+    return {
+        "path": entry.path,
+        "problem": entry.problem,
+        "message": entry.message,
+        **(entry.info.to_dict() if entry.info else {}),
+    }
+
+
+def _cover_characters(project: Project) -> set[str]:
+    """Every character the cover could print, as written and in capitals."""
+    config: CoverConfig | None = project.cover
+    assert config is not None
+    copy = CoverCopy.from_project(project)
+    values = [v for v in copy.to_dict().values() if isinstance(v, str)]
+    values += [layer.text for _, layer in config.text if layer.text]
+    values += [extra.text for extra in config.extra]
+    text = "".join(values)
+    return {c for c in text + text.upper() if not c.isspace()}
+
+
+def _specimen_pdf(name: str) -> bytes:
+    """A one-line specimen page drawn exactly as cover text is (ReportLab, invariant)."""
+    buffer = io.BytesIO()
+    canvas = Canvas(buffer, pagesize=(300, 44), invariant=True)
+    canvas.setFillColorRGB(1, 1, 1)
+    canvas.rect(0, 0, 300, 44, stroke=0, fill=1)
+    canvas.setFillColorRGB(0.145, 0.176, 0.157)
+    canvas.setFont(name, 20)
+    canvas.drawString(8, 14, SPECIMEN_TEXT)
+    canvas.showPage()
+    canvas.save()
+    return buffer.getvalue()
