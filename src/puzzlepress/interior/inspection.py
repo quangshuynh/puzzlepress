@@ -110,11 +110,23 @@ def _page_facts(number: int, page: PageObject) -> PdfPageFacts:
         fonts=tuple(
             _font(font.get_object()) for font in (fonts.get_object().values() if fonts else [])
         ),
-        images=len(page.images),
+        images=_image_count(page, resources, stream),
         transparency=_transparent(page, resources),
         painted=bool(stream.replace(IDENTITY_TRANSFORM, b"").strip()),
         text=page.extract_text() or "",
     )
+
+
+def _image_count(page: PageObject, resources: DictionaryObject, stream: bytes) -> int:
+    """pypdf's image count, without its second content-stream parse when none can exist.
+
+    pypdf finds images only in /XObject resources and inline `BI` operators. A page
+    with neither an /XObject resource nor the bytes `BI` anywhere in its decoded
+    content has no image, so the answer (0) is exact; otherwise pypdf counts.
+    """
+    if "/XObject" not in resources and b"BI" not in stream:
+        return 0
+    return len(page.images)
 
 
 def _font(font: DictionaryObject) -> PdfFont:
