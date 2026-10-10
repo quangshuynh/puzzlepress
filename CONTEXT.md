@@ -2,22 +2,28 @@
 
 ## Completed scope
 
-Interval 11 (research and book planning) on branch `feat/book-research-planning`
-from main `2ba3a82` (Interval 10.1 merged via PR #4); pushed, not merged; no PR,
-tag, release or deployment. No Interval 12 work. Changes:
+Interval 12 (first production book) on branch `feat/automotive-production-book`
+from main `5f41bf6` (Interval 11 merged via PR #5); pushed, not merged; no PR, tag,
+release or deployment. No Interval 13 work. Changes:
 
-- Planning domain `planning/` and CLI `puzzlepress plan`: a versioned
-  `planning.yaml` beside `book.yaml`, diagnostics, feasibility, readiness gates,
-  identity-bound approval and a printed production handoff (docs/book-planning.md).
-- Studio Planning tab and API (`/planning`, `/draft/planning`, `/planning/save`,
-  `/planning/approval`); Publishing nav link fixed (it pointed to `/publishing`,
-  a missing page, since Interval 10).
-- `books/automotive/planning.yaml`: a demonstration plan for the automotive book.
-- Schema caps and engine limits named (`content.MAX_*`, `wordsearch.validation
-  .MAX_*`) and `yaml_io.load_yaml` shared; no behavior change.
+- `books/automotive` is the production book (docs/automotive-production.md): 60
+  puzzles, 7 themes, 3 levels, 95-page interior, AI-drafted content not yet
+  reviewed by a person, no cover (no photograph supplied), publishing blocked on
+  the author's decisions. Its old 3-item source moved byte-identical to
+  `tests/fixtures/legacy-automotive` (identity pin unchanged).
+- Puzzle cap 20 -> 100 (`content.MAX_PUZZLES`) within a batch work budget
+  (`MAX_BATCH_ATTEMPTS` 20,000,000 summed profile attempts = former worst case;
+  `work_budget` validation issue).
+- `planning/production.py` and `puzzlepress plan production`: read-only plan versus
+  book.yaml comparison (comparison_version 1, deviation codes, exit 0 when none).
+- Inspection: exact image-count shortcut and fact reuse for byte-identical PDFs
+  (`InteriorBuild.facts`); interior build 5.09 -> 3.59 s, preflight 8.72 -> 3.59 s
+  on the real book; PDF bytes unchanged.
+- docs/automotive-content-audit.md (tested against book.yaml); production CI job.
 
 Engine 0.1.0; identity, pipeline, composition, plan, print profile, renderer,
-cover, publishing and package versions unchanged. No production identity changed.
+cover, publishing, package and planning versions unchanged. Existing interiors are
+byte-identical (composition-demo `4e0748fb`, cover-demo `d7254094`).
 
 ## Architecture and launch
 
@@ -166,8 +172,10 @@ cover, publishing and package versions unchanged. No production identity changed
   /cover/build. Print: paper choice, keeps the built profile.
 - Fixtures: `books/cover-demo` (20 puzzles, 35 pages, synthetic stand-in photo from
   tests/cover_demo_photo.py): cover valid and KDP ready (interior is not; see
-  verification), spine text omitted. 20-puzzle
-  limit keeps every book below 80 pages; spine text tested with synthetic facts.
+  verification), spine text omitted. Real long interiors: the automotive book (95
+  white pages, 0.2139 in spine) reaches 80 pages but omits spine text as
+  `spine_too_narrow` (tested with a synthetic photo in a temp copy); a synthetic
+  152-page book printed it at 14 pt (measured).
 
 ## Publishing (docs/publishing.md)
 
@@ -241,16 +249,18 @@ cover, publishing and package versions unchanged. No production identity changed
   the reviewed identity; stale on edit, restored with the content; not counted on a
   blocked plan; not publishing approval. Handoff (`plan handoff --json`, approved
   only) prints a versioned document and writes nothing.
-- Demo: 60 puzzles, 7 themes under a parent, 3 levels (gradual), 184 AI-generated
-  candidate words, 7 specified puzzles, 4 research notes (2 unverified KDP citations
-  from repo provenance, 1 hypothesis, 1 preference), no comparables, 3 blocking
-  questions. State needs_research; errors question_blocking_open,
-  puzzles_unspecified, puzzle_count_unsupported, print_profile_undecided; estimate
-  94-96 pages.
-- Generator limits: the 20-puzzle cap is a schema bound for worst-case work (20 x
-  1M attempts); 20 puzzles generate in ~0.08 s; composition and print have no cap;
-  spine text (80+ pages) is untested on a real interior; Studio readiness reruns
-  full preflight per request. Interval 12 must review the cap with these.
+- Automotive plan: 60 puzzles all specified, 7 themes, 3 levels (gradual), 807
+  ai_generated candidates (184 from Interval 11, 623 noted `Added in Interval 12.`,
+  unused ones with reasons), white paper, positioning/cap/paper resolved from the
+  author's brief, 5 research notes (+ `r-positioning-default`, a preference), no
+  comparables. State needs_research; only error question_blocking_open
+  (q-comparables); open non-blocking q-vocabulary-review; 6 bank_size_exceeds
+  warnings (production splits pools into warm-up/standard and challenge banks).
+- Production comparison: `plan production` matches the book with 0 deviations,
+  793 placements all ai_generated, and states the plan is not approved.
+- Generator limits: cap 100 within the work budget; measured 20/60/100 (synthetic,
+  plan vocabulary): generation 0.16/0.49/0.82 s, interior 1.15/3.32/5.51 s,
+  preflight 1.13/3.35/5.93 s; 100 puzzles packaged with synthetic decisions.
 
 ## Composition model
 
@@ -317,40 +327,44 @@ small external-editor race remains. Drafts memory-only; no autosave/undo/merge.
 
 ## Actual local verification (Windows, Python 3.13.15, Node 24.18.0)
 
-Interval 11, 2026-10-09:
+Interval 12, 2026-10-09:
 
-- Baseline on main `2ba3a82`: 1192 passed, 4 skipped (symlink permission).
-- Python: **1307 passed, 5 skipped** (symlink permission), 1 Starlette httpx
-  warning; 115 planning tests (schema, identity, store, diagnostics, feasibility,
-  readiness, approval, handoff, CLI, demo, production boundary, API, docs). Ruff
-  lint and format, strict mypy (94 files), pip check, `git diff --check`.
+- Baseline on main `5f41bf6`: 1307 passed, 5 skipped (symlink permission).
+- Python: **1345 passed, 5 skipped** (symlink permission), 1 Starlette httpx
+  warning; new: generator scale (20/60/100, budget, partial failure, memory,
+  cross-process bytes), production comparison, inspection reuse, real-book end to
+  end, audit sync. Ruff lint and format, strict mypy (95 files), pip check,
+  `git diff --check`.
 - Frontend: tsc, ESLint, Prettier (clean with `--end-of-line auto`; CRLF checkout
-  only), 66 Vitest (8 planning), build (JS 414 kB, CSS 44 kB). Playwright 19/19 (4
-  planning) with axe and 1440/1024/768/390 widths; new captures `planning*.png`;
-  existing captures change only by the Planning tab and the extra test project.
-- Installed CLI with expected exits (0/1/2), including `plan validate|inspect`
-  (0), `plan report` on the demo (1) and `plan inspect` on garden-demo (1). Interiors
-  unchanged: composition-demo PDF `4e0748fb`, cover-demo `d7254094`, interior
-  identity `pp1-interior-sha256-90ef5cf2...`. Report and identity bytes identical
-  across processes, working directories and PYTHONHASHSEED; the new CI planning job
-  was rehearsed locally with Git Bash.
-- Fixture SHA-256 (LF): automotive 209f3fd6, composition-demo b15651cd, cover-demo
-  b906bbda, garden-demo ffd7f7eb, publishing-demo f0a2d580 unchanged;
-  automotive/planning.yaml 75a412a0 (new).
-- Remote CI run 37926210550 (commit d66d8c6, everything except this CONTEXT update):
-  15/15 jobs passed, including the new planning job on Ubuntu and Windows and
-  Studio Playwright.
+  only), 66 Vitest, build (JS 414 kB, CSS 44 kB). Playwright 20/20 with axe,
+  including the new production acceptance (open 0.5 s, generate 60 ~1.0 s,
+  composition 1.0-1.6 s, build + preflight 4.1 s, first readiness 4.6 s).
+  Refreshed captures: library, planning*; new production-*.png.
+- Real book: batch clean with strict quality; 95 pages; preflight valid and KDP
+  ready (warning kdp_full_font_embedding); PDF `00da6391...` identical across
+  processes, directories and hash seeds; pages inspected visually. AGENTS.md
+  commands with expected exits; interiors unchanged (composition-demo `4e0748fb`,
+  cover-demo `d7254094`). The production CI job was rehearsed locally (Git Bash).
+- Fixture SHA-256 (LF): automotive book.yaml 606b30cf (replaced deliberately),
+  legacy fixture 209f3fd6, composition-demo b15651cd, cover-demo b906bbda,
+  garden-demo ffd7f7eb, publishing-demo f0a2d580.
+- KDP help read 2026-10-09: content guidelines (AI-generated vs AI-assisted, as
+  modeled) and print options (8.5 x 11 within the custom range; no table row).
 
 ## Limits and decisions for review
 
-Before Interval 12 (automotive production), decide: the puzzle cap (raise it with
-re-stated work bounds and a real long-book fixture through interior, preflight,
-cover spine text and package, or produce a 20-puzzle first edition); the demo's
-three blocking questions (primary audience, comparable books actually read, cap);
-interior paper (white or cream); whether the AI-drafted candidate vocabulary is
-kept, replaced or reviewed (it must be disclosed if used); word-bank and puzzle IDs
-for book.yaml (seeds derive from IDs); and composition text. Planning heuristics
-(label similarity 0.5, pool overlap 0.3, balance 2x/0.5x) are conventions to review.
+Author decisions for the automotive book (docs/automotive-production.md): review the
+AI-drafted words, titles and matter text (docs/automotive-content-audit.md) and the
+23-word screening list; record comparable books actually read (q-comparables) and
+approve the plan if intended; author, imprint, subtitle, copyright notice, edition;
+supply a photograph (full wrap about 5,300 x 3,400 px at 300 DPI) and design the
+cover; ISBN, low-content, explicit-content answer, categories; the AI disclosure
+(KDP: AI-created text stays AI-generated after edits); the three confirmations;
+then Print Previewer and a physical proof. Not verified: KDP's handling of an odd
+page count (95) and the 8.5 x 11 page maximum; the description-claims heuristic
+reads "13 by 13 grids" as a count. Generation v1's random sequence depends on word
+count, not words. Planning heuristics (label similarity 0.5, pool overlap 0.3,
+balance 2x/0.5x) remain conventions to review.
 
 Paperback only; plain-text descriptions (KDP's HTML subset is a possible future
 enhancement); categories are unverified preferences; contributor roles beyond
