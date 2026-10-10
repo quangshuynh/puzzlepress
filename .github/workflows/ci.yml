@@ -390,6 +390,109 @@ jobs:
       - name: Source fixtures unchanged
         run: sha256sum -c fixtures.txt
 
+  production:
+    # The 60-puzzle automotive book: one generation, two interior builds (for byte
+    # identity), preflight, spine facts and the publishing negative states.
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install -e .
+      - name: Record fixture digests
+        run: sha256sum books/automotive/book.yaml books/automotive/planning.yaml > fixtures.txt
+      - name: Sixty puzzles generate, verify and screen clean
+        run: |
+          puzzlepress validate books/automotive
+          puzzlepress puzzle batch books/automotive --json --strict-quality > batch.json
+          python - <<'EOF'
+          import json
+          from puzzlepress.batch import derive_puzzle_seed
+          r = json.load(open("batch.json"))
+          assert r["success"] and r["clean"] and r["findings"] == []
+          ids = [p["id"] for p in r["puzzles"]]
+          assert len(ids) == len(set(ids)) == 60
+          for p in r["puzzles"]:
+              assert p["seed"] == str(derive_puzzle_seed(2026, p["id"])), p["id"]
+              assert len(p["puzzle"]["placements"]) == len(p["puzzle"]["targets"])
+          levels = [p["difficulty"] for p in r["puzzles"]]
+          assert levels == ["warm-up"] * 20 + ["standard"] * 20 + ["challenge"] * 20
+          EOF
+      - name: The book matches its plan, which is not approved
+        run: |
+          puzzlepress plan production books/automotive --json > comparison.json
+          python - <<'EOF'
+          import json
+          c = json.load(open("comparison.json"))
+          assert c["matches_plan"] and c["deviations"] == []
+          assert c["counts"] == {"target": 60, "planned": 60, "produced": 60}
+          assert c["planning"]["approved"] is False
+          assert c["planning"]["state"] == "needs_research"
+          source = c["vocabulary"]["words_by_source"]
+          assert source["ai_generated"] == c["vocabulary"]["produced_words"] == sum(source.values())
+          EOF
+      - name: Interior builds, preflights and is byte-identical across runs
+        run: |
+          PYTHONHASHSEED=0 puzzlepress book build books/automotive --output prod-a
+          mkdir elsewhere
+          (cd elsewhere && PYTHONHASHSEED=4242 puzzlepress book build ../books/automotive --output ../prod-b)
+          cmp prod-a/interior.pdf prod-b/interior.pdf
+          cmp prod-a/interior.json prod-b/interior.json
+          puzzlepress book preflight books/automotive --output prod-a --json > preflight.json
+          python - <<'EOF'
+          import json
+          r = json.load(open("preflight.json"))
+          assert r["page_count"] == 95
+          assert r["structural"]["status"] == "valid" and r["kdp"]["status"] == "ready"
+          codes = [f["rule"] for f in r["findings"]]
+          assert codes == ["kdp_full_font_embedding"], codes
+          EOF
+      - name: Spine geometry comes from the built page count
+        run: |
+          python - <<'EOF'
+          from pypdf import PdfReader
+          from puzzlepress.cover.geometry import cover_geometry
+          from puzzlepress.interior.spec import PAPERBACK_LETTER, Paper, inches
+          pages = len(PdfReader("prod-a/interior.pdf").pages)
+          assert pages == 95
+          g = cover_geometry(pages, PAPERBACK_LETTER.trim.width, PAPERBACK_LETTER.trim.height,
+                             Paper.WHITE)
+          assert abs(g.spine_width - inches(95 * 0.002252)) < 1e-6
+          assert g.spine_text_allowed  # 80+ pages; the cover still checks the width fits.
+          EOF
+      - name: Missing photograph and author decisions block honestly
+        run: |
+          set +e
+          puzzlepress cover build books/automotive --output prod-a > cover.txt 2>&1
+          cover=$?
+          puzzlepress publish inspect books/automotive --output prod-a --json > readiness.json
+          inspect=$?
+          puzzlepress publish package books/automotive --output prod-a > package.txt 2>&1
+          package=$?
+          set -e
+          test "$cover" -eq 1 && grep -q "cover_missing" cover.txt
+          test "$inspect" -eq 1 && test "$package" -eq 1
+          test ! -e prod-a/publishing && test ! -e prod-a/cover.pdf
+          python - <<'EOF'
+          import json
+          r = json.load(open("readiness.json"))
+          v = r["verdicts"]
+          assert v["interior"] == {"state": "current", "structural": "valid", "kdp": "ready"}
+          assert v["cover"]["state"] == "no_config" and v["package"] == "not_ready"
+          errors = {f["code"] for f in r["findings"] if f["severity"] == "error"}
+          assert {"author_present", "isbn_decided", "low_content_decided", "audience_explicit",
+                  "ai_disclosure_complete", "attestations", "cover_present"} == errors, errors
+          EOF
+      - name: Source fixtures unchanged
+        run: sha256sum -c fixtures.txt
+
   studio:
     runs-on: ubuntu-latest
     steps:
