@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 
 from puzzlepress import validate_project
-from puzzlepress.planning import validate_planning, write_planning
+from puzzlepress.planning import read_planning, validate_planning, write_planning
 from puzzlepress.yaml_io import dump_project
 
 BOOK_ID = "synthetic-production-book"
@@ -259,7 +259,8 @@ def write_production_book(directory: Path | str) -> Path:
     (target / "book.yaml").write_text(dump_project(project), encoding="utf-8")
     plan, issues = validate_planning(plan_data())
     assert plan is not None, issues
-    write_planning(target, plan, None)
+    # Rewriting the fixture replaces its own earlier plan through the revision check.
+    write_planning(target, plan, read_planning(target).revision)
     return target
 
 
