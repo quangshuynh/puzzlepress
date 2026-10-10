@@ -1,10 +1,12 @@
-# A DEMONSTRATION plan for the upcoming automotive book (docs/book-planning.md).
-# It is not the production book and contains no market research: no comparable
-# books are recorded until a person has read and cited them. Audiences are
-# working assumptions. The candidate vocabulary was drafted with an AI model for
-# this demonstration and is recorded as ai_generated. KDP facts are cited from
-# PuzzlePress's own recorded provenance and marked unverified for this book.
-# Nothing here is approved. book.yaml beside it is untouched by planning.
+# The plan for the automotive production book (docs/book-planning.md and
+# docs/automotive-production.md). It contains no market research: no comparable
+# books are recorded until a person has read and cited them, so the plan stays in
+# needs_research. Audiences are the author's working defaults, not validated. All
+# vocabulary, puzzle titles and word lists were drafted with an AI model (the 184
+# Interval 11 candidates and the words marked "Added in Interval 12") and are
+# recorded as ai_generated; no person has reviewed them yet. KDP facts are cited
+# from PuzzlePress's own recorded provenance. Nothing here is approved, and
+# book.yaml beside it is the production source, which planning never writes.
 planning_version: 1
 concept:
   summary: >-
@@ -38,7 +40,7 @@ positioning:
 structure:
   puzzle_type: word_search
   target_puzzles: 60
-  print_profile: null
+  print_profile: paperback-8.5x11
   solutions: end
   solutions_per_page: 2
   front_matter_pages: 3
@@ -112,8 +114,8 @@ vocabulary:
       - word: IGNITION COIL
       - word: FUEL INJECTOR
       - word: THROTTLE BODY
-      - word: INTAKE MANIFOLD
-      - word: EXHAUST MANIFOLD
+      - {word: INTAKE MANIFOLD, note: "Not used: 14 letters do not fit the 13 x 13 warm-up fuel-and-air puzzle; PLENUM is used there."}
+      - {word: EXHAUST MANIFOLD, note: "Used in the Vehicle Systems theme."}
       - word: TURBOCHARGER
       - word: SUPERCHARGER
       - word: INTERCOOLER
@@ -133,6 +135,108 @@ vocabulary:
       - word: DIESEL
       - word: HYBRID
       - word: ELECTRIC MOTOR
+      - {word: AIR INTAKE, note: "Added in Interval 12."}
+      - {word: DISTRIBUTOR, note: "Added in Interval 12."}
+      - {word: FUEL RAIL, note: "Added in Interval 12."}
+      - {word: MIXTURE, note: "Added in Interval 12."}
+      - {word: OCTANE, note: "Added in Interval 12."}
+      - {word: PLENUM, note: "Added in Interval 12."}
+      - {word: GEAR RATIO, note: "Added in Interval 12."}
+      - {word: HALF SHAFT, note: "Added in Interval 12."}
+      - {word: NEUTRAL, note: "Added in Interval 12."}
+      - {word: OVERDRIVE, note: "Added in Interval 12."}
+      - {word: RING GEAR, note: "Added in Interval 12."}
+      - {word: TRANSFER CASE, note: "Added in Interval 12."}
+      - {word: CAM LOBE, note: "Added in Interval 12."}
+      - {word: CYLINDER HEAD, note: "Added in Interval 12."}
+      - {word: HEAD GASKET, note: "Added in Interval 12."}
+      - {word: INTAKE VALVE, note: "Added in Interval 12."}
+      - {word: LIFTER, note: "Added in Interval 12."}
+      - {word: OVERHEAD CAM, note: "Added in Interval 12."}
+      - {word: PUSHROD, note: "Added in Interval 12."}
+      - {word: ROCKER ARM, note: "Added in Interval 12."}
+      - {word: TAPPET, note: "Added in Interval 12."}
+      - {word: VALVE SEAT, note: "Added in Interval 12."}
+      - {word: VALVE SPRING, note: "Added in Interval 12."}
+      - {word: BLOW OFF VALVE, note: "Added in Interval 12."}
+      - {word: BOOST PRESSURE, note: "Added in Interval 12."}
+      - {word: BYPASS VALVE, note: "Added in Interval 12."}
+      - {word: CHARGE PIPE, note: "Added in Interval 12."}
+      - {word: IMPELLER, note: "Added in Interval 12."}
+      - {word: SPOOL, note: "Added in Interval 12."}
+      - {word: TURBINE, note: "Added in Interval 12."}
+      - {word: TURBO LAG, note: "Added in Interval 12."}
+      - {word: TWIN SCROLL, note: "Added in Interval 12."}
+      - {word: WASTEGATE, note: "Added in Interval 12."}
+      - {word: BATTERY PACK, note: "Added in Interval 12."}
+      - {word: CHARGING PORT, note: "Added in Interval 12."}
+      - {word: COMMON RAIL, note: "Added in Interval 12."}
+      - {word: GENERATOR, note: "Added in Interval 12."}
+      - {word: GLOW PLUG, note: "Added in Interval 12."}
+      - {word: INJECTION PUMP, note: "Added in Interval 12."}
+      - {word: INVERTER, note: "Added in Interval 12."}
+      - {word: KILOWATT, note: "Added in Interval 12."}
+      - {word: PLUG IN, note: "Added in Interval 12."}
+      - {word: RANGE EXTENDER, note: "Added in Interval 12."}
+      - {word: BEARING CAP, note: "Added in Interval 12."}
+      - {word: BORE, note: "Added in Interval 12."}
+      - {word: COUNTERWEIGHT, note: "Added in Interval 12."}
+      - {word: CRANKCASE, note: "Added in Interval 12."}
+      - {word: CRANK PULLEY, note: "Added in Interval 12."}
+      - {word: CYLINDER LINER, note: "Added in Interval 12."}
+      - {word: DIPSTICK, note: "Added in Interval 12."}
+      - {word: ENGINE BLOCK, note: "Added in Interval 12."}
+      - {word: FREEZE PLUG, note: "Added in Interval 12."}
+      - {word: MAIN BEARING, note: "Added in Interval 12."}
+      - {word: OIL PAN, note: "Added in Interval 12."}
+      - {word: OIL PUMP, note: "Added in Interval 12."}
+      - {word: PISTON RING, note: "Added in Interval 12."}
+      - {word: STROKE, note: "Added in Interval 12."}
+      - {word: WRIST PIN, note: "Added in Interval 12."}
+      - {word: BOXER, note: "Added in Interval 12."}
+      - {word: CUBIC INCHES, note: "Added in Interval 12."}
+      - {word: DISPLACEMENT, note: "Added in Interval 12."}
+      - {word: FLAT FOUR, note: "Added in Interval 12."}
+      - {word: INLINE, note: "Added in Interval 12."}
+      - {word: LITERS, note: "Added in Interval 12."}
+      - {word: LONGITUDINAL, note: "Added in Interval 12."}
+      - {word: MID ENGINE, note: "Added in Interval 12."}
+      - {word: POWER BAND, note: "Added in Interval 12."}
+      - {word: REDLINE, note: "Added in Interval 12."}
+      - {word: ROTARY ENGINE, note: "Added in Interval 12."}
+      - {word: STRAIGHT SIX, note: "Added in Interval 12."}
+      - {word: TRANSVERSE, note: "Added in Interval 12."}
+      - {word: TWIN CAM, note: "Added in Interval 12."}
+      - {word: CONTACTOR, note: "Added in Interval 12."}
+      - {word: FAST CHARGING, note: "Added in Interval 12."}
+      - {word: HIGH VOLTAGE, note: "Added in Interval 12."}
+      - {word: KILOWATT HOUR, note: "Added in Interval 12."}
+      - {word: LITHIUM ION, note: "Added in Interval 12."}
+      - {word: ONBOARD CHARGER, note: "Added in Interval 12."}
+      - {word: ONE PEDAL, note: "Added in Interval 12."}
+      - {word: RANGE, note: "Added in Interval 12."}
+      - {word: REGENERATION, note: "Added in Interval 12."}
+      - {word: ROTOR, note: "Added in Interval 12."}
+      - {word: SINGLE SPEED, note: "Added in Interval 12."}
+      - {word: STATOR, note: "Added in Interval 12."}
+      - {word: THERMAL, note: "Added in Interval 12."}
+      - {word: TRACTION MOTOR, note: "Added in Interval 12."}
+      - {word: COIL PACK, note: "Added in Interval 12."}
+      - {word: CRANK SENSOR, note: "Added in Interval 12."}
+      - {word: DETONATION, note: "Added in Interval 12."}
+      - {word: DWELL, note: "Added in Interval 12."}
+      - {word: FIRING ORDER, note: "Added in Interval 12."}
+      - {word: FOUR STROKE, note: "Added in Interval 12."}
+      - {word: IGNITION TIMING, note: "Added in Interval 12."}
+      - {word: INTAKE STROKE, note: "Added in Interval 12."}
+      - {word: KNOCK SENSOR, note: "Added in Interval 12."}
+      - {word: PLUG WIRES, note: "Added in Interval 12."}
+      - {word: POWER STROKE, note: "Added in Interval 12."}
+      - {word: PREIGNITION, note: "Added in Interval 12."}
+      - {word: SPARK ADVANCE, note: "Added in Interval 12."}
+      - {word: TIMING LIGHT, note: "Added in Interval 12."}
+      - {word: TIMING MARK, note: "Added in Interval 12."}
+      - {word: TOP DEAD CENTER, note: "Added in Interval 12."}
   - theme: maintenance
     source: ai_generated
     entries:
@@ -151,7 +255,7 @@ vocabulary:
       - word: TIRE PRESSURE
       - word: WIPER BLADES
       - word: BATTERY
-      - word: SPARK PLUG
+      - {word: SPARK PLUG, note: "Used in the Engines & Powertrains theme."}
       - word: SERPENTINE BELT
       - word: INSPECTION
       - word: TUNE UP
@@ -161,6 +265,112 @@ vocabulary:
       - word: GASKET
       - word: RADIATOR
       - word: THERMOSTAT
+      - {word: BALANCING, note: "Added in Interval 12."}
+      - {word: LUG NUTS, note: "Added in Interval 12."}
+      - {word: PATCH KIT, note: "Added in Interval 12."}
+      - {word: PUNCTURE, note: "Added in Interval 12."}
+      - {word: SIDEWALL, note: "Added in Interval 12."}
+      - {word: SPARE TIRE, note: "Added in Interval 12."}
+      - {word: VALVE STEM, note: "Added in Interval 12."}
+      - {word: DRAIN PLUG, note: "Added in Interval 12."}
+      - {word: FLUID LEVEL, note: "Added in Interval 12."}
+      - {word: FUEL FILTER, note: "Added in Interval 12."}
+      - {word: GEAR OIL, note: "Added in Interval 12."}
+      - {word: GREASE, note: "Added in Interval 12."}
+      - {word: LUBRICANT, note: "Added in Interval 12."}
+      - {word: MOTOR OIL, note: "Added in Interval 12."}
+      - {word: VISCOSITY, note: "Added in Interval 12."}
+      - {word: WASHER FLUID, note: "Added in Interval 12."}
+      - {word: BLEEDING, note: "Added in Interval 12."}
+      - {word: BRAKE CLEANER, note: "Added in Interval 12."}
+      - {word: BRAKE DRUM, note: "Added in Interval 12."}
+      - {word: BRAKE LINES, note: "Added in Interval 12."}
+      - {word: BRAKE SHOES, note: "Added in Interval 12."}
+      - {word: CALIPER PINS, note: "Added in Interval 12."}
+      - {word: RESURFACING, note: "Added in Interval 12."}
+      - {word: SQUEAL, note: "Added in Interval 12."}
+      - {word: WEAR SENSOR, note: "Added in Interval 12."}
+      - {word: BELT TENSIONER, note: "Added in Interval 12."}
+      - {word: CHECKLIST, note: "Added in Interval 12."}
+      - {word: FLUID CHECK, note: "Added in Interval 12."}
+      - {word: HOSE CLAMPS, note: "Added in Interval 12."}
+      - {word: MAINTENANCE LOG, note: "Added in Interval 12."}
+      - {word: RECALL, note: "Added in Interval 12."}
+      - {word: SEASONAL, note: "Added in Interval 12."}
+      - {word: SERVICE MANUAL, note: "Added in Interval 12."}
+      - {word: WARRANTY, note: "Added in Interval 12."}
+      - {word: CHECK ENGINE, note: "Added in Interval 12."}
+      - {word: CODE READER, note: "Added in Interval 12."}
+      - {word: FAULT CODE, note: "Added in Interval 12."}
+      - {word: HESITATION, note: "Added in Interval 12."}
+      - {word: MISFIRE, note: "Added in Interval 12."}
+      - {word: OVERHEATING, note: "Added in Interval 12."}
+      - {word: ROUGH IDLE, note: "Added in Interval 12."}
+      - {word: SCAN TOOL, note: "Added in Interval 12."}
+      - {word: STALLING, note: "Added in Interval 12."}
+      - {word: TEST DRIVE, note: "Added in Interval 12."}
+      - {word: VACUUM LEAK, note: "Added in Interval 12."}
+      - {word: VIBRATION, note: "Added in Interval 12."}
+      - {word: BLEED SCREW, note: "Added in Interval 12."}
+      - {word: COOLANT FLUSH, note: "Added in Interval 12."}
+      - {word: COOLING FAN, note: "Added in Interval 12."}
+      - {word: CORROSION, note: "Added in Interval 12."}
+      - {word: EXPANSION TANK, note: "Added in Interval 12."}
+      - {word: FAN CLUTCH, note: "Added in Interval 12."}
+      - {word: HEATER CORE, note: "Added in Interval 12."}
+      - {word: OVERFLOW, note: "Added in Interval 12."}
+      - {word: PRESSURE TEST, note: "Added in Interval 12."}
+      - {word: RADIATOR CAP, note: "Added in Interval 12."}
+      - {word: RESERVOIR, note: "Added in Interval 12."}
+      - {word: UPPER HOSE, note: "Added in Interval 12."}
+      - {word: WATER PUMP, note: "Added in Interval 12."}
+      - {word: BUFFER, note: "Added in Interval 12."}
+      - {word: CERAMIC COATING, note: "Added in Interval 12."}
+      - {word: CHAMOIS, note: "Added in Interval 12."}
+      - {word: CLAY BAR, note: "Added in Interval 12."}
+      - {word: CLEAR COAT, note: "Added in Interval 12."}
+      - {word: COMPOUND, note: "Added in Interval 12."}
+      - {word: DENT REPAIR, note: "Added in Interval 12."}
+      - {word: DETAILING, note: "Added in Interval 12."}
+      - {word: HAND WASH, note: "Added in Interval 12."}
+      - {word: MICROFIBER, note: "Added in Interval 12."}
+      - {word: PAINT CHIP, note: "Added in Interval 12."}
+      - {word: POLISH, note: "Added in Interval 12."}
+      - {word: RUST PROOFING, note: "Added in Interval 12."}
+      - {word: SEALANT, note: "Added in Interval 12."}
+      - {word: TOUCH UP PAINT, note: "Added in Interval 12."}
+      - {word: UNDERCOATING, note: "Added in Interval 12."}
+      - {word: BATTERY CHARGER, note: "Added in Interval 12."}
+      - {word: BATTERY TERMINAL, note: "Added in Interval 12."}
+      - {word: BLOWN FUSE, note: "Added in Interval 12."}
+      - {word: CONTINUITY, note: "Added in Interval 12."}
+      - {word: CRIMP, note: "Added in Interval 12."}
+      - {word: FUSE BOX, note: "Added in Interval 12."}
+      - {word: GROUND STRAP, note: "Added in Interval 12."}
+      - {word: HEAT SHRINK, note: "Added in Interval 12."}
+      - {word: JUMPER CABLES, note: "Added in Interval 12."}
+      - {word: JUMP START, note: "Added in Interval 12."}
+      - {word: PARASITIC DRAW, note: "Added in Interval 12."}
+      - {word: SHORT CIRCUIT, note: "Added in Interval 12."}
+      - {word: SOLDER, note: "Added in Interval 12."}
+      - {word: TEST LIGHT, note: "Added in Interval 12."}
+      - {word: VOLTAGE, note: "Added in Interval 12."}
+      - {word: WIRING, note: "Added in Interval 12."}
+      - {word: BALL JOINT, note: "Added in Interval 12."}
+      - {word: BUSHING, note: "Added in Interval 12."}
+      - {word: CAMBER, note: "Added in Interval 12."}
+      - {word: CASTER, note: "Added in Interval 12."}
+      - {word: CONTROL ARM, note: "Added in Interval 12."}
+      - {word: GREASE FITTING, note: "Added in Interval 12."}
+      - {word: IDLER ARM, note: "Added in Interval 12."}
+      - {word: PITMAN ARM, note: "Added in Interval 12."}
+      - {word: STEERING RACK, note: "Added in Interval 12."}
+      - {word: STRUT MOUNT, note: "Added in Interval 12."}
+      - {word: SWAY BAR LINK, note: "Added in Interval 12."}
+      - {word: THRUST ANGLE, note: "Added in Interval 12."}
+      - {word: TIE ROD END, note: "Added in Interval 12."}
+      - {word: TOE IN, note: "Added in Interval 12."}
+      - {word: WHEEL BEARING, note: "Added in Interval 12."}
   - theme: tools
     source: ai_generated
     entries:
@@ -184,20 +394,98 @@ vocabulary:
       - word: BREAKER BAR
       - word: VISE
       - word: WORKBENCH
-      - word: TOOLBOX
+      - {word: TOOLBOX, note: "Not used: the first tools puzzle is titled In the Toolbox; TOOL CHEST is used."}
       - word: FLASHLIGHT
       - word: GLOVES
       - word: SAFETY GLASSES
-      - word: COMPRESSOR
+      - {word: COMPRESSOR, note: "Used in the Vehicle Systems theme."}
       - word: TIRE GAUGE
+      - {word: DEPTH GAUGE, note: "Added in Interval 12."}
+      - {word: DIAL INDICATOR, note: "Added in Interval 12."}
+      - {word: MICROMETER, note: "Added in Interval 12."}
+      - {word: SPIRIT LEVEL, note: "Added in Interval 12."}
+      - {word: STRAIGHTEDGE, note: "Added in Interval 12."}
+      - {word: TAPE MEASURE, note: "Added in Interval 12."}
+      - {word: BOTTLE JACK, note: "Added in Interval 12."}
+      - {word: CAR RAMPS, note: "Added in Interval 12."}
+      - {word: EAR PROTECTION, note: "Added in Interval 12."}
+      - {word: ENGINE HOIST, note: "Added in Interval 12."}
+      - {word: FIRST AID KIT, note: "Added in Interval 12."}
+      - {word: KNEE PADS, note: "Added in Interval 12."}
+      - {word: RESPIRATOR, note: "Added in Interval 12."}
+      - {word: WHEEL CHOCKS, note: "Added in Interval 12."}
+      - {word: AIR COMPRESSOR, note: "Added in Interval 12."}
+      - {word: AIR HOSE, note: "Added in Interval 12."}
+      - {word: AIR RATCHET, note: "Added in Interval 12."}
+      - {word: ANGLE GRINDER, note: "Added in Interval 12."}
+      - {word: BENCH GRINDER, note: "Added in Interval 12."}
+      - {word: CORDLESS DRILL, note: "Added in Interval 12."}
+      - {word: DIE GRINDER, note: "Added in Interval 12."}
+      - {word: DRILL PRESS, note: "Added in Interval 12."}
+      - {word: HEAT GUN, note: "Added in Interval 12."}
+      - {word: IMPACT WRENCH, note: "Added in Interval 12."}
+      - {word: ORBITAL SANDER, note: "Added in Interval 12."}
+      - {word: POLISHER, note: "Added in Interval 12."}
+      - {word: BALL PEEN, note: "Added in Interval 12."}
+      - {word: CHISEL, note: "Added in Interval 12."}
+      - {word: EXTENSION BAR, note: "Added in Interval 12."}
+      - {word: HACKSAW, note: "Added in Interval 12."}
+      - {word: HEX KEY, note: "Added in Interval 12."}
+      - {word: LOCKING PLIERS, note: "Added in Interval 12."}
+      - {word: MAGNETIC PICKUP, note: "Added in Interval 12."}
+      - {word: NUT DRIVER, note: "Added in Interval 12."}
+      - {word: PICK SET, note: "Added in Interval 12."}
+      - {word: WIRE STRIPPER, note: "Added in Interval 12."}
+      - {word: EXTENSION CORD, note: "Added in Interval 12."}
+      - {word: GARAGE DOOR, note: "Added in Interval 12."}
+      - {word: PARTS TRAY, note: "Added in Interval 12."}
+      - {word: PEGBOARD, note: "Added in Interval 12."}
+      - {word: SHELVING, note: "Added in Interval 12."}
+      - {word: SHOP LIGHT, note: "Added in Interval 12."}
+      - {word: SHOP TOWELS, note: "Added in Interval 12."}
+      - {word: SPILL KIT, note: "Added in Interval 12."}
+      - {word: TOOL CHEST, note: "Added in Interval 12."}
+      - {word: TOOL ROLL, note: "Added in Interval 12."}
+      - {word: BEARING PULLER, note: "Added in Interval 12."}
+      - {word: BORESCOPE, note: "Added in Interval 12."}
+      - {word: BRAKE BLEEDER, note: "Added in Interval 12."}
+      - {word: FLARING TOOL, note: "Added in Interval 12."}
+      - {word: OIL FILTER WRENCH, note: "Added in Interval 12."}
+      - {word: PICKLE FORK, note: "Added in Interval 12."}
+      - {word: RIVET GUN, note: "Added in Interval 12."}
+      - {word: SMOKE MACHINE, note: "Added in Interval 12."}
+      - {word: SOLDERING IRON, note: "Added in Interval 12."}
+      - {word: STETHOSCOPE, note: "Added in Interval 12."}
+      - {word: STUD EXTRACTOR, note: "Added in Interval 12."}
+      - {word: TAP AND DIE, note: "Added in Interval 12."}
+      - {word: THREAD CHASER, note: "Added in Interval 12."}
+      - {word: TUBE BENDER, note: "Added in Interval 12."}
+      - {word: TUBE CUTTER, note: "Added in Interval 12."}
+      - {word: VACUUM GAUGE, note: "Added in Interval 12."}
+      - {word: ANTI SEIZE, note: "Added in Interval 12."}
+      - {word: CAP SCREW, note: "Added in Interval 12."}
+      - {word: CASTLE NUT, note: "Added in Interval 12."}
+      - {word: CIRCLIP, note: "Added in Interval 12."}
+      - {word: COTTER PIN, note: "Added in Interval 12."}
+      - {word: DOWEL PIN, note: "Added in Interval 12."}
+      - {word: FINE THREAD, note: "Added in Interval 12."}
+      - {word: FLANGE BOLT, note: "Added in Interval 12."}
+      - {word: FLAT WASHER, note: "Added in Interval 12."}
+      - {word: LOCK WASHER, note: "Added in Interval 12."}
+      - {word: ROLL PIN, note: "Added in Interval 12."}
+      - {word: SNAP RING, note: "Added in Interval 12."}
+      - {word: THREAD LOCKER, note: "Added in Interval 12."}
+      - {word: THREAD PITCH, note: "Added in Interval 12."}
+      - {word: TORQUE SPEC, note: "Added in Interval 12."}
+      - {word: WING NUT, note: "Added in Interval 12."}
   - theme: systems
     source: ai_generated
     entries:
       - word: BRAKES
-      - word: BRAKE PADS
+      - {word: BRAKE PADS, note: "Used in the Maintenance & Repair theme."}
       - word: CALIPER
       - word: MASTER CYLINDER
-      - word: ABS
+      - {word: ABS, note: "Not used: an acronym of 3 letters, below the plan's 4-letter minimum."}
       - word: STEERING
       - word: RACK AND PINION
       - word: POWER STEERING
@@ -214,21 +502,131 @@ vocabulary:
       - word: WIRING HARNESS
       - word: HEADLIGHT
       - word: RADIATOR
-      - word: WATER PUMP
-      - word: THERMOSTAT
+      - {word: WATER PUMP, note: "Used in the Maintenance & Repair theme."}
+      - {word: THERMOSTAT, note: "Used in the Maintenance & Repair theme."}
       - word: FUEL PUMP
       - word: FUEL TANK
-      - word: EXHAUST
+      - {word: EXHAUST, note: "Not used: EXHAUST MANIFOLD is in the exhaust puzzle and contains it."}
       - word: MUFFLER
-      - word: CATALYTIC CONVERTER
-      - word: SENSOR
+      - {word: CATALYTIC CONVERTER, note: "Not used: 18 letters fit no level's grid; CATALYST is used."}
+      - {word: SENSOR, note: "Not used: it is contained in OXYGEN SENSOR, SPEED SENSOR and similar targets."}
+      - {word: CIRCUIT, note: "Added in Interval 12."}
+      - {word: DOME LIGHT, note: "Added in Interval 12."}
+      - {word: GROUND WIRE, note: "Added in Interval 12."}
+      - {word: POWER WINDOW, note: "Added in Interval 12."}
+      - {word: SOLENOID, note: "Added in Interval 12."}
+      - {word: STARTER MOTOR, note: "Added in Interval 12."}
+      - {word: TAILLIGHT, note: "Added in Interval 12."}
+      - {word: FILLER NECK, note: "Added in Interval 12."}
+      - {word: FUEL GAUGE, note: "Added in Interval 12."}
+      - {word: FUEL LINE, note: "Added in Interval 12."}
+      - {word: FUEL PRESSURE, note: "Added in Interval 12."}
+      - {word: GAS CAP, note: "Added in Interval 12."}
+      - {word: RETURN LINE, note: "Added in Interval 12."}
+      - {word: SENDING UNIT, note: "Added in Interval 12."}
+      - {word: TANK STRAP, note: "Added in Interval 12."}
+      - {word: VAPOR CANISTER, note: "Added in Interval 12."}
+      - {word: ANTILOCK BRAKES, note: "Added in Interval 12."}
+      - {word: BLEEDER VALVE, note: "Added in Interval 12."}
+      - {word: BRAKE BOOSTER, note: "Added in Interval 12."}
+      - {word: BRAKE LIGHT, note: "Added in Interval 12."}
+      - {word: BRAKE PEDAL, note: "Added in Interval 12."}
+      - {word: CALIPER PISTON, note: "Added in Interval 12."}
+      - {word: DISC BRAKE, note: "Added in Interval 12."}
+      - {word: DRUM BRAKE, note: "Added in Interval 12."}
+      - {word: HYDRAULIC, note: "Added in Interval 12."}
+      - {word: PARKING BRAKE, note: "Added in Interval 12."}
+      - {word: STOPPING POWER, note: "Added in Interval 12."}
+      - {word: WHEEL CYLINDER, note: "Added in Interval 12."}
+      - {word: AIR SUSPENSION, note: "Added in Interval 12."}
+      - {word: DAMPER, note: "Added in Interval 12."}
+      - {word: KNUCKLE, note: "Added in Interval 12."}
+      - {word: LEAF SPRING, note: "Added in Interval 12."}
+      - {word: RIDE HEIGHT, note: "Added in Interval 12."}
+      - {word: STABILIZER, note: "Added in Interval 12."}
+      - {word: STEERING COLUMN, note: "Added in Interval 12."}
+      - {word: TIE ROD, note: "Added in Interval 12."}
+      - {word: TORSION BAR, note: "Added in Interval 12."}
+      - {word: TRAILING ARM, note: "Added in Interval 12."}
+      - {word: AIR CONDITIONING, note: "Added in Interval 12."}
+      - {word: BLOWER MOTOR, note: "Added in Interval 12."}
+      - {word: CLIMATE CONTROL, note: "Added in Interval 12."}
+      - {word: COMPRESSOR, note: "Added in Interval 12."}
+      - {word: CONDENSER, note: "Added in Interval 12."}
+      - {word: DEFROSTER, note: "Added in Interval 12."}
+      - {word: EVAPORATOR, note: "Added in Interval 12."}
+      - {word: EXPANSION VALVE, note: "Added in Interval 12."}
+      - {word: RECEIVER DRIER, note: "Added in Interval 12."}
+      - {word: RECIRCULATION, note: "Added in Interval 12."}
+      - {word: REFRIGERANT, note: "Added in Interval 12."}
+      - {word: VENTILATION, note: "Added in Interval 12."}
+      - {word: BACKPRESSURE, note: "Added in Interval 12."}
+      - {word: CATALYST, note: "Added in Interval 12."}
+      - {word: DOWNPIPE, note: "Added in Interval 12."}
+      - {word: EMISSIONS, note: "Added in Interval 12."}
+      - {word: EXHAUST MANIFOLD, note: "Added in Interval 12."}
+      - {word: FLEX PIPE, note: "Added in Interval 12."}
+      - {word: HEADERS, note: "Added in Interval 12."}
+      - {word: HEAT SHIELD, note: "Added in Interval 12."}
+      - {word: OXYGEN SENSOR, note: "Added in Interval 12."}
+      - {word: RESONATOR, note: "Added in Interval 12."}
+      - {word: RUBBER HANGER, note: "Added in Interval 12."}
+      - {word: TAILPIPE, note: "Added in Interval 12."}
+      - {word: ADAPTIVE CRUISE, note: "Added in Interval 12."}
+      - {word: AIRBAG, note: "Added in Interval 12."}
+      - {word: AUTO HIGH BEAM, note: "Added in Interval 12."}
+      - {word: BACKUP CAMERA, note: "Added in Interval 12."}
+      - {word: BLIND SPOT, note: "Added in Interval 12."}
+      - {word: COLLISION ALERT, note: "Added in Interval 12."}
+      - {word: CRUMPLE ZONE, note: "Added in Interval 12."}
+      - {word: DRIVER MONITOR, note: "Added in Interval 12."}
+      - {word: HEAD UP DISPLAY, note: "Added in Interval 12."}
+      - {word: HILL START ASSIST, note: "Added in Interval 12."}
+      - {word: LANE KEEPING, note: "Added in Interval 12."}
+      - {word: NIGHT VISION, note: "Added in Interval 12."}
+      - {word: PARKING SENSOR, note: "Added in Interval 12."}
+      - {word: RAIN SENSOR, note: "Added in Interval 12."}
+      - {word: SURROUND VIEW, note: "Added in Interval 12."}
+      - {word: TRACTION CONTROL, note: "Added in Interval 12."}
+      - {word: ANTENNA, note: "Added in Interval 12."}
+      - {word: CENTRAL LOCKING, note: "Added in Interval 12."}
+      - {word: CONTROL MODULE, note: "Added in Interval 12."}
+      - {word: DATA BUS, note: "Added in Interval 12."}
+      - {word: DIAGNOSTIC PORT, note: "Added in Interval 12."}
+      - {word: FIRMWARE, note: "Added in Interval 12."}
+      - {word: GAUGE CLUSTER, note: "Added in Interval 12."}
+      - {word: IMMOBILIZER, note: "Added in Interval 12."}
+      - {word: INFOTAINMENT, note: "Added in Interval 12."}
+      - {word: KEY FOB, note: "Added in Interval 12."}
+      - {word: POWER LOCKS, note: "Added in Interval 12."}
+      - {word: REMOTE START, note: "Added in Interval 12."}
+      - {word: SOFTWARE UPDATE, note: "Added in Interval 12."}
+      - {word: SPEED SENSOR, note: "Added in Interval 12."}
+      - {word: TOUCHSCREEN, note: "Added in Interval 12."}
+      - {word: WIRING DIAGRAM, note: "Added in Interval 12."}
+      - {word: ALLOY WHEEL, note: "Added in Interval 12."}
+      - {word: CHASSIS, note: "Added in Interval 12."}
+      - {word: CROSSMEMBER, note: "Added in Interval 12."}
+      - {word: FRAME RAIL, note: "Added in Interval 12."}
+      - {word: GROUND CLEARANCE, note: "Added in Interval 12."}
+      - {word: HUBCAP, note: "Added in Interval 12."}
+      - {word: LOAD RATING, note: "Added in Interval 12."}
+      - {word: RADIAL TIRE, note: "Added in Interval 12."}
+      - {word: RUN FLAT, note: "Added in Interval 12."}
+      - {word: SPEED RATING, note: "Added in Interval 12."}
+      - {word: SUBFRAME, note: "Added in Interval 12."}
+      - {word: TIRE BEAD, note: "Added in Interval 12."}
+      - {word: TRACK WIDTH, note: "Added in Interval 12."}
+      - {word: UNIBODY, note: "Added in Interval 12."}
+      - {word: WHEELBASE, note: "Added in Interval 12."}
+      - {word: WHEEL HUB, note: "Added in Interval 12."}
   - theme: motorsport
     source: ai_generated
     entries:
       - word: RACETRACK
       - word: PIT STOP
       - word: PIT LANE
-      - word: GRID
+      - {word: GRID, note: "Not used: replaced by ROLL CAGE in Race Day after grid screening; STARTING GRID contains it."}
       - word: POLE POSITION
       - word: CHICANE
       - word: HAIRPIN
@@ -248,12 +646,96 @@ vocabulary:
       - word: STEWARD
       - word: HELMET
       - word: ROLL CAGE
-      - word: KART
+      - {word: KART, note: "Not used: GO KART and KARTING contain it."}
       - word: SPRINT
+      - {word: BRAKING ZONE, note: "Added in Interval 12."}
+      - {word: CORNER, note: "Added in Interval 12."}
+      - {word: FASTEST LAP, note: "Added in Interval 12."}
+      - {word: FORMATION LAP, note: "Added in Interval 12."}
+      - {word: RACING LINE, note: "Added in Interval 12."}
+      - {word: STARTING GRID, note: "Added in Interval 12."}
+      - {word: STRAIGHTAWAY, note: "Added in Interval 12."}
+      - {word: DRAGSTER, note: "Added in Interval 12."}
+      - {word: DUNE BUGGY, note: "Added in Interval 12."}
+      - {word: FUNNY CAR, note: "Added in Interval 12."}
+      - {word: GO KART, note: "Added in Interval 12."}
+      - {word: MONSTER TRUCK, note: "Added in Interval 12."}
+      - {word: OPEN WHEEL, note: "Added in Interval 12."}
+      - {word: RALLY CAR, note: "Added in Interval 12."}
+      - {word: SPORTS CAR, note: "Added in Interval 12."}
+      - {word: SPRINT CAR, note: "Added in Interval 12."}
+      - {word: STOCK CAR, note: "Added in Interval 12."}
+      - {word: TOURING CAR, note: "Added in Interval 12."}
+      - {word: AIR JACK, note: "Added in Interval 12."}
+      - {word: CREW CHIEF, note: "Added in Interval 12."}
+      - {word: PIT BOARD, note: "Added in Interval 12."}
+      - {word: PIT CREW, note: "Added in Interval 12."}
+      - {word: PIT WALL, note: "Added in Interval 12."}
+      - {word: RADIO, note: "Added in Interval 12."}
+      - {word: REFUEL, note: "Added in Interval 12."}
+      - {word: STINT, note: "Added in Interval 12."}
+      - {word: STRATEGY, note: "Added in Interval 12."}
+      - {word: TIRE CHANGE, note: "Added in Interval 12."}
+      - {word: UNDERCUT, note: "Added in Interval 12."}
+      - {word: WHEEL GUN, note: "Added in Interval 12."}
+      - {word: BLACK FLAG, note: "Added in Interval 12."}
+      - {word: BLUE FLAG, note: "Added in Interval 12."}
+      - {word: DISQUALIFIED, note: "Added in Interval 12."}
+      - {word: DRIVE THROUGH, note: "Added in Interval 12."}
+      - {word: MARSHAL, note: "Added in Interval 12."}
+      - {word: PENALTY, note: "Added in Interval 12."}
+      - {word: PROTEST, note: "Added in Interval 12."}
+      - {word: RACE CONTROL, note: "Added in Interval 12."}
+      - {word: RED FLAG, note: "Added in Interval 12."}
+      - {word: SCRUTINEERING, note: "Added in Interval 12."}
+      - {word: STOP AND GO, note: "Added in Interval 12."}
+      - {word: YELLOW FLAG, note: "Added in Interval 12."}
+      - {word: AUTOCROSS, note: "Added in Interval 12."}
+      - {word: DRIFTING, note: "Added in Interval 12."}
+      - {word: FORMULA, note: "Added in Interval 12."}
+      - {word: GYMKHANA, note: "Added in Interval 12."}
+      - {word: HILL CLIMB, note: "Added in Interval 12."}
+      - {word: ICE RACING, note: "Added in Interval 12."}
+      - {word: KARTING, note: "Added in Interval 12."}
+      - {word: OFF ROAD, note: "Added in Interval 12."}
+      - {word: OVAL RACING, note: "Added in Interval 12."}
+      - {word: RALLYCROSS, note: "Added in Interval 12."}
+      - {word: ROAD RACING, note: "Added in Interval 12."}
+      - {word: TIME ATTACK, note: "Added in Interval 12."}
+      - {word: TRACK DAY, note: "Added in Interval 12."}
+      - {word: AIRFLOW, note: "Added in Interval 12."}
+      - {word: ANTI ROLL BAR, note: "Added in Interval 12."}
+      - {word: BALLAST, note: "Added in Interval 12."}
+      - {word: CANARD, note: "Added in Interval 12."}
+      - {word: DIFFUSER, note: "Added in Interval 12."}
+      - {word: DRAG COEFFICIENT, note: "Added in Interval 12."}
+      - {word: FRONT SPLITTER, note: "Added in Interval 12."}
+      - {word: GROUND EFFECT, note: "Added in Interval 12."}
+      - {word: OVERSTEER, note: "Added in Interval 12."}
+      - {word: REAR WING, note: "Added in Interval 12."}
+      - {word: TIRE WARMERS, note: "Added in Interval 12."}
+      - {word: UNDERSTEER, note: "Added in Interval 12."}
+      - {word: VORTEX, note: "Added in Interval 12."}
+      - {word: WIND TUNNEL, note: "Added in Interval 12."}
+      - {word: CHAMPIONSHIP, note: "Added in Interval 12."}
+      - {word: CONSTRUCTOR, note: "Added in Interval 12."}
+      - {word: DATA LOGGER, note: "Added in Interval 12."}
+      - {word: DEBRIEF, note: "Added in Interval 12."}
+      - {word: LIVERY, note: "Added in Interval 12."}
+      - {word: MECHANIC, note: "Added in Interval 12."}
+      - {word: PODIUM, note: "Added in Interval 12."}
+      - {word: RACE ENGINEER, note: "Added in Interval 12."}
+      - {word: RACE SUIT, note: "Added in Interval 12."}
+      - {word: ROOKIE, note: "Added in Interval 12."}
+      - {word: SPONSOR, note: "Added in Interval 12."}
+      - {word: TEAM PRINCIPAL, note: "Added in Interval 12."}
+      - {word: TELEMETRY, note: "Added in Interval 12."}
+      - {word: TEST DRIVER, note: "Added in Interval 12."}
+      - {word: TROPHY, note: "Added in Interval 12."}
   - theme: history
     source: ai_generated
     entries:
-      - word: HORSELESS CARRIAGE
+      - {word: HORSELESS CARRIAGE, note: "Not used: 17 letters exceed the plan's 15-letter maximum."}
       - word: STEAM CAR
       - word: ASSEMBLY LINE
       - word: MODEL YEAR
@@ -263,8 +745,8 @@ vocabulary:
       - word: CARBURETOR
       - word: CHROME
       - word: TAILFINS
-      - word: GAS STATION
-      - word: ROAD TRIP
+      - {word: GAS STATION, note: "Used in the Driving & Road Culture theme."}
+      - {word: ROAD TRIP, note: "Used in the Driving & Road Culture theme."}
       - word: CLASSIC CAR
       - word: VINTAGE
       - word: RESTORATION
@@ -275,6 +757,66 @@ vocabulary:
       - word: SEDAN
       - word: CONVERTIBLE
       - word: STATION WAGON
+      - {word: CABRIOLET, note: "Added in Interval 12."}
+      - {word: FASTBACK, note: "Added in Interval 12."}
+      - {word: HARDTOP, note: "Added in Interval 12."}
+      - {word: HATCHBACK, note: "Added in Interval 12."}
+      - {word: LIMOUSINE, note: "Added in Interval 12."}
+      - {word: MINIVAN, note: "Added in Interval 12."}
+      - {word: PANEL VAN, note: "Added in Interval 12."}
+      - {word: PICKUP TRUCK, note: "Added in Interval 12."}
+      - {word: SHOOTING BRAKE, note: "Added in Interval 12."}
+      - {word: ACETYLENE LAMP, note: "Added in Interval 12."}
+      - {word: ELECTRIC STARTER, note: "Added in Interval 12."}
+      - {word: FUEL INJECTION, note: "Added in Interval 12."}
+      - {word: HEADLAMP, note: "Added in Interval 12."}
+      - {word: MASS PRODUCTION, note: "Added in Interval 12."}
+      - {word: OVERHEAD VALVE, note: "Added in Interval 12."}
+      - {word: PNEUMATIC TIRE, note: "Added in Interval 12."}
+      - {word: SYNCHROMESH, note: "Added in Interval 12."}
+      - {word: UNLEADED, note: "Added in Interval 12."}
+      - {word: VULCANIZED, note: "Added in Interval 12."}
+      - {word: WINDSHIELD WIPER, note: "Added in Interval 12."}
+      - {word: BARN FIND, note: "Added in Interval 12."}
+      - {word: BENCH SEAT, note: "Added in Interval 12."}
+      - {word: COLUMN SHIFT, note: "Added in Interval 12."}
+      - {word: CONCOURS, note: "Added in Interval 12."}
+      - {word: HOOD ORNAMENT, note: "Added in Interval 12."}
+      - {word: MATCHING NUMBERS, note: "Added in Interval 12."}
+      - {word: PATINA, note: "Added in Interval 12."}
+      - {word: WHITEWALL TIRES, note: "Added in Interval 12."}
+      - {word: BLACKSMITH, note: "Added in Interval 12."}
+      - {word: CARRIAGE, note: "Added in Interval 12."}
+      - {word: CLAY MODEL, note: "Added in Interval 12."}
+      - {word: CONVEYOR, note: "Added in Interval 12."}
+      - {word: DEALERSHIP, note: "Added in Interval 12."}
+      - {word: DESIGN STUDIO, note: "Added in Interval 12."}
+      - {word: FOUNDRY, note: "Added in Interval 12."}
+      - {word: INTERCHANGEABLE, note: "Added in Interval 12."}
+      - {word: LABOR UNION, note: "Added in Interval 12."}
+      - {word: MACHINIST, note: "Added in Interval 12."}
+      - {word: SHOWROOM, note: "Added in Interval 12."}
+      - {word: STAMPING PRESS, note: "Added in Interval 12."}
+      - {word: TEST TRACK, note: "Added in Interval 12."}
+      - {word: TOOL AND DIE, note: "Added in Interval 12."}
+      - {word: WHEELWRIGHT, note: "Added in Interval 12."}
+      - {word: WORKSHOP, note: "Added in Interval 12."}
+      - {word: AM RADIO, note: "Added in Interval 12."}
+      - {word: BIAS PLY, note: "Added in Interval 12."}
+      - {word: CHOKE, note: "Added in Interval 12."}
+      - {word: DISTRIBUTOR CAP, note: "Added in Interval 12."}
+      - {word: EIGHT TRACK, note: "Added in Interval 12."}
+      - {word: FOUR SPEED, note: "Added in Interval 12."}
+      - {word: HAND THROTTLE, note: "Added in Interval 12."}
+      - {word: INNER TUBE, note: "Added in Interval 12."}
+      - {word: MAGNETO, note: "Added in Interval 12."}
+      - {word: RUMBLE SEAT, note: "Added in Interval 12."}
+      - {word: SIX VOLT, note: "Added in Interval 12."}
+      - {word: SPARK LEVER, note: "Added in Interval 12."}
+      - {word: THREE ON THE TREE, note: "Added in Interval 12."}
+      - {word: VACUUM ADVANCE, note: "Added in Interval 12."}
+      - {word: VENT WINDOW, note: "Added in Interval 12."}
+      - {word: WOODEN SPOKES, note: "Added in Interval 12."}
   - theme: driving
     source: ai_generated
     entries:
@@ -299,48 +841,415 @@ vocabulary:
       - word: ODOMETER
       - word: SPEEDOMETER
       - word: DASHBOARD
-      - word: GLOVEBOX
+      - {word: GLOVE BOX, note: "Display edited from GLOVEBOX in Interval 12."}
       - word: TURN SIGNAL
-      - word: MIRROR
+      - {word: MIRROR, note: "Not used: SIDE MIRROR and CHECK MIRRORS contain it."}
       - word: SEAT BELT
       - word: NAVIGATION
-# The opening warm-up section only. The other 53 puzzles are not specified yet.
+      - {word: CUP HOLDER, note: "Added in Interval 12."}
+      - {word: GEAR SHIFT, note: "Added in Interval 12."}
+      - {word: HAZARD LIGHTS, note: "Added in Interval 12."}
+      - {word: HEADREST, note: "Added in Interval 12."}
+      - {word: SIDE MIRROR, note: "Added in Interval 12."}
+      - {word: SUN VISOR, note: "Added in Interval 12."}
+      - {word: TACHOMETER, note: "Added in Interval 12."}
+      - {word: CENTER LINE, note: "Added in Interval 12."}
+      - {word: CROSSWALK, note: "Added in Interval 12."}
+      - {word: INTERSECTION, note: "Added in Interval 12."}
+      - {word: NO PASSING, note: "Added in Interval 12."}
+      - {word: ONE WAY, note: "Added in Interval 12."}
+      - {word: RIGHT OF WAY, note: "Added in Interval 12."}
+      - {word: SCHOOL ZONE, note: "Added in Interval 12."}
+      - {word: SHOULDER, note: "Added in Interval 12."}
+      - {word: SPEED BUMP, note: "Added in Interval 12."}
+      - {word: STOP SIGN, note: "Added in Interval 12."}
+      - {word: TRAFFIC LIGHT, note: "Added in Interval 12."}
+      - {word: YIELD, note: "Added in Interval 12."}
+      - {word: CRUISE NIGHT, note: "Added in Interval 12."}
+      - {word: DAILY DRIVER, note: "Added in Interval 12."}
+      - {word: GARAGE QUEEN, note: "Added in Interval 12."}
+      - {word: HOT ROD, note: "Added in Interval 12."}
+      - {word: LOWRIDER, note: "Added in Interval 12."}
+      - {word: MEET UP, note: "Added in Interval 12."}
+      - {word: PROJECT CAR, note: "Added in Interval 12."}
+      - {word: SHOW AND SHINE, note: "Added in Interval 12."}
+      - {word: SLEEPER, note: "Added in Interval 12."}
+      - {word: SWAP MEET, note: "Added in Interval 12."}
+      - {word: MILE MARKER, note: "Added in Interval 12."}
+      - {word: OFF RAMP, note: "Added in Interval 12."}
+      - {word: ON RAMP, note: "Added in Interval 12."}
+      - {word: OVERPASS, note: "Added in Interval 12."}
+      - {word: PASSING LANE, note: "Added in Interval 12."}
+      - {word: REST STOP, note: "Added in Interval 12."}
+      - {word: RUSH HOUR, note: "Added in Interval 12."}
+      - {word: TOLL BOOTH, note: "Added in Interval 12."}
+      - {word: TRAFFIC JAM, note: "Added in Interval 12."}
+      - {word: BLIND CORNER, note: "Added in Interval 12."}
+      - {word: CHECK MIRRORS, note: "Added in Interval 12."}
+      - {word: DRIVING TEST, note: "Added in Interval 12."}
+      - {word: HAND SIGNALS, note: "Added in Interval 12."}
+      - {word: HILL START, note: "Added in Interval 12."}
+      - {word: INSTRUCTOR, note: "Added in Interval 12."}
+      - {word: LANE CHANGE, note: "Added in Interval 12."}
+      - {word: LEARNER PERMIT, note: "Added in Interval 12."}
+      - {word: LICENSE, note: "Added in Interval 12."}
+      - {word: MERGING, note: "Added in Interval 12."}
+      - {word: REVERSING, note: "Added in Interval 12."}
+      - {word: ROAD RULES, note: "Added in Interval 12."}
+      - {word: ROAD TEST, note: "Added in Interval 12."}
+      - {word: SPEED ZONE, note: "Added in Interval 12."}
+      - {word: THREE POINT TURN, note: "Added in Interval 12."}
+      - {word: CAMPGROUND, note: "Added in Interval 12."}
+      - {word: COOLER, note: "Added in Interval 12."}
+      - {word: EMERGENCY KIT, note: "Added in Interval 12."}
+      - {word: GAS STATION, note: "Added in Interval 12."}
+      - {word: ITINERARY, note: "Added in Interval 12."}
+      - {word: LUGGAGE, note: "Added in Interval 12."}
+      - {word: PLAYLIST, note: "Added in Interval 12."}
+      - {word: POSTCARD, note: "Added in Interval 12."}
+      - {word: ROAD MAP, note: "Added in Interval 12."}
+      - {word: ROOF RACK, note: "Added in Interval 12."}
+      - {word: SCENIC ROUTE, note: "Added in Interval 12."}
+      - {word: SNACKS, note: "Added in Interval 12."}
+      - {word: SUNGLASSES, note: "Added in Interval 12."}
+      - {word: TRUNK, note: "Added in Interval 12."}
+      - {word: BLACK ICE, note: "Added in Interval 12."}
+      - {word: COUNTERSTEER, note: "Added in Interval 12."}
+      - {word: CROSSWIND, note: "Added in Interval 12."}
+      - {word: ENGINE BRAKING, note: "Added in Interval 12."}
+      - {word: FOG LIGHTS, note: "Added in Interval 12."}
+      - {word: FOUR WHEEL DRIVE, note: "Added in Interval 12."}
+      - {word: GLARE, note: "Added in Interval 12."}
+      - {word: GRAVEL, note: "Added in Interval 12."}
+      - {word: HYDROPLANING, note: "Added in Interval 12."}
+      - {word: NIGHT DRIVING, note: "Added in Interval 12."}
+      - {word: SNOW TIRES, note: "Added in Interval 12."}
+      - {word: TIRE CHAINS, note: "Added in Interval 12."}
+      - {word: TOWING, note: "Added in Interval 12."}
+      - {word: TRAILER, note: "Added in Interval 12."}
+      - {word: VISIBILITY, note: "Added in Interval 12."}
+      - {word: WINDING ROAD, note: "Added in Interval 12."}
+# Book order: warm-up (1-20), standard (21-40), challenge (41-60).
 puzzles:
+  # warm-up
   - id: engines-01
     theme: engines
     level: warm-up
     title: Under the Hood
-    words: [PISTON, CYLINDER, CRANKSHAFT, CAMSHAFT, VALVE, SPARK PLUG, FLYWHEEL, TIMING BELT, TORQUE, AXLE]
+    words: [AXLE, CAMSHAFT, CRANKSHAFT, CYLINDER, FLYWHEEL, PISTON, SPARK PLUG, TIMING BELT, TORQUE, VALVE]
+    notes: "Words listed alphabetically in Interval 12."
   - id: maintenance-01
     theme: maintenance
     level: warm-up
     title: Service Day
-    words: [OIL CHANGE, OIL FILTER, AIR FILTER, COOLANT, BRAKE FLUID, WIPER BLADES, BATTERY, RADIATOR, GASKET, INSPECTION]
+    words: [AIR FILTER, BATTERY, BRAKE FLUID, COOLANT, GASKET, INSPECTION, OIL CHANGE, OIL FILTER, RADIATOR, WIPER BLADES]
+    notes: "Words listed alphabetically in Interval 12."
   - id: tools-01
     theme: tools
     level: warm-up
     title: In the Toolbox
-    words: [WRENCH, SOCKET, RATCHET, PLIERS, HAMMER, SCREWDRIVER, FLOOR JACK, CREEPER, FUNNEL, VISE]
+    words: [CREEPER, FLOOR JACK, FUNNEL, HAMMER, PLIERS, RATCHET, SCREWDRIVER, SOCKET, VISE, WRENCH]
+    notes: "Words listed alphabetically in Interval 12."
   - id: systems-01
     theme: systems
     level: warm-up
     title: Stop and Steer
-    words: [BRAKES, CALIPER, STEERING, SUSPENSION, STRUT, COIL SPRING, SWAY BAR, ALTERNATOR, STARTER, FUSE]
+    words: [ALTERNATOR, BRAKES, CALIPER, COIL SPRING, FUSE, STARTER, STEERING, STRUT, SUSPENSION, SWAY BAR]
+    notes: "Words listed alphabetically in Interval 12."
   - id: motorsport-01
     theme: motorsport
     level: warm-up
     title: Race Day
-    words: [RACETRACK, PIT STOP, GRID, CHICANE, HAIRPIN, APEX, SPOILER, RALLY, PADDOCK, HELMET]
+    words: [APEX, CHICANE, HAIRPIN, HELMET, PADDOCK, PIT STOP, RACETRACK, RALLY, ROLL CAGE, SPOILER]
+    notes: "Words listed alphabetically in Interval 12. Revised in Interval 12: ROLL CAGE replaced GRID after the generated grid contained a screened word (PISS)."
   - id: history-01
     theme: history
     level: warm-up
     title: Early Motoring
-    words: [STEAM CAR, ASSEMBLY LINE, HAND CRANK, RUNNING BOARD, CARBURETOR, ROADSTER, COUPE, SEDAN, PATENT, PROTOTYPE]
+    words: [ASSEMBLY LINE, CARBURETOR, COUPE, HAND CRANK, PATENT, PROTOTYPE, ROADSTER, RUNNING BOARD, SEDAN, STEAM CAR]
+    notes: "Words listed alphabetically in Interval 12."
   - id: driving-01
     theme: driving
     level: warm-up
     title: Open Road
-    words: [ROAD TRIP, HIGHWAY, ROUNDABOUT, MERGE, SPEED LIMIT, CAR WASH, MOTEL, DETOUR, ODOMETER, SEAT BELT]
+    words: [CAR WASH, DETOUR, HIGHWAY, MERGE, MOTEL, ODOMETER, ROAD TRIP, ROUNDABOUT, SEAT BELT, SPEED LIMIT]
+    notes: "Words listed alphabetically in Interval 12."
+  - id: engines-02
+    theme: engines
+    level: warm-up
+    title: "Fuel, Air and Spark"
+    words: [AIR INTAKE, COMBUSTION, COMPRESSION, DISTRIBUTOR, FUEL INJECTOR, FUEL RAIL, IGNITION COIL, MIXTURE, OCTANE, PLENUM, THROTTLE BODY]
+  - id: maintenance-02
+    theme: maintenance
+    level: warm-up
+    title: Tire Care
+    words: [BALANCING, LUG NUTS, PATCH KIT, PUNCTURE, SIDEWALL, SPARE TIRE, TIRE PRESSURE, TIRE ROTATION, TREAD DEPTH, VALVE STEM]
+    notes: "Revised in Interval 12: INFLATOR removed after the generated grid contained a screened word (PORN)."
+  - id: tools-02
+    theme: tools
+    level: warm-up
+    title: Measuring Up
+    words: [DEPTH GAUGE, DIAL INDICATOR, FEELER GAUGE, MICROMETER, MULTIMETER, SPIRIT LEVEL, STRAIGHTEDGE, TAPE MEASURE, TIRE GAUGE, TORQUE WRENCH]
+  - id: systems-02
+    theme: systems
+    level: warm-up
+    title: Electrical System
+    words: [BATTERY, CIRCUIT, DOME LIGHT, GROUND WIRE, HEADLIGHT, POWER WINDOW, RELAY, SOLENOID, STARTER MOTOR, TAILLIGHT, WIRING HARNESS]
+  - id: motorsport-02
+    theme: motorsport
+    level: warm-up
+    title: On the Track
+    words: [BRAKING ZONE, CHECKERED FLAG, CORNER, FASTEST LAP, FORMATION LAP, OVERTAKE, POLE POSITION, RACING LINE, SLIPSTREAM, STARTING GRID, STRAIGHTAWAY]
+  - id: history-02
+    theme: history
+    level: warm-up
+    title: Classic Body Styles
+    words: [CABRIOLET, CONVERTIBLE, FASTBACK, HARDTOP, HATCHBACK, LIMOUSINE, MINIVAN, PANEL VAN, PICKUP TRUCK, SHOOTING BRAKE, STATION WAGON]
+  - id: driving-02
+    theme: driving
+    level: warm-up
+    title: Behind the Wheel
+    words: [CUP HOLDER, DASHBOARD, GEAR SHIFT, GLOVE BOX, HAZARD LIGHTS, HEADREST, SIDE MIRROR, SPEEDOMETER, SUN VISOR, TACHOMETER, TURN SIGNAL]
+  - id: engines-03
+    theme: engines
+    level: warm-up
+    title: The Drivetrain
+    words: [CLUTCH, DIFFERENTIAL, DRIVESHAFT, GEARBOX, GEAR RATIO, HALF SHAFT, NEUTRAL, OVERDRIVE, RING GEAR, TRANSFER CASE, TRANSMISSION]
+    notes: "Revised in Interval 12: RING GEAR added after the generated grid contained a screened word (TITS)."
+  - id: maintenance-03
+    theme: maintenance
+    level: warm-up
+    title: Fluids and Filters
+    words: [ANTIFREEZE, CABIN FILTER, DRAIN PLUG, FLUID LEVEL, FUEL FILTER, GEAR OIL, GREASE, LUBRICANT, MOTOR OIL, VISCOSITY, WASHER FLUID]
+    notes: "Revised in Interval 12: FLUID LEVEL replaced TOP UP after the generated grid contained a screened word (FAG)."
+  - id: tools-03
+    theme: tools
+    level: warm-up
+    title: Lifting and Safety
+    words: [BOTTLE JACK, CAR RAMPS, EAR PROTECTION, ENGINE HOIST, FIRST AID KIT, GLOVES, JACK STANDS, KNEE PADS, RESPIRATOR, SAFETY GLASSES, WHEEL CHOCKS]
+  - id: systems-03
+    theme: systems
+    level: warm-up
+    title: The Fuel System
+    words: [FILLER NECK, FUEL GAUGE, FUEL LINE, FUEL PRESSURE, FUEL PUMP, FUEL TANK, GAS CAP, RETURN LINE, SENDING UNIT, TANK STRAP, VAPOR CANISTER]
+  - id: motorsport-03
+    theme: motorsport
+    level: warm-up
+    title: Racing Machines
+    words: [DRAGSTER, DUNE BUGGY, FUNNY CAR, GO KART, MONSTER TRUCK, OPEN WHEEL, RALLY CAR, SPORTS CAR, SPRINT CAR, STOCK CAR, TOURING CAR]
+  - id: maintenance-04
+    theme: maintenance
+    level: warm-up
+    title: Brake Service
+    words: [BLEEDING, BRAKE CLEANER, BRAKE DRUM, BRAKE LINES, BRAKE PADS, BRAKE SHOES, CALIPER PINS, RESURFACING, ROTORS, SQUEAL, WEAR SENSOR]
+  # standard
+  - id: engines-04
+    theme: engines
+    level: standard
+    title: Valvetrain
+    words: [CAM LOBE, CAMSHAFT, CYLINDER HEAD, HEAD GASKET, INTAKE VALVE, LIFTER, OVERHEAD CAM, PUSHROD, ROCKER ARM, TAPPET, TIMING CHAIN, VALVE SEAT, VALVE SPRING]
+  - id: maintenance-05
+    theme: maintenance
+    level: standard
+    title: Scheduled Maintenance
+    words: [BELT TENSIONER, CHECKLIST, FLUID CHECK, HOSE CLAMPS, MAINTENANCE LOG, MILEAGE, RECALL, SEASONAL, SERPENTINE BELT, SERVICE INTERVAL, SERVICE MANUAL, TUNE UP, WARRANTY]
+  - id: tools-04
+    theme: tools
+    level: standard
+    title: Power Tools
+    words: [AIR COMPRESSOR, AIR HOSE, AIR RATCHET, ANGLE GRINDER, BENCH GRINDER, CORDLESS DRILL, DIE GRINDER, DRILL PRESS, HEAT GUN, IMPACT DRIVER, IMPACT WRENCH, ORBITAL SANDER, POLISHER]
+  - id: systems-04
+    theme: systems
+    level: standard
+    title: The Brake System
+    words: [ANTILOCK BRAKES, BLEEDER VALVE, BRAKE BOOSTER, BRAKE LIGHT, BRAKE PEDAL, CALIPER PISTON, DISC BRAKE, DRUM BRAKE, HYDRAULIC, MASTER CYLINDER, PARKING BRAKE, STOPPING POWER, WHEEL CYLINDER]
+    notes: "Revised in Interval 12: STOPPING POWER replaced FRICTION after the generated grid contained a screened word (FAG)."
+  - id: motorsport-04
+    theme: motorsport
+    level: standard
+    title: Pit Lane
+    words: [AIR JACK, CREW CHIEF, PIT BOARD, PIT CREW, PIT LANE, PIT WALL, RADIO, REFUEL, STINT, STRATEGY, TIRE CHANGE, UNDERCUT, WHEEL GUN]
+  - id: history-03
+    theme: history
+    level: standard
+    title: Milestones of the Motor Age
+    words: [ACETYLENE LAMP, COACHBUILDER, ELECTRIC STARTER, FUEL INJECTION, HEADLAMP, MASS PRODUCTION, MODEL YEAR, OVERHEAD VALVE, PNEUMATIC TIRE, SYNCHROMESH, UNLEADED, VULCANIZED, WINDSHIELD WIPER]
+  - id: driving-03
+    theme: driving
+    level: standard
+    title: Road Signs and Rules
+    words: [CENTER LINE, CROSSWALK, INTERSECTION, LANE, NO PASSING, ONE WAY, RIGHT OF WAY, SCHOOL ZONE, SHOULDER, SPEED BUMP, STOP SIGN, TRAFFIC LIGHT, YIELD]
+  - id: engines-05
+    theme: engines
+    level: standard
+    title: Forced Induction
+    words: [BLOW OFF VALVE, BOOST PRESSURE, BYPASS VALVE, CHARGE PIPE, IMPELLER, INTERCOOLER, SPOOL, SUPERCHARGER, TURBINE, TURBOCHARGER, TURBO LAG, TWIN SCROLL, WASTEGATE]
+  - id: maintenance-06
+    theme: maintenance
+    level: standard
+    title: Diagnosing Trouble
+    words: [CHECK ENGINE, CODE READER, DIAGNOSTICS, FAULT CODE, HESITATION, MISFIRE, OVERHEATING, ROUGH IDLE, SCAN TOOL, STALLING, TEST DRIVE, VACUUM LEAK, VIBRATION]
+  - id: tools-05
+    theme: tools
+    level: standard
+    title: At the Hand Tool Bench
+    words: [BALL PEEN, BREAKER BAR, CHISEL, EXTENSION BAR, HACKSAW, HEX KEY, LOCKING PLIERS, MAGNETIC PICKUP, MALLET, NUT DRIVER, PICK SET, PRY BAR, WIRE STRIPPER]
+  - id: systems-05
+    theme: systems
+    level: standard
+    title: Steering and Suspension
+    words: [AIR SUSPENSION, DAMPER, KNUCKLE, LEAF SPRING, POWER STEERING, RACK AND PINION, RIDE HEIGHT, SHOCK ABSORBER, STABILIZER, STEERING COLUMN, TIE ROD, TORSION BAR, TRAILING ARM]
+  - id: motorsport-05
+    theme: motorsport
+    level: standard
+    title: Officials and Flags
+    words: [BLACK FLAG, BLUE FLAG, DISQUALIFIED, DRIVE THROUGH, MARSHAL, PENALTY, PROTEST, RACE CONTROL, RED FLAG, SAFETY CAR, SCRUTINEERING, STEWARD, STOP AND GO, YELLOW FLAG]
+    notes: "Revised in Interval 12: PROTEST added after the generated grid contained a screened word (FAG)."
+  - id: history-04
+    theme: history
+    level: standard
+    title: Classic Car Culture
+    words: [BARN FIND, BENCH SEAT, CHROME, CLASSIC CAR, COLUMN SHIFT, CONCOURS, HOOD ORNAMENT, MATCHING NUMBERS, PATINA, RESTORATION, TAILFINS, VINTAGE, WHITEWALL TIRES]
+  - id: driving-04
+    theme: driving
+    level: standard
+    title: Car Culture
+    words: [CAR CLUB, CAR SHOW, CRUISE NIGHT, DAILY DRIVER, DRIVE IN, GARAGE QUEEN, HOT ROD, LOWRIDER, MEET UP, PROJECT CAR, SHOW AND SHINE, SLEEPER, SWAP MEET]
+  - id: engines-06
+    theme: engines
+    level: standard
+    title: Diesel and Hybrid
+    words: [BATTERY PACK, CHARGING PORT, COMMON RAIL, DIESEL, ELECTRIC MOTOR, GENERATOR, GLOW PLUG, HYBRID, INJECTION PUMP, INVERTER, KILOWATT, PLUG IN, RANGE EXTENDER]
+  - id: maintenance-07
+    theme: maintenance
+    level: standard
+    title: Cooling System Care
+    words: [BLEED SCREW, COOLANT FLUSH, COOLING FAN, CORROSION, EXPANSION TANK, FAN CLUTCH, HEATER CORE, OVERFLOW, PRESSURE TEST, RADIATOR CAP, RESERVOIR, THERMOSTAT, UPPER HOSE, WATER PUMP]
+    notes: "Revised in Interval 12: RESERVOIR added after the generated grid contained a screened word (FAG, TWAT)."
+  - id: tools-06
+    theme: tools
+    level: standard
+    title: The Home Garage
+    words: [EXTENSION CORD, FLASHLIGHT, GARAGE DOOR, OIL DRAIN PAN, PARTS TRAY, PEGBOARD, SHELVING, SHOP LIGHT, SHOP TOWELS, SPILL KIT, TOOL CHEST, TOOL ROLL, WORKBENCH]
+  - id: systems-06
+    theme: systems
+    level: standard
+    title: Climate Control
+    words: [AIR CONDITIONING, BLOWER MOTOR, CLIMATE CONTROL, COMPRESSOR, CONDENSER, DEFROSTER, EVAPORATOR, EXPANSION VALVE, RADIATOR, RECEIVER DRIER, RECIRCULATION, REFRIGERANT, VENTILATION]
+    notes: "Revised in Interval 12: VENTILATION replaced BLEND DOOR after the generated grid contained a screened word (PORN)."
+  - id: systems-07
+    theme: systems
+    level: standard
+    title: The Exhaust System
+    words: [BACKPRESSURE, CATALYST, DOWNPIPE, EMISSIONS, EXHAUST MANIFOLD, FLEX PIPE, HEADERS, HEAT SHIELD, MUFFLER, OXYGEN SENSOR, RESONATOR, RUBBER HANGER, TAILPIPE]
+  - id: driving-05
+    theme: driving
+    level: standard
+    title: Highway Travel
+    words: [CARPOOL, COMMUTE, CRUISE CONTROL, INTERSTATE, MILE MARKER, OFF RAMP, ON RAMP, OVERPASS, PASSING LANE, REST STOP, RUSH HOUR, TOLL BOOTH, TRAFFIC JAM]
+  # challenge
+  - id: engines-07
+    theme: engines
+    level: challenge
+    title: Inside the Block
+    words: [BEARING CAP, BORE, CONNECTING ROD, COUNTERWEIGHT, CRANKCASE, CRANK PULLEY, CYLINDER LINER, DIPSTICK, ENGINE BLOCK, FREEZE PLUG, MAIN BEARING, OIL PAN, OIL PUMP, PISTON RING, STROKE, WRIST PIN]
+  - id: maintenance-08
+    theme: maintenance
+    level: challenge
+    title: Body and Paint Care
+    words: [BUFFER, CERAMIC COATING, CHAMOIS, CLAY BAR, CLEAR COAT, COMPOUND, DENT REPAIR, DETAILING, HAND WASH, MICROFIBER, PAINT CHIP, POLISH, RUST PROOFING, SEALANT, TOUCH UP PAINT, UNDERCOATING]
+  - id: tools-07
+    theme: tools
+    level: challenge
+    title: Specialty Tools
+    words: [BEARING PULLER, BORESCOPE, BRAKE BLEEDER, FLARING TOOL, OIL FILTER WRENCH, PICKLE FORK, RIVET GUN, SMOKE MACHINE, SOLDERING IRON, STETHOSCOPE, STUD EXTRACTOR, TAP AND DIE, THREAD CHASER, TUBE BENDER, TUBE CUTTER, VACUUM GAUGE]
+  - id: systems-08
+    theme: systems
+    level: challenge
+    title: Driver Assistance
+    words: [ADAPTIVE CRUISE, AIRBAG, AUTO HIGH BEAM, BACKUP CAMERA, BLIND SPOT, COLLISION ALERT, CRUMPLE ZONE, DRIVER MONITOR, HEAD UP DISPLAY, HILL START ASSIST, LANE KEEPING, NIGHT VISION, PARKING SENSOR, RAIN SENSOR, SURROUND VIEW, TRACTION CONTROL]
+    notes: "Revised in Interval 12: DRIVER MONITOR replaced RADAR after the generated grid contained a screened word (FAG)."
+  - id: motorsport-06
+    theme: motorsport
+    level: challenge
+    title: Racing Disciplines
+    words: [AUTOCROSS, DRAG RACE, DRIFTING, ENDURANCE, FORMULA, GYMKHANA, HILL CLIMB, ICE RACING, KARTING, OFF ROAD, OVAL RACING, RALLYCROSS, ROAD RACING, SPRINT, TIME ATTACK, TRACK DAY]
+  - id: history-05
+    theme: history
+    level: challenge
+    title: From Workshop to Factory
+    words: [BLACKSMITH, CARRIAGE, CLAY MODEL, CONVEYOR, DEALERSHIP, DESIGN STUDIO, FOUNDRY, INTERCHANGEABLE, LABOR UNION, MACHINIST, SHOWROOM, STAMPING PRESS, TEST TRACK, TOOL AND DIE, WHEELWRIGHT, WORKSHOP]
+  - id: driving-06
+    theme: driving
+    level: challenge
+    title: Learning to Drive
+    words: [BLIND CORNER, CHECK MIRRORS, DRIVING TEST, HAND SIGNALS, HILL START, INSTRUCTOR, LANE CHANGE, LEARNER PERMIT, LICENSE, MERGING, PARALLEL PARKING, REVERSING, ROAD RULES, ROAD TEST, SPEED ZONE, THREE POINT TURN]
+  - id: engines-08
+    theme: engines
+    level: challenge
+    title: Specs and Layouts
+    words: [BOXER, CUBIC INCHES, DISPLACEMENT, FLAT FOUR, HORSEPOWER, INLINE, LITERS, LONGITUDINAL, MID ENGINE, POWER BAND, REDLINE, ROTARY ENGINE, STRAIGHT SIX, TORQUE, TRANSVERSE, TWIN CAM]
+  - id: maintenance-09
+    theme: maintenance
+    level: challenge
+    title: Electrical Repairs
+    words: [BATTERY CHARGER, BATTERY TERMINAL, BLOWN FUSE, CONTINUITY, CRIMP, FUSE BOX, GROUND STRAP, HEAT SHRINK, JUMPER CABLES, JUMP START, PARASITIC DRAW, SHORT CIRCUIT, SOLDER, TEST LIGHT, VOLTAGE, WIRING]
+  - id: tools-08
+    theme: tools
+    level: challenge
+    title: "Nuts, Bolts and Fasteners"
+    words: [ANTI SEIZE, CAP SCREW, CASTLE NUT, CIRCLIP, COTTER PIN, DOWEL PIN, FINE THREAD, FLANGE BOLT, FLAT WASHER, LOCK WASHER, ROLL PIN, SNAP RING, THREAD LOCKER, THREAD PITCH, TORQUE SPEC, WING NUT]
+  - id: systems-09
+    theme: systems
+    level: challenge
+    title: Vehicle Electronics
+    words: [ANTENNA, CENTRAL LOCKING, CONTROL MODULE, DATA BUS, DIAGNOSTIC PORT, FIRMWARE, GAUGE CLUSTER, IMMOBILIZER, INFOTAINMENT, KEY FOB, POWER LOCKS, REMOTE START, SOFTWARE UPDATE, SPEED SENSOR, TOUCHSCREEN, WIRING DIAGRAM]
+  - id: motorsport-07
+    theme: motorsport
+    level: challenge
+    title: Aerodynamics and Setup
+    words: [AIRFLOW, ANTI ROLL BAR, BALLAST, CANARD, DIFFUSER, DOWNFORCE, DRAG COEFFICIENT, FRONT SPLITTER, GROUND EFFECT, OVERSTEER, REAR WING, SLICKS, TIRE WARMERS, UNDERSTEER, VORTEX, WIND TUNNEL]
+  - id: history-06
+    theme: history
+    level: challenge
+    title: Vintage Technology
+    words: [AM RADIO, BIAS PLY, CHOKE, DISTRIBUTOR CAP, EIGHT TRACK, FOUR SPEED, HAND THROTTLE, INNER TUBE, MAGNETO, RUMBLE SEAT, SIX VOLT, SPARK LEVER, THREE ON THE TREE, VACUUM ADVANCE, VENT WINDOW, WOODEN SPOKES]
+  - id: driving-07
+    theme: driving
+    level: challenge
+    title: Road Trip Essentials
+    words: [CAMPGROUND, COOLER, EMERGENCY KIT, GAS STATION, ITINERARY, LUGGAGE, NAVIGATION, PLAYLIST, POSTCARD, ROAD MAP, ROADSIDE, ROOF RACK, SCENIC ROUTE, SNACKS, SUNGLASSES, TRUNK]
+  - id: engines-09
+    theme: engines
+    level: challenge
+    title: Electric Powertrains
+    words: [BATTERY PACK, CONTACTOR, FAST CHARGING, HIGH VOLTAGE, INVERTER, KILOWATT HOUR, LITHIUM ION, ONBOARD CHARGER, ONE PEDAL, RANGE, REGENERATION, ROTOR, SINGLE SPEED, STATOR, THERMAL, TRACTION MOTOR]
+  - id: maintenance-10
+    theme: maintenance
+    level: challenge
+    title: Suspension and Steering Repair
+    words: [BALL JOINT, BUSHING, CAMBER, CASTER, CONTROL ARM, GREASE FITTING, IDLER ARM, PITMAN ARM, STEERING RACK, STRUT MOUNT, SWAY BAR LINK, THRUST ANGLE, TIE ROD END, TOE IN, WHEEL ALIGNMENT, WHEEL BEARING]
+  - id: systems-10
+    theme: systems
+    level: challenge
+    title: "Wheels, Tires and Chassis"
+    words: [ALLOY WHEEL, CHASSIS, CROSSMEMBER, FRAME RAIL, GROUND CLEARANCE, HUBCAP, LOAD RATING, RADIAL TIRE, RUN FLAT, SPEED RATING, SUBFRAME, TIRE BEAD, TRACK WIDTH, UNIBODY, WHEELBASE, WHEEL HUB]
+  - id: motorsport-08
+    theme: motorsport
+    level: challenge
+    title: Life in the Paddock
+    words: [CHAMPIONSHIP, CONSTRUCTOR, DATA LOGGER, DEBRIEF, LIVERY, MECHANIC, PODIUM, QUALIFYING, RACE ENGINEER, RACE SUIT, ROOKIE, SPONSOR, TEAM PRINCIPAL, TELEMETRY, TEST DRIVER, TROPHY]
+    notes: "Revised in Interval 12: DEBRIEF replaced SIMULATOR after the generated grid contained a screened word (TWAT)."
+  - id: driving-08
+    theme: driving
+    level: challenge
+    title: Weather and Road Skills
+    words: [BLACK ICE, COUNTERSTEER, CROSSWIND, ENGINE BRAKING, FOG LIGHTS, FOUR WHEEL DRIVE, GLARE, GRAVEL, HYDROPLANING, NIGHT DRIVING, SNOW TIRES, TIRE CHAINS, TOWING, TRAILER, VISIBILITY, WINDING ROAD]
+  - id: engines-10
+    theme: engines
+    level: challenge
+    title: Timing and Ignition
+    words: [COIL PACK, CRANK SENSOR, DETONATION, DWELL, FIRING ORDER, FOUR STROKE, IGNITION TIMING, INTAKE STROKE, KNOCK SENSOR, PLUG WIRES, POWER STROKE, PREIGNITION, SPARK ADVANCE, TIMING LIGHT, TIMING MARK, TOP DEAD CENTER]
 constraints:
   min_letters: 4
   max_letters: 15
@@ -353,6 +1262,10 @@ questions:
   - id: q-audience
     question: Should the primary audience be adult car enthusiasts, or automotive students?
     blocking: true
+    resolution: >-
+      Author's working default (Interval 12 brief): adult car enthusiasts and automotive
+      hobbyists first; automotive students and aspiring mechanics second. An editorial
+      choice, not validated market research (r-positioning-default).
   - id: q-comparables
     question: >-
       Which comparable automotive word-search books exist, and what puzzle counts,
@@ -363,8 +1276,17 @@ questions:
       Projects hold at most 20 puzzles today. Raise the cap for a 60-puzzle book in
       production, or plan a smaller first edition?
     blocking: true
+    resolution: >-
+      Interval 12 raised the project cap to 100 puzzles within a batch work budget
+      (docs/automotive-production.md#generator-scaling). The 60-puzzle target stays.
   - id: q-paper
     question: White or cream interior paper?
+    resolution: White paper (print profile paperback-8.5x11), the author's production default in the Interval 12 brief.
+  - id: q-vocabulary-review
+    question: >-
+      Has a person reviewed every AI-drafted word list, puzzle title and matter text
+      for accuracy and suitability? The content audit lists them
+      (docs/automotive-content-audit.md).
 research:
   - id: r-kdp-minimum
     question: q-puzzle-cap
@@ -400,5 +1322,13 @@ research:
       that question entirely.
     evidence: preference
     decision: Use generic terms only.
+  - id: r-positioning-default
+    question: q-audience
+    observation: >-
+      The Interval 12 brief sets the working positioning: adult car enthusiasts and
+      automotive hobbyists first, automotive students and aspiring mechanics second;
+      entertaining, approachable and educational without being a training manual.
+    evidence: preference
+    decision: Use this positioning for production. It is the author's choice, not a finding.
 comparables: []
 approval: null

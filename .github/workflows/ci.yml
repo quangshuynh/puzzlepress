@@ -322,8 +322,8 @@ jobs:
           assert r["state"] == "needs_research", r["state"]
           assert r["approval"]["status"] == "none"
           errors = {f["code"] for f in r["findings"] if f["severity"] == "error"}
-          assert {"question_blocking_open", "puzzles_unspecified",
-                  "print_profile_undecided"} == errors, errors
+          # Only the comparables question blocks: no comparable book has been read.
+          assert {"question_blocking_open"} == errors, errors
           items = {i["code"]: i["status"] for i in r["feasibility"]}
           assert items["puzzle_count"] == "verified" and items["word_fit"] == "verified"
           assert items["generation"] == "unknown" and items["page_count"] == "estimate"
