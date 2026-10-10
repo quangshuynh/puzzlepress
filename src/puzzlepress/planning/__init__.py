@@ -8,6 +8,7 @@ or any build directory, or contacts the network.
 from .handoff import HandoffUnavailable, handoff_bytes, handoff_document
 from .identity import planning_identity
 from .model import PLANNING_FILE, PLANNING_VERSION, PlanningDocument
+from .production import ProductionUnavailable, comparison_bytes, comparison_document
 from .readiness import (
     ApprovalError,
     PlanningReadinessReport,
@@ -40,8 +41,11 @@ __all__ = [
     "PlanningDocument",
     "PlanningReadinessReport",
     "PlanningWriteError",
+    "ProductionUnavailable",
     "State",
     "approve_plan",
+    "comparison_bytes",
+    "comparison_document",
     "dump_planning",
     "evaluate_plan",
     "handoff_bytes",

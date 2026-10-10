@@ -33,7 +33,7 @@ NOT_VERIFIED = (
 DECISIONS = (
     "Word-bank entry IDs and puzzle definition IDs for book.yaml (seeds derive from them).",
     "Book composition: front matter, copyright text, instructions and solution headings.",
-    "Whether to raise the 20-puzzle project cap or produce a smaller book, if the plan exceeds it.",
+    "Whether to raise the project puzzle cap or produce a smaller book, if the plan exceeds it.",
     "The AI content disclosure in Publishing, given the vocabulary provenance below.",
     "Publishing metadata, confirmations and the cover photograph.",
 )

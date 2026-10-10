@@ -4,17 +4,26 @@ from pathlib import Path
 import pytest
 
 from puzzlepress import load_project
-from tests.helpers import CANONICAL_BOOKS, ROOT
+from tests.helpers import CANONICAL_BOOKS, LEGACY_FIXTURE, ROOT
 
 
 @pytest.fixture
 def example_path() -> Path:
-    return Path(__file__).resolve().parents[1] / "books" / "automotive" / "book.yaml"
+    """The minimal schema-v1 source fixture (formerly books/automotive/book.yaml)."""
+    return LEGACY_FIXTURE / "book.yaml"
 
 
 @pytest.fixture
 def source(example_path: Path) -> str:
     return example_path.read_text(encoding="utf-8")
+
+
+@pytest.fixture(scope="session")
+def production_book(tmp_path_factory) -> Path:
+    """The SYNTHETIC 60-puzzle production book (tests/production_book.py), read-only."""
+    from production_book import write_production_book
+
+    return write_production_book(tmp_path_factory.mktemp("synthetic") / "books" / "production")
 
 
 @pytest.fixture
@@ -23,11 +32,12 @@ def garden():
 
 
 def _fixture_digests() -> dict[str, str]:
-    """Every authored file of the canonical books, including cover photographs."""
+    """Every authored file of the canonical books and the legacy fixture."""
+    roots = [ROOT / "books" / name for name in CANONICAL_BOOKS] + [LEGACY_FIXTURE]
     return {
         path.relative_to(ROOT).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
-        for name in CANONICAL_BOOKS
-        for path in sorted((ROOT / "books" / name).rglob("*"))
+        for root in roots
+        for path in sorted(root.rglob("*"))
         if path.is_file()
     }
 

@@ -222,7 +222,7 @@ def _analyze_content(
 
 
 def generate_batch(project: Project) -> BatchReport:
-    """Generate up to 20 definitions; retain every success and expected failure.
+    """Generate every definition (see content.MAX_*); keep successes and expected failures.
 
     Invalid source fails validation before generation. Bounded placement failures
     are recorded per puzzle and do not prevent later definitions from running.

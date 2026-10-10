@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import type { PlanResult } from '../src/types';
 
 // Writes only target the server's temporary composer-demo copy.
-const originals = ['garden-demo', 'automotive', 'composition-demo'].map((key) => ({
+const originals = ['garden-demo', 'composition-demo'].map((key) => ({
   key,
   bytes: readFileSync(`../books/${key}/book.yaml`),
 }));

@@ -1,4 +1,4 @@
-"""Terminal adapter for book planning: inspect, validate, report, approve, handoff.
+"""Terminal adapter for book planning: inspect, validate, report, approve, handoff, production.
 
 Every decision is made by `puzzlepress.planning`; this module presents it. Only
 `plan approve` writes, and only planning.yaml in the project folder. Nothing
@@ -43,6 +43,7 @@ def add_plan_command(commands: "argparse._SubParsersAction[argparse.ArgumentPars
         ("validate", "Check the planning schema, references and vocabulary rules (read-only)"),
         ("report", "Full planning readiness report: findings and feasibility (read-only)"),
         ("handoff", "Print the production handoff of an approved plan (read-only)"),
+        ("production", "Compare the plan with the production book in book.yaml (read-only)"),
     ):
         command = actions.add_parser(name, help=text)
         command.add_argument("project", help=PROJECT_HELP)
@@ -116,6 +117,8 @@ def run_plan_command(args: argparse.Namespace) -> int:
         return _report(report, args.json)
     if command == "handoff":
         return _handoff(report, args.json)
+    if command == "production":
+        return _production(report, args.json)
     return _approve(loaded, plan, report, args)
 
 
@@ -253,6 +256,58 @@ def _handoff(report: "PlanningReadinessReport", as_json: bool) -> int:
     print(f"Planned puzzles: {len(puzzles)}")
     print("Use --json for the full handoff document. Nothing was generated or written.")
     return 0
+
+
+def _production(report: "PlanningReadinessReport", as_json: bool) -> int:
+    from .planning import ProductionUnavailable, comparison_bytes, comparison_document
+
+    try:
+        document = comparison_document(report)
+    except ProductionUnavailable as error:
+        print(f"No production comparison: {error}", file=sys.stderr)
+        return 1
+    code = 0 if document["matches_plan"] else 1
+    if as_json:
+        _bytes(comparison_bytes(report))
+        return code
+    planning, production, counts = (document[k] for k in ("planning", "production", "counts"))
+    assert isinstance(planning, dict) and isinstance(production, dict)
+    assert isinstance(counts, dict)
+    approval = planning["approval"]
+    assert isinstance(approval, dict)
+    print(f"Production comparison: {report.project.book.id}")
+    print(f"Planning identity: {planning['identity']}")
+    print(f"Plan state: {planning['state']}; approval: {approval['status']}"
+          + ("" if planning["approved"] else " (the production book does not follow an "
+             "approved plan)"))  # fmt: skip
+    print(f"Production identity: {production['identity']}")
+    print(f"Puzzles: target {counts['target']}, planned {counts['planned']}, "
+          f"produced {counts['produced']}")  # fmt: skip
+    themes = document["themes"]
+    assert isinstance(themes, list)
+    for row in themes:
+        print(f"  {row['label']}: allocated {row['allocated']}, planned {row['planned']}, "
+              f"produced {row['produced']}")  # fmt: skip
+    vocabulary = document["vocabulary"]
+    assert isinstance(vocabulary, dict)
+    sources = ", ".join(f"{k} {v}" for k, v in sorted(vocabulary["words_by_source"].items()) if v)
+    print(f"Words: {vocabulary['produced_words']} placements, "
+          f"{vocabulary['distinct_produced_words']} distinct; by source: {sources}")  # fmt: skip
+    deviations = document["deviations"]
+    assert isinstance(deviations, list)
+    print(f"Deviations: {len(deviations)}")
+    for item in deviations:
+        subject = f" [{item['subject']}]" if item["subject"] else ""
+        print(f"  {item['code']}{subject}: {item['message']}")
+    for note in document["notes"]:  # type: ignore[attr-defined]
+        print(f"Note: {note}")
+    questions = document["open_questions"]
+    assert isinstance(questions, list)
+    for question in questions:
+        blocking = "blocking" if question["blocking"] else "open"
+        print(f"Open question ({blocking}): {question['question']}")
+    print("Nothing was generated, written or approved.")
+    return code
 
 
 def _approve(

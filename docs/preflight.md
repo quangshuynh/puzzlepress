@@ -51,6 +51,11 @@ interior.pdf + interior.json        current project source
 - `interior.inspection.read_pdf_facts` is the single pypdf layer: boxes, rotation,
   annotations, fonts (embedded, subset), images, transparency, layers, metadata,
   text and painting. The post-build check and preflight judge the same facts.
+  Facts are a function of the bytes alone, so when `interior.pdf` is byte-identical
+  to the fresh build, preflight reuses the facts read during that build instead of
+  parsing the file again; any other bytes are read afresh. Pages with no
+  `/XObject` resource and no `BI` bytes in their content have no image, so the
+  image count skips pypdf's second content-stream parse there (exact; tested).
 - Layout-based rules (margins, type sizes, line weights, blanks, folios, numbering)
   apply only when the PDF bytes equal a fresh render of the current verified layout
   (`pdf_matches_layout`). Otherwise they are `not_evaluated`, never passed.

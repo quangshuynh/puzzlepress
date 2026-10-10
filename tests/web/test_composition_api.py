@@ -13,16 +13,18 @@ from puzzlepress.studio.service import ProjectStore, StudioError, StudioService
 
 ROOT = Path(__file__).resolve().parents[2]
 FIXTURES = {
-    "garden-demo": "ffd7f7eb02c5d88f1f3e4880a505e140d60562cb113973fc448aeaabcffac540",
-    "automotive": "209f3fd646b2bf5cfd97f646c2c7868ba376edf9e11bf262bb09a02a5f3759e0",
-    "composition-demo": "b15651cddf6ae73c7ce5da8df967b64cb952dd0ca2f6d15b4684905db85330c7",
+    "books/garden-demo": "ffd7f7eb02c5d88f1f3e4880a505e140d60562cb113973fc448aeaabcffac540",
+    "tests/fixtures/legacy-automotive": (
+        "209f3fd646b2bf5cfd97f646c2c7868ba376edf9e11bf262bb09a02a5f3759e0"
+    ),
+    "books/composition-demo": "b15651cddf6ae73c7ce5da8df967b64cb952dd0ca2f6d15b4684905db85330c7",
 }
 
 
 def fixture_hashes():
     return {
         key: hashlib.sha256(
-            (ROOT / "books" / key / "book.yaml").read_bytes().replace(b"\r\n", b"\n")
+            (ROOT / key / "book.yaml").read_bytes().replace(b"\r\n", b"\n")
         ).hexdigest()
         for key in FIXTURES
     }

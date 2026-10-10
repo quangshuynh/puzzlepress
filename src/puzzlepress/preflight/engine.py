@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 from ..identity import build_identity
 from ..interior.build import InteriorBuild, build_interior
-from ..interior.inspection import read_pdf_facts
+from ..interior.inspection import PdfFacts, read_pdf_facts
 from ..interior.issues import InteriorError, LayoutIssue
 from ..interior.model import InteriorLayout
 from ..interior.spec import PROFILES, PrintSpecification, to_inches
@@ -50,8 +50,6 @@ def preflight_interior(
         parse_manifest(artifacts.manifest) if artifacts.manifest is not None else (None, None)
     )
     spec = _spec(manifest)
-    facts_or_issue = read_pdf_facts(artifacts.pdf) if artifacts.pdf is not None else None
-    facts = None if isinstance(facts_or_issue, LayoutIssue) else facts_or_issue
     build_error: InteriorError | None = None
     if spec is not None and not (
         expected is not None
@@ -64,6 +62,12 @@ def preflight_interior(
             expected, build_error = None, error
     elif spec is None:
         expected = None
+    facts_or_issue: PdfFacts | LayoutIssue | None = None
+    if artifacts.pdf is not None:
+        # Facts are a function of the bytes alone: identical bytes reuse the fresh build's.
+        same = expected is not None and expected.facts is not None and expected.pdf == artifacts.pdf
+        facts_or_issue = expected.facts if same and expected else read_pdf_facts(artifacts.pdf)
+    facts = None if isinstance(facts_or_issue, LayoutIssue) else facts_or_issue
     ctx = Context(
         project=project,
         source_identity=source_identity,

@@ -56,7 +56,7 @@ pypdfium2 (page previews).
 
 ```text
 puzzlepress --version
-puzzlepress validate books/automotive
+puzzlepress validate tests/fixtures/legacy-automotive
 puzzlepress inspect books/garden-demo
 puzzlepress puzzle generate --width 10 --height 8 --seed 2026 --word ENGINE --word PISTON --solution
 puzzlepress puzzle batch books/garden-demo --json
@@ -75,10 +75,12 @@ puzzlepress cover import books/my-book ~/Pictures/harbour.jpg
 puzzlepress publish validate books/publishing-demo
 puzzlepress publish inspect books/publishing-demo
 puzzlepress publish package books/publishing-demo --zip
-puzzlepress plan inspect books/automotive
-puzzlepress plan report books/automotive --json
+python tests/production_book.py build/synthetic/books/production
+puzzlepress plan inspect build/synthetic/books/production
+puzzlepress plan report build/synthetic/books/production --json
 puzzlepress plan approve books/my-book --identity pp1-planning-sha256-...
 puzzlepress plan handoff books/my-book --json
+puzzlepress plan production build/synthetic/books/production
 ```
 
 Commands are read-only except `book build`, which writes `interior.pdf` and an
@@ -128,9 +130,11 @@ its interior and cover are KDP ready under the modeled rules.
 [`composition-demo`](books/composition-demo/book.yaml) is a small composed book:
 front matter, four puzzles, grouped solutions and a notes page.
 [`garden-demo`](books/garden-demo/book.yaml) has two themed puzzles without a
-composition. [`automotive`](books/automotive/book.yaml) is a small source fixture
-without word-search definitions, with a [demonstration plan](books/automotive/planning.yaml)
-for the upcoming automotive book (60 planned puzzles; not approved, no market research). None is presented as a finished publishing product.
+composition. [`tests/production_book.py`](tests/production_book.py) writes a
+SYNTHETIC 60-puzzle production book with an unapproved plan. None is presented as a
+finished publishing product. Real books, such as the automotive word search, live
+in the separate private book repository (`quangshuynh/puzzlepress-books`) and are
+opened by path or with `puzzlepress-studio --books` ([production scale](docs/production-scale.md)).
 
 Open a book and choose **Edit**. Make changes, **Validate draft**, then **Preview
 draft** to inspect the grid and quality. **Save changes** validates again and
@@ -241,11 +245,12 @@ Contribution rules: [AGENTS.md](AGENTS.md). Current handoff: [CONTEXT.md](CONTEX
 
 ## Current limitations
 
-ASCII A-Z targets, at most 20 definitions per batch, and bounded greedy generation
+ASCII A-Z targets, at most 100 definitions per batch within a 20,000,000-check work
+budget, and bounded greedy generation
 that can fail on feasible inputs. Quality is descriptive, with explicit scan
 limits and no built-in prohibited-word list or automatic repair. Profile names
 are authored settings, not calibrated difficulty scores.
-Planning reports a plan larger than the 20-puzzle cap as unsupported rather than
+Planning reports a plan larger than the 100-puzzle cap as unsupported rather than
 raising the cap; its heuristics are review prompts, and no research is verified by
 PuzzlePress.
 
@@ -258,7 +263,7 @@ in, no bleed, black ink on white or cream paper) and one bundled sans family; bo
 with a KDP warning and fail KDP readiness. Preflight models a documented subset of
 KDP rules; some official values are ambiguous (see [preflight](docs/preflight.md)).
 Covers are RGB without CMYK conversion, use one trim and two layouts, and print
-spine text only from 80 pages, which the 20-puzzle limit does not yet reach.
+spine text only from 80 pages and only when the spine holds 7 pt type.
 Publishing is manual: no KDP login, upload, submission, ISBN purchase, category
 taxonomy, keyword research or pricing (see [publishing](docs/publishing.md)).
 

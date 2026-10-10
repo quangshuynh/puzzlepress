@@ -19,8 +19,6 @@ from puzzlepress.planning import (
 )
 from tests.helpers import ROOT, installed_puzzlepress
 
-AUTOMOTIVE = ROOT / "books" / "automotive"
-
 
 def run(capsysbinary: pytest.CaptureFixture[bytes], *argv: str) -> tuple[int, bytes, bytes]:
     code = main(list(argv))
@@ -40,7 +38,7 @@ def no_network(monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest.fixture
 def ready(tmp_path: Path) -> Path:
-    """A copy of books/automotive whose plan is ready for approval."""
+    """A copy of the synthetic production book whose plan is ready for approval."""
     book = copy_book(tmp_path)
     current = read_planning(book)
     write_planning(book, document(complete_plan()), current.revision)
@@ -57,25 +55,27 @@ def test_projects_without_a_plan_report_it(capsysbinary: pytest.CaptureFixture[b
         assert code == 1 and out == b"" and b"No planning document" in err
 
 
-def test_demo_inspect_validate_and_report(capsysbinary: pytest.CaptureFixture[bytes]) -> None:
-    project = load_project(AUTOMOTIVE).project
-    plan = read_planning(AUTOMOTIVE).document
+def test_demo_inspect_validate_and_report(
+    capsysbinary: pytest.CaptureFixture[bytes], production_book: Path
+) -> None:
+    project = load_project(production_book).project
+    plan = read_planning(production_book).document
     assert plan is not None
     report = evaluate_plan(project, plan)
-    code, out, _ = run(capsysbinary, "plan", "inspect", str(AUTOMOTIVE))
+    code, out, _ = run(capsysbinary, "plan", "inspect", str(production_book))
     assert code == 0 and report.identity.encode() in out and b"State: needs_research" in out
-    code, out, _ = run(capsysbinary, "plan", "inspect", str(AUTOMOTIVE), "--json")
+    code, out, _ = run(capsysbinary, "plan", "inspect", str(production_book), "--json")
     summary = json.loads(out)
     assert code == 0 and summary["planning_identity"] == report.identity
     assert summary["state"] == "needs_research" and "findings" not in summary
-    code, out, _ = run(capsysbinary, "plan", "validate", str(AUTOMOTIVE))
+    code, out, _ = run(capsysbinary, "plan", "validate", str(production_book))
     assert code == 0 and b"References and vocabulary: valid" in out
-    code, out, _ = run(capsysbinary, "plan", "report", str(AUTOMOTIVE))
-    assert code == 1 and b"puzzle_count_unsupported" in out and b"not publishing approval" in out
-    code, out, _ = run(capsysbinary, "plan", "report", str(AUTOMOTIVE), "--json")
+    code, out, _ = run(capsysbinary, "plan", "report", str(production_book))
+    assert code == 1 and b"question_blocking_open" in out and b"not publishing approval" in out
+    code, out, _ = run(capsysbinary, "plan", "report", str(production_book), "--json")
     assert code == 1 and out == report_bytes(report)
-    assert run(capsysbinary, "plan", "report", str(AUTOMOTIVE), "--json")[1] == out
-    code, _, err = run(capsysbinary, "plan", "handoff", str(AUTOMOTIVE))
+    assert run(capsysbinary, "plan", "report", str(production_book), "--json")[1] == out
+    code, _, err = run(capsysbinary, "plan", "handoff", str(production_book))
     assert code == 1 and b"Only an approved plan" in err
 
 
@@ -148,21 +148,23 @@ def test_approve_refuses_a_plan_that_is_not_ready(
     assert files(book) == before
 
 
-def test_usage_errors_exit_2(capsysbinary: pytest.CaptureFixture[bytes]) -> None:
-    for argv in (["plan"], ["plan", "approve", str(AUTOMOTIVE)], ["plan", "frobnicate", "x"]):
+def test_usage_errors_exit_2(
+    capsysbinary: pytest.CaptureFixture[bytes], production_book: Path
+) -> None:
+    for argv in (["plan"], ["plan", "approve", str(production_book)], ["plan", "frobnicate", "x"]):
         with pytest.raises(SystemExit) as caught:
             main(argv)
         assert caught.value.code == 2
 
 
-def test_installed_cli_plans_without_writing(tmp_path: Path) -> None:
-    before = files(AUTOMOTIVE)
+def test_installed_cli_plans_without_writing(tmp_path: Path, production_book: Path) -> None:
+    before = files(production_book)
     for command, expected in (("inspect", 0), ("validate", 0), ("report", 1), ("handoff", 1)):
         result = subprocess.run(
-            [str(installed_puzzlepress()), "plan", command, str(AUTOMOTIVE), "--json"],
+            [str(installed_puzzlepress()), "plan", command, str(production_book), "--json"],
             capture_output=True,
             cwd=tmp_path,
         )
         assert result.returncode == expected, (command, result.stderr)
-    assert files(AUTOMOTIVE) == before
+    assert files(production_book) == before
     assert list(tmp_path.iterdir()) == []

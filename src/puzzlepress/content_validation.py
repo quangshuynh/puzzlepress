@@ -7,6 +7,7 @@ from typing import cast
 from .content import (
     MAX_BANK_ENTRIES,
     MAX_BANKS,
+    MAX_BATCH_ATTEMPTS,
     MAX_PROFILES,
     MAX_PUZZLE_TARGETS,
     MAX_PUZZLES,
@@ -139,6 +140,15 @@ def validate_word_search_content(
                 except WordSearchError as error:
                     reader.engine_issues(error, path, scalar_targets=True)
     reader.unique([p.id for p in puzzles], "word_search.puzzles")
+    budgets = {profile.id: profile.config.max_attempts for profile in profiles}
+    work = sum(budgets.get(p.difficulty, 0) for p in puzzles)
+    if work > MAX_BATCH_ATTEMPTS:
+        reader.issue(
+            "word_search.puzzles",
+            "work_budget",
+            f"The puzzles' profiles allow {work:,} candidate checks in total; a batch may "
+            f"use at most {MAX_BATCH_ATTEMPTS:,}. Lower max_attempts or use fewer puzzles.",
+        )
     quality = _quality(reader, root.get("quality", {}))
     if reader.issues:
         return None, tuple(reader.issues)

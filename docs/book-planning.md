@@ -9,8 +9,9 @@ constants, reports how ready it is, and records the author's approval of an
 exact plan. It never generates puzzles from a plan, edits `book.yaml`, looks
 anything up online, or judges a market.
 
-Example: [`books/automotive/planning.yaml`](../books/automotive/planning.yaml), a
-demonstration plan for the upcoming automotive book (see [Demo](#automotive-demo)).
+Example: `tests/production_book.py` writes a SYNTHETIC 60-puzzle book with its plan
+([production scale](production-scale.md)); real plans live with their books in the
+separate book repository.
 
 ## Storage
 
@@ -301,32 +302,50 @@ puzzle IDs, composition text, the puzzle cap, AI disclosure, metadata and cover)
 It is printed, never written, and is not a `book.yaml` fragment: it creates or
 overwrites no puzzle definitions and generates nothing.
 
+## Production comparison
+
+`puzzlepress plan production PROJECT [--json]` compares the plan with the
+production book in `book.yaml`, whatever the plan's state, and prints a
+deterministic, versioned document (`comparison_version` 1): the planning
+identity, state and approval beside the production build identity; target,
+planned and produced puzzle counts; theme allocations; each level's planned
+settings beside its production profile and produced word counts; every puzzle
+in book order with its bank, profile, words and planned theme, level and title;
+vocabulary coverage per pool (used and unused words, the banks a pool became);
+produced words by recorded source; deviations; notes; and open questions.
+
+Puzzles match by ID; a puzzle's theme comes from its plan entry, so one pool may
+become several banks. Words compare by search form and in order. Deviation codes:
+`puzzle_count_differs`, `puzzle_missing`, `puzzle_unplanned`, `order_differs`,
+`title_differs`, `level_differs`, `words_differ`, `word_count_outside_level`,
+`word_outside_pool`, `profile_differs`, `profile_missing`, `allocation_differs`,
+`structure_differs`, `composition_missing`. Exit 0 when nothing deviates, 1 for
+deviations, a missing plan or a project without `word_search`, 2 for usage. It
+generates, writes and approves nothing: a matching comparison is not a planning
+approval, and it says so when the plan is not approved. Generation, quality,
+layout and the words' accuracy are not compared (see `not_compared`).
+
 ## Generator limits
 
-A project holds at most 20 puzzle definitions, 20 word banks of 100 entries and
-20 difficulty profiles (`content.MAX_*`). The 60-puzzle automotive plan is
-therefore reported as `unsupported` for production, and the target is kept.
-What the 20-puzzle cap actually is:
+A project holds at most 100 puzzle definitions, 20 word banks of 100 entries and
+20 difficulty profiles (`content.MAX_*`); a plan beyond them is reported as
+`unsupported` and its target is kept. Interval 12 raised the puzzle cap from 20
+to 100 after measuring 20, 60 and 100-puzzle books through generation, interior,
+preflight, cover and publishing (see
+[production scale](production-scale.md#generator-scaling)):
 
 - Schema: a literal bound in `content_validation`; the generator and batch code
   have no other dependency on it.
-- Performance: it bounds worst-case batch work (20 x the 1,000,000-attempt maximum).
-  Typical work is small: the 20-puzzle cover and publishing demos generate in
-  about 0.08 s (measured 2026-10-09). Interior builds and preflight scale with
-  pages, and Studio's readiness rerenders interior and cover preflight on every
-  status request, already the slowest Studio path.
+- Work: a batch work budget (`content.MAX_BATCH_ATTEMPTS`, 20,000,000 candidate
+  checks summed over every puzzle's profile) keeps the worst case where it was
+  with 20 puzzles. Default profiles (100,000 attempts) fit 100 puzzles.
 - Composition and print: no puzzle cap; plans, layout and the KDP gutter table
   handle long books (up to 828 pages; 550 modeled maximum at 8.5 x 11).
-- Cover: the cap keeps every book below 80 pages, so spine text has only been
-  tested with synthetic facts, never a real long interior.
 - Studio: generation, plan preview and publishing readiness are synchronous
-  requests under one lock; long books make them proportionally slower.
-- Tests and fixtures are sized for 20 puzzles or fewer.
+  requests under one lock; long books make them proportionally slower, and
+  reports are cached by the exact bytes they depend on.
 
-Interval 12 needs a reviewed cap (for example 60-80 puzzles) with bounded work
-re-stated, a real long-book fixture through interior, preflight, cover (spine
-text) and package, Studio timing checks, and the review of these questions
-before producing the automotive book. Planning does not change the cap.
+Planning never changes the cap.
 
 ## CLI
 
@@ -336,6 +355,7 @@ puzzlepress plan validate PROJECT [--json]   # schema, references, vocabulary; e
 puzzlepress plan report PROJECT [--json]     # full report; exit 0 only when ready or approved
 puzzlepress plan approve PROJECT --identity ID | --withdraw
 puzzlepress plan handoff PROJECT [--json]    # approved plans only
+puzzlepress plan production PROJECT [--json] # plan versus book.yaml; exit 0 if no deviation
 ```
 
 Exit codes: 0 success, 1 missing, invalid or not ready, 2 usage. `report --json`
@@ -358,18 +378,14 @@ as making it stale. Charts are tables of Python's numbers: allocation by theme,
 usable versus needed words, and level progression in book order. See
 [studio.md](studio.md#planning).
 
-## Automotive demo
+## Production plans
 
-`books/automotive/planning.yaml` plans 60 puzzles in seven themes under one parent,
-three levels with a gradual strategy, 184 candidate words and the opening
-warm-up section (7 puzzles). It is honest about what it is: audiences are
-labelled working assumptions; there are no comparable books, because none has
-been read and cited; KDP facts are cited from PuzzlePress's recorded provenance
-and marked unverified for this book; the vocabulary was drafted with an AI model
-and is recorded as `ai_generated`; nothing is approved. Its report: needs
-research (three blocking questions), 53 puzzles unspecified, the 20-puzzle cap
-unsupported, the print profile undecided, and thin pools for 60 puzzles. Its
-`book.yaml` and build identity are unchanged.
+A real book's plan lives beside its `book.yaml` in the book repository (see
+[production scale](production-scale.md)), so planning and production identities
+travel with the book. The engine's planning tests use synthetic plans only:
+`tests/planning_helpers.py` (a plan ready for approval) and
+`tests/production_book.py` (an unapproved 60-puzzle plan whose production book
+matches it with no deviation).
 
 ## Limitations
 

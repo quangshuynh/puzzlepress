@@ -10,6 +10,7 @@ from puzzlepress import (
     parse_project,
     validate_project,
 )
+from puzzlepress.content import MAX_BANKS, MAX_PROFILES, MAX_PUZZLES
 
 
 def change(data, path, value):
@@ -139,13 +140,15 @@ def test_invalid_schema_extension(garden, path, value):
     assert all(issue.path.startswith("word_search") for issue in result.issues)
 
 
-@pytest.mark.parametrize("field", ["banks", "profiles", "puzzles"])
-def test_duplicate_object_ids_and_collection_limits(garden, field):
+@pytest.mark.parametrize(
+    ("field", "limit"), [("banks", MAX_BANKS), ("profiles", MAX_PROFILES), ("puzzles", MAX_PUZZLES)]
+)
+def test_duplicate_object_ids_and_collection_limits(garden, field, limit):
     data = garden.to_dict()
     items = data["word_search"][field]
     items.append(copy.deepcopy(items[0]))
     assert any(i.code == "duplicate_id" for i in validate_project(data).issues)
-    data["word_search"][field] = [items[0]] * 21
+    data["word_search"][field] = [items[0]] * (limit + 1)
     assert any(i.code == "count" for i in validate_project(data).issues)
 
 

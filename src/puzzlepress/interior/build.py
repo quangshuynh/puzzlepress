@@ -22,7 +22,7 @@ from ..publication import PublicationPlan, build_publication
 from ..publication_verification import verify_publication_plan
 from .engine import RENDERER_VERSION, layout_interior
 from .fonts import font_manifest
-from .inspection import inspect_pdf
+from .inspection import PdfFacts, contract_issues, read_pdf_facts
 from .issues import InteriorError, LayoutIssue
 from .model import InteriorLayout
 from .render import render_pdf
@@ -42,6 +42,9 @@ class InteriorBuild:
     layout: InteriorLayout
     pdf: bytes
     manifest: dict[str, object]
+    # What pypdf observed in exactly these PDF bytes. Preflight reuses it only for
+    # artifact bytes equal to `pdf`; reading the same bytes again gives the same facts.
+    facts: PdfFacts | None = None
 
 
 @dataclass(frozen=True)
@@ -67,10 +70,12 @@ def build_interior(project: Project, spec: PrintSpecification) -> InteriorBuild:
     if layout_issues:
         raise InteriorError("layout_validation", layout_issues)
     pdf = render_pdf(layout)
-    pdf_issues = inspect_pdf(pdf, layout)
+    facts = read_pdf_facts(pdf)
+    pdf_issues = (facts,) if isinstance(facts, LayoutIssue) else contract_issues(facts, layout)
     if pdf_issues:
         raise InteriorError("pdf_verification", pdf_issues)
-    return InteriorBuild(report, plan, layout, pdf, interior_manifest(layout, pdf))
+    assert not isinstance(facts, LayoutIssue)
+    return InteriorBuild(report, plan, layout, pdf, interior_manifest(layout, pdf), facts)
 
 
 # Manifest fields that, together, are the interior identity's inputs.

@@ -157,9 +157,11 @@ face at up to 14, 13 or 12 pt (editorial, bold, minimal), as large as the 0.0625
 Spine text is omitted with a stated reason when the book is too short
 (`page_count`), the spine cannot hold 7 pt type (`spine_too_narrow`: below about 99 white or
 89 cream pages for the editorial preset, 106 or 96 for the sans presets) or the author chose `none`. Text that
-fits across but not along the spine fails with `spine_text_overflow`. The
-schema's 20-puzzle limit keeps current books below 80 pages, so spine text is
-exercised by tests with synthetic interior facts, not by a fixture.
+fits across but not along the spine fails with `spine_text_overflow`. Real
+interiors exercise both outcomes: a 95-page book on white paper reaches 80 pages
+but its 0.214 in spine omits text as `spine_too_narrow` (tested with the synthetic
+production book); a synthetic 152-page book's 0.342 in spine printed it at 14 pt
+(measured, [production scale](production-scale.md)).
 
 ## Barcode area
 
@@ -337,8 +339,8 @@ shared draft and previews a real PDF rendered by Python from the unsaved draft.
 
 One trim (8.5 x 11 in), black-ink white or cream paper, two layouts, three type
 presets, Latin-1 text, RGB output without color management, no CMYK, no
-barcode or ISBN, no hardcover, ebook or Kindle covers. Spine text is reachable
-only by books of 80+ pages, which the 20-puzzle schema limit currently prevents.
+barcode or ISBN, no hardcover, ebook or Kindle covers. Spine text needs 80+ pages
+and a spine wide enough for 7 pt type.
 The cover demo's photograph is a synthetic stand-in. Unreferenced imported
 photos are not cleaned up. KDP metadata and the publishing package are described in
 [publishing](publishing.md).

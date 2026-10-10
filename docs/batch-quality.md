@@ -35,7 +35,7 @@ word_search:
     prohibited_words: []
 ```
 
-`banks`, `profiles`, and `puzzles` are required lists with 1..20 entries each.
+`banks` and `profiles` are required lists with 1..20 entries; `puzzles` holds 1..100.
 Their IDs are unique within each list. IDs use 1..64 ASCII letters, digits,
 underscores, or hyphens. References are case-sensitive; text edges are trimmed.
 Puzzle `title` and `theme` are required nonempty Unicode text up to 200 characters.
@@ -95,8 +95,11 @@ It is independent of batch position, themes, and other puzzles. IDs are therefor
 stable generation identities. Changing target selection or a profile still changes
 the puzzle inputs. Batch order remains meaningful to reports and project identity.
 
-Generation is sequential and bounded by 20 definitions and each profile's search
-limits (at most 20 million candidate checks in a batch). Every generated puzzle
+Generation is sequential and bounded by 100 definitions and a batch work budget:
+the sum of every puzzle's profile `max_attempts` may not exceed 20,000,000
+candidate checks (`content.MAX_BATCH_ATTEMPTS`, the worst case before the cap rose
+from 20; about two minutes at the slowest measured rate). Over-budget projects fail
+validation with `work_budget` before anything runs. Every generated puzzle
 is independently verified. Expected placement exhaustion produces a per-puzzle
 error with attempt/restart counts, while later definitions continue. Invalid
 projects fail before starting; unexpected implementation failures remain visible.

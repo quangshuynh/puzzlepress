@@ -2,8 +2,10 @@
 
 ## Schema v1
 
-The example at [`books/automotive/book.yaml`](../books/automotive/book.yaml) contains
-three authored items, not generated puzzles:
+The minimal example at
+[`tests/fixtures/legacy-automotive/book.yaml`](../tests/fixtures/legacy-automotive/book.yaml)
+(formerly `books/automotive/book.yaml`) contains three authored items, not generated
+puzzles:
 
 ```yaml
 schema_version: 1
