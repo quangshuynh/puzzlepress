@@ -1269,3 +1269,37 @@ word_search:
     # chance. Added in Interval 12 for the author's review; matches are findings.
     prohibited_words: [BITCH, CHINK, COCK, CUNT, DICK, FAG, FUCK, KIKE, NIGGA, NIGGER, PISS,
       PORN, PUSSY, RAPE, RETARD, SHIT, SLUT, SPIC, TITS, TURD, TWAT, WANK, WHORE]
+# KDP paperback metadata (docs/publishing.md). The description and keywords were
+# drafted with an AI model for the author's review. Everything that is the
+# author's to decide stays undecided: categories, contributors, the audience
+# answers, low-content status, ISBN, edition, the AI disclosure and every
+# confirmation. Packaging stays blocked until a person decides them.
+publishing:
+  version: 2
+  description: |-
+    Sixty word searches built from the vocabulary of engines, maintenance, tools, vehicle systems, motorsport, automotive history and driving.
+
+    The puzzles grow harder through the book in three levels, warm-up, standard and challenge, with larger grids at each level; in the challenge puzzles, words run in all eight directions. Each puzzle has its own page with a themed word list, and every grid is generated and independently checked.
+
+    Solutions are at the back of the book, two to a page.
+  keywords:
+    - car enthusiast puzzle book
+    - car word search puzzles
+    - mechanic vocabulary puzzles
+    - motorsport word puzzles
+    - engine and garage terms
+  categories: []
+  contributors: []
+  audience:
+    sexually_explicit: null
+    reading_age: {minimum: null, maximum: null}
+  low_content: null
+  isbn: {mode: undecided, value: null}
+  edition: null
+  series: null
+  ai_disclosure: {text: unknown, images: unknown, translations: unknown}
+  attestations: {rights: null, ai_disclosure: null, metadata: null, isbn: null}
+  notes: >-
+    Word lists, puzzle titles, matter text, this description and these keywords were
+    drafted with an AI model (provenance in planning.yaml). Decide the AI disclosure
+    with that in mind; editing does not make AI-generated text AI-assisted.
