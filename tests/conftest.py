@@ -18,6 +18,14 @@ def source(example_path: Path) -> str:
     return example_path.read_text(encoding="utf-8")
 
 
+@pytest.fixture(scope="session")
+def production_book(tmp_path_factory) -> Path:
+    """The SYNTHETIC 60-puzzle production book (tests/production_book.py), read-only."""
+    from production_book import write_production_book
+
+    return write_production_book(tmp_path_factory.mktemp("synthetic") / "books" / "production")
+
+
 @pytest.fixture
 def garden():
     return load_project(Path(__file__).resolve().parents[1] / "books/garden-demo").project

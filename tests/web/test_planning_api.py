@@ -10,15 +10,16 @@ from fastapi.testclient import TestClient
 from puzzlepress.studio.server import create_app
 from tests.helpers import ROOT
 from tests.planning_helpers import complete_plan, variant
+from tests.production_book import write_production_book
 
-BASE = "/api/projects/automotive"
+BASE = "/api/projects/production"
 
 
 @pytest.fixture
 def studio(tmp_path: Path) -> tuple[TestClient, Path]:
     books = tmp_path / "books"
-    for name in ("automotive", "garden-demo"):
-        shutil.copytree(ROOT / "books" / name, books / name)
+    write_production_book(books / "production")  # SYNTHETIC 60-puzzle book with a plan.
+    shutil.copytree(ROOT / "books" / "garden-demo", books / "garden-demo")
     return TestClient(create_app(books, tmp_path / "frontend")), books
 
 
@@ -31,8 +32,8 @@ def test_status_of_the_demo_and_of_a_project_without_a_plan(
 ) -> None:
     client, books = studio
     data = client.get(f"{BASE}/planning").json()
-    assert data["revision"] == digest(books / "automotive" / "planning.yaml")
-    assert data["book"] == {"id": "automotive-word-search", "title": "Automotive Word Search"}
+    assert data["revision"] == digest(books / "production" / "planning.yaml")
+    assert data["book"] == {"id": "synthetic-production-book", "title": "Synthetic Production Book"}
     assert data["source"]["structure"]["target_puzzles"] == 60
     assert data["report"]["state"] == "needs_research"
     empty = client.get("/api/projects/garden-demo/planning").json()
@@ -57,7 +58,7 @@ def test_draft_checks_are_python_authoritative_and_write_nothing(
     studio: tuple[TestClient, Path],
 ) -> None:
     client, books = studio
-    before = {p.name: p.read_bytes() for p in (books / "automotive").iterdir()}
+    before = {p.name: p.read_bytes() for p in (books / "production").iterdir()}
     response = client.post(f"{BASE}/draft/planning", json={"source": complete_plan()})
     assert response.status_code == 200
     assert response.json()["report"]["state"] == "ready_for_approval"
@@ -67,14 +68,14 @@ def test_draft_checks_are_python_authoritative_and_write_nothing(
     error = response.json()["error"]
     assert error["code"] == "invalid_planning"
     assert error["issues"][0]["path"] == "structure.target_puzzles"
-    assert {p.name: p.read_bytes() for p in (books / "automotive").iterdir()} == before
+    assert {p.name: p.read_bytes() for p in (books / "production").iterdir()} == before
 
 
 def test_save_is_revision_aware_and_leaves_book_yaml_alone(
     studio: tuple[TestClient, Path],
 ) -> None:
     client, books = studio
-    book = books / "automotive" / "book.yaml"
+    book = books / "production" / "book.yaml"
     book_before = book.read_bytes()
     detail_before = client.get(BASE).json()
     status = client.get(f"{BASE}/planning").json()
@@ -159,11 +160,11 @@ def test_invalid_planning_file_and_invalid_book_are_reported(
     studio: tuple[TestClient, Path],
 ) -> None:
     client, books = studio
-    (books / "automotive" / "planning.yaml").write_text("planning_version: 7\n", encoding="utf-8")
+    (books / "production" / "planning.yaml").write_text("planning_version: 7\n", encoding="utf-8")
     response = client.get(f"{BASE}/planning")
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "invalid_planning"
-    (books / "automotive" / "book.yaml").write_text("schema_version: 9\n", encoding="utf-8")
+    (books / "production" / "book.yaml").write_text("schema_version: 9\n", encoding="utf-8")
     response = client.get(f"{BASE}/planning")
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "invalid_project"
@@ -187,6 +188,6 @@ def test_planning_posts_are_json_and_same_origin_only(studio: tuple[TestClient, 
 
 def test_planning_page_is_served_by_the_shell(studio: tuple[TestClient, Path]) -> None:
     client, _ = studio
-    response = client.get("/books/automotive/planning")
+    response = client.get("/books/production/planning")
     assert response.status_code == 503  # No built frontend in this test: the shell route exists.
     assert response.json()["error"]["code"] == "frontend_missing"

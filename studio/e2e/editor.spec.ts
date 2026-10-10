@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { readFileSync } from 'node:fs';
 
-const originals = ['garden-demo', 'automotive', 'composition-demo'].map((key) => ({
+const originals = ['garden-demo', 'composition-demo'].map((key) => ({
   key,
   bytes: readFileSync(`../books/${key}/book.yaml`),
 }));

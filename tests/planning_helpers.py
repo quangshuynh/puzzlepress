@@ -1,7 +1,7 @@
 """Shared planning fixtures: a small complete plan and helpers to evaluate variants.
 
 The complete plan reaches `ready_for_approval` against the legacy automotive source
-fixture (tests/fixtures/legacy-automotive, same book ID as books/automotive). Its
+fixture (tests/fixtures/legacy-automotive). Its
 words are generic automotive terms written for tests; the research note is a
 synthetic test record, not a claim about any real source.
 """
@@ -19,7 +19,6 @@ if TYPE_CHECKING:
     from puzzlepress.planning import PlanningReadinessReport
 
 ROOT = Path(__file__).resolve().parents[1]
-AUTOMOTIVE = ROOT / "books" / "automotive"
 LEGACY = ROOT / "tests" / "fixtures" / "legacy-automotive"
 
 ENGINE_WORDS = [
@@ -217,7 +216,12 @@ def codes(report: "PlanningReadinessReport") -> set[str]:
     return {f.rule.code for f in report.findings}
 
 
-def copy_book(tmp_path: Path, name: str = "automotive") -> Path:
+def copy_book(tmp_path: Path, name: str | None = None) -> Path:
+    """A disposable copy of a canonical book, or by default the synthetic production book."""
+    if name is None:
+        from production_book import write_production_book
+
+        return write_production_book(tmp_path / "books" / "production")
     target = tmp_path / "books" / name
     shutil.copytree(ROOT / "books" / name, target)
     return target

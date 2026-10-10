@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tests"))
 
 from planning_helpers import complete_plan, document  # noqa: E402
+from production_book import write_production_book  # noqa: E402
 
 from puzzlepress.planning import write_planning  # noqa: E402
 
@@ -22,14 +23,16 @@ with tempfile.TemporaryDirectory(prefix="puzzlepress-browser-") as directory:
         target = books / key
         target.mkdir(parents=True)
         shutil.copyfile(ROOT / "books" / key / "book.yaml", target / "book.yaml")
-    # Planning: the automotive plan, and a synthetic plan ready for approval.
-    shutil.copytree(ROOT / "books" / "automotive", books / "automotive")
-    # The 60-puzzle production book, built only inside this temporary directory.
-    shutil.copytree(ROOT / "books" / "automotive", books / "automotive-production")
-    source = books / "automotive-production" / "book.yaml"
+    # Planning: the SYNTHETIC production book's plan, and a synthetic plan ready for
+    # approval. Real books live in puzzlepress-books; the engine never reads them.
+    write_production_book(books / "production")
+    # The same SYNTHETIC 60-puzzle book for the production walkthrough; its builds
+    # write only inside this temporary directory.
+    write_production_book(books / "production-book")
+    source = books / "production-book" / "book.yaml"
     source.write_text(
         source.read_text(encoding="utf-8").replace(
-            "../../build/automotive-word-search", "../../build/automotive-production"
+            "../../build/synthetic-production-book", "../../build/production-book"
         ),
         encoding="utf-8",
     )

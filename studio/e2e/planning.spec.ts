@@ -2,11 +2,12 @@ import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { readFileSync } from 'node:fs';
 
-// The server serves disposable copies: the automotive planning demo and a SYNTHETIC
-// plan that is ready for approval. Approvals here are test decisions on those copies.
+// The server serves disposable SYNTHETIC books: the 60-puzzle production book's plan
+// and a plan that is ready for approval. Approvals here are test decisions on them.
+// Repository sources must stay untouched.
 
 const shot = (name: string) => `../docs/images/studio/${name}.png`;
-const originals = ['automotive/book.yaml', 'automotive/planning.yaml'].map((path) => ({
+const originals = ['garden-demo/book.yaml', 'composition-demo/book.yaml'].map((path) => ({
   path,
   bytes: readFileSync(`../books/${path}`),
 }));
@@ -27,11 +28,11 @@ async function open(page: Page, key: string, section = '') {
 const readiness = (page: Page) => page.getByRole('complementary', { name: 'Readiness' });
 const nav = (page: Page) => page.getByRole('navigation', { name: 'Plan sections' });
 
-test('review the automotive plan by section, keyboard and width', async ({ page }) => {
+test('review the synthetic production plan by section, keyboard and width', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await open(page, 'automotive');
+  await open(page, 'production');
   const panel = readiness(page);
   await expect(panel.getByText(/^Needs research: blocking questions/)).toBeVisible();
   await expect(panel.getByText('Producible with current PuzzlePress')).toBeVisible();
@@ -53,7 +54,7 @@ test('review the automotive plan by section, keyboard and width', async ({ page 
     'location',
   );
   const chart = page.getByRole('table', { name: /Puzzles by theme: 60 allocated/ });
-  await expect(chart.getByRole('rowheader', { name: /Engines & Powertrains/ })).toBeVisible();
+  await expect(chart.getByRole('rowheader', { name: /Northern Words/ })).toBeVisible();
   await noAxeViolations(page);
   await page.locator('.planning-section').screenshot({ path: shot('planning-themes') });
 
@@ -72,7 +73,7 @@ test('review the automotive plan by section, keyboard and width', async ({ page 
   // All 60 planned puzzles are specified, in gradual order.
   const strip = page.getByRole('list', { name: 'Planned puzzles in book order' }).first();
   await expect(strip.locator('.level-cell')).toHaveCount(60);
-  await expect(strip.getByText('Puzzle 60, Timing and Ignition: Challenge')).toBeAttached();
+  await expect(strip.getByText('Puzzle 60, Northern Challenge 10: Challenge')).toBeAttached();
   await page
     .locator('.plan-figure')
     .first()
@@ -93,7 +94,7 @@ test('review the automotive plan by section, keyboard and width', async ({ page 
   await expect(
     page.getByRole('heading', { name: /Editorial review \(never blocks\)/ }),
   ).toBeVisible();
-  await expect(page.getByText(/Pool engines has 133 usable words/)).toBeVisible();
+  await expect(page.getByText(/Pool north has 135 usable words/)).toBeVisible();
   await noAxeViolations(page);
   await page.locator('.planning-section').screenshot({ path: shot('planning-coverage') });
 
@@ -103,7 +104,7 @@ test('review the automotive plan by section, keyboard and width', async ({ page 
     ['390', 390, 844],
   ] as const) {
     await page.setViewportSize({ width, height });
-    await open(page, 'automotive', 'themes');
+    await open(page, 'production', 'themes');
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
       name,
@@ -124,8 +125,8 @@ test('edit with Python checks, save beside book.yaml, conflicts keep the draft',
 }) => {
   page.on('dialog', (dialog) => void dialog.accept());
   await page.setViewportSize({ width: 1440, height: 1000 });
-  const book = await (await request.get('/api/projects/automotive')).json();
-  await open(page, 'automotive');
+  const book = await (await request.get('/api/projects/production')).json();
+  await open(page, 'production');
   const subject = page.getByLabel('Subject or niche');
   const checked = page.waitForResponse((r) => r.url().endsWith('/draft/planning'));
   await subject.fill('Automotive technology and workshop practice');
@@ -144,14 +145,14 @@ test('edit with Python checks, save beside book.yaml, conflicts keep the draft',
   await page.getByRole('button', { name: 'Save plan' }).click();
   await expect(page.getByText(/Saved planning.yaml and reloaded it/)).toBeVisible();
   await expect(page.getByText('Saved plan', { exact: true })).toBeVisible();
-  const after = await (await request.get('/api/projects/automotive')).json();
+  const after = await (await request.get('/api/projects/production')).json();
   expect(after.revision).toBe(book.revision); // book.yaml untouched.
-  const saved = await (await request.get('/api/projects/automotive/planning')).json();
+  const saved = await (await request.get('/api/projects/production/planning')).json();
   expect(saved.source.concept.subject).toBe('Automotive technology and workshop practice');
 
   // Someone else saves meanwhile: this draft is refused, kept, and can be reloaded.
   await subject.fill('My unsaved subject');
-  await request.post('/api/projects/automotive/planning/save', {
+  await request.post('/api/projects/production/planning/save', {
     data: {
       source: { ...saved.source, concept: { ...saved.source.concept, scope: 'Changed elsewhere' } },
       revision: saved.revision,

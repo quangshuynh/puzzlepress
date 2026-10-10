@@ -14,9 +14,9 @@ def installed_puzzlepress() -> Path:
 
 ROOT = Path(__file__).resolve().parents[1]
 DEMO = ROOT / "books" / "composition-demo"
-CANONICAL_BOOKS = ("automotive", "composition-demo", "cover-demo", "garden-demo", "publishing-demo")
-# The tiny legacy schema-v1 source that books/automotive held before it became the
-# production book. Byte-identical, so its pinned build identity is unchanged.
+CANONICAL_BOOKS = ("composition-demo", "cover-demo", "garden-demo", "publishing-demo")
+# The tiny legacy schema-v1 source books/automotive once held. Byte-identical, so its
+# pinned build identity is unchanged. Real books live in the puzzlepress-books repository.
 LEGACY_FIXTURE = ROOT / "tests" / "fixtures" / "legacy-automotive"
 
 

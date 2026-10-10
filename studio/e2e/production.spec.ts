@@ -1,20 +1,11 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { readFileSync } from 'node:fs';
 import type { Generation } from '../src/types';
 
-// The 60-puzzle automotive production book, served from a temporary copy
-// (automotive-production). Builds write only inside that temporary directory.
-const key = 'automotive-production';
+// The SYNTHETIC 60-puzzle production book (tests/production_book.py), written to a
+// temporary library (production-book). Builds write only inside that directory.
+const key = 'production-book';
 const shot = (name: string) => `../docs/images/studio/${name}.png`;
-const originals = ['book.yaml', 'planning.yaml'].map((name) => ({
-  name,
-  bytes: readFileSync(`../books/automotive/${name}`),
-}));
-test.afterAll(() => {
-  for (const { name, bytes } of originals)
-    expect(readFileSync(`../books/automotive/${name}`)).toEqual(bytes);
-});
 
 async function noAxeViolations(page: Page) {
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
@@ -73,7 +64,7 @@ test('open, review, compose, print and check the 60-puzzle production book', asy
   expect(generation.report.success).toBe(true);
   expect(generation.report.clean).toBe(true);
   expect(generation.report.puzzles).toHaveLength(60);
-  const last = generation.report.puzzles.find((p) => p.id === 'engines-10')!;
+  const last = generation.report.puzzles.find((p) => p.id === 'north-10')!;
   await page.getByRole('link', { name: last.title, exact: true }).click();
   const grid = page.getByRole('table');
   await expect(grid).toBeVisible();

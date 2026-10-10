@@ -1,9 +1,9 @@
-"""The automotive production book, end to end: content, plan, interior, cover facts, publishing.
+"""A 60-puzzle production book end to end: content, plan, interior, cover facts, publishing.
 
-One interior build per module run keeps this bounded. Everything is written to
-temporary directories; books/automotive is only read. The cover check uses a
-SYNTHETIC stand-in photograph in a temporary copy: the real book has no
-authorized photograph yet and must not get one from tests.
+Uses the SYNTHETIC production book (tests/production_book.py) written to a
+temporary directory; real books live in the puzzlepress-books repository and are
+never needed here. One interior build per module run keeps this bounded. The cover
+check uses a synthetic stand-in photograph in a temporary copy.
 """
 
 import hashlib
@@ -29,24 +29,26 @@ from puzzlepress.publishing import evaluate_readiness, validate_metadata
 from puzzlepress.wordsearch import verify_word_search
 from puzzlepress.yaml_io import dump_project
 from tests.cover_helpers import photo_bytes
-from tests.helpers import ROOT
 
-BOOK = ROOT / "books" / "automotive"
-THEMES = {"engines": 10, "maintenance": 10, "tools": 8, "systems": 10, "motorsport": 8,
-          "history": 6, "driving": 8}  # fmt: skip
+THEMES = {"north": 10, "east": 10, "south": 8, "west": 10, "high": 8, "low": 6, "coast": 8}
 LEVELS = {"warm-up": (13, 3), "standard": (15, 4), "challenge": (17, 8)}
 
 
 @pytest.fixture(scope="module")
-def project():  # type: ignore[no-untyped-def]
-    return load_project(BOOK).project
+def book(production_book):  # type: ignore[no-untyped-def]
+    return production_book
 
 
 @pytest.fixture(scope="module")
-def built(project, tmp_path_factory):  # type: ignore[no-untyped-def]
+def project(book):  # type: ignore[no-untyped-def]
+    return load_project(book).project
+
+
+@pytest.fixture(scope="module")
+def built(project, book, tmp_path_factory):  # type: ignore[no-untyped-def]
     build = build_interior(project, PAPERBACK_LETTER)
-    out = tmp_path_factory.mktemp("automotive") / "out"
-    write_interior(build, out, BOOK)
+    out = tmp_path_factory.mktemp("production") / "out"
+    write_interior(build, out, book)
     return build, out
 
 
@@ -91,13 +93,13 @@ def test_every_word_is_placed_verified_and_screened_clean(project) -> None:  # t
         quality = result.quality
         assert quality is not None and quality.prohibited_screening_enabled
         assert not quality.accidental_targets.occurrences and not quality.prohibited.occurrences
-    # No normalized word is used in more than two puzzles; almost none repeat.
+    # The synthetic vocabulary never repeats a word.
     forms = Counter(
         e.display.replace(" ", "")
         for p in project.word_search.puzzles
         for e in project.word_search.entries_for(p)
     )
-    assert max(forms.values()) == 2 and len(forms) == 787 and sum(forms.values()) == 793
+    assert max(forms.values()) == 1 and len(forms) == sum(forms.values()) == 798
 
 
 def test_word_lists_print_in_alphabetical_order(project) -> None:  # type: ignore[no-untyped-def]
@@ -106,12 +108,16 @@ def test_word_lists_print_in_alphabetical_order(project) -> None:  # type: ignor
         assert forms == sorted(forms), p.id
 
 
-def test_the_book_matches_its_unapproved_plan(project) -> None:  # type: ignore[no-untyped-def]
-    plan = read_planning(BOOK).document
+def test_the_book_matches_its_unapproved_plan(project, book) -> None:  # type: ignore[no-untyped-def]
+    plan = read_planning(book).document
     assert plan is not None
-    doc = comparison_document(evaluate_plan(project, plan))
+    report = evaluate_plan(project, plan)
+    doc = comparison_document(report)
     assert doc["matches_plan"] is True
     assert doc["planning"]["approved"] is False and doc["planning"]["state"] == "needs_research"
+    assert {f.rule.code for f in report.blocking()} == {"question_blocking_open"}
+    assert next(i for i in report.feasibility if i.code == "puzzle_count").status == "verified"
+    assert report.to_dict()["page_estimate"]["minimum"] == 94
 
 
 # ------------------------------------------------------------------- plan and interior
@@ -146,21 +152,18 @@ def test_page_order_numbering_and_solution_references(built) -> None:  # type: i
     assert not any(p.number.displayed for p in pages[:4])
 
 
-def test_instructions_state_what_the_book_actually_contains(built, project) -> None:  # type: ignore[no-untyped-def]
+def test_levels_occupy_their_page_ranges(built, project) -> None:  # type: ignore[no-untyped-def]
     build, _ = built
     text = next(m.text for m in project.composition.front_matter if m.kind.value == "instructions")
     pages = [p for p in build.plan.pages if p.kind is PageKind.PUZZLE]
-    for level, first, last in (("Warm-up", 1, 20), ("Standard", 21, 40), ("Challenge", 41, 60)):
-        assert f"{level}, pages {first} to {last}:" in text
-        side = LEVELS[level.lower()][0]
-        assert f"{side} by {side} grids" in text
+    for level, first, last in (("warm-up", 1, 20), ("standard", 21, 40), ("challenge", 41, 60)):
         chosen = pages[first - 1 : last]
+        assert [p.number.label for p in chosen] == [str(n) for n in range(first, last + 1)]
         assert {p.puzzle.id for p in chosen} == {
-            q.id for q in project.word_search.puzzles if q.difficulty == level.lower()
+            q.id for q in project.word_search.puzzles if q.difficulty == level
         }
     first_solution = next(p for p in build.plan.pages if p.kind is PageKind.SOLUTIONS)
-    assert f"Solutions begin on page {first_solution.number.label}, two to a page." in text
-    assert "10 or 11 words" in text and "13 or 14 words" in text and "16 words" in text
+    assert f"Solutions begin on page {first_solution.number.label}." in text
 
 
 def test_interior_is_print_safe_and_preflights_valid_and_kdp_ready(project, built) -> None:  # type: ignore[no-untyped-def]
@@ -174,7 +177,7 @@ def test_interior_is_print_safe_and_preflights_valid_and_kdp_ready(project, buil
     assert report.source_identity == build_identity(project)
 
 
-def test_interior_bytes_are_identical_across_processes(built, tmp_path) -> None:  # type: ignore[no-untyped-def]
+def test_interior_bytes_are_identical_across_processes(built, book, tmp_path) -> None:  # type: ignore[no-untyped-def]
     build, _ = built
     code = (
         "import hashlib, sys\n"
@@ -186,7 +189,7 @@ def test_interior_bytes_are_identical_across_processes(built, tmp_path) -> None:
     )
     env = {**os.environ, "PYTHONHASHSEED": "31337"}
     result = subprocess.run(
-        [sys.executable, "-c", code, str(BOOK)],
+        [sys.executable, "-c", code, str(book)],
         capture_output=True, text=True, cwd=tmp_path, env=env, check=True,
     )  # fmt: skip
     assert result.stdout.strip() == hashlib.sha256(build.pdf).hexdigest()
@@ -230,7 +233,7 @@ def test_spine_text_is_omitted_when_the_real_spine_is_too_narrow(project, built,
 # ------------------------------------------------------------------- publishing
 
 
-def test_publishing_stays_blocked_on_the_authors_decisions(project, built) -> None:  # type: ignore[no-untyped-def]
+def test_publishing_stays_blocked_on_the_authors_decisions(project, book, built) -> None:  # type: ignore[no-untyped-def]
     build, out = built
     metadata = validate_metadata(project)
     blocking = {f.rule.code for f in metadata.findings if f.severity is Severity.ERROR}
@@ -245,7 +248,7 @@ def test_publishing_stays_blocked_on_the_authors_decisions(project, built) -> No
     assert publishing.isbn.mode.value == "undecided" and publishing.isbn.value is None
     assert set(publishing.attestations.to_dict().values()) == {None}
     assert project.book.author is None and project.cover is None
-    report = evaluate_readiness(project, BOOK, out)
+    report = evaluate_readiness(project, book, out)
     assert report.interior_state == "current"
     assert report.cover_state == "no_config"
     assert not report.package_ready
