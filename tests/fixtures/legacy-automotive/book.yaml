@@ -1,0 +1,15 @@
+schema_version: 1
+book:
+  id: automotive-word-search
+  title: Automotive Word Search
+  language: en-US
+  description: A tiny source fixture for the PuzzlePress foundation.
+build:
+  seed: 2026
+content:
+  items:
+    - ENGINE
+    - CLUTCH
+    - PISTON
+output:
+  directory: ../../build/automotive-word-search

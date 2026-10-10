@@ -224,11 +224,13 @@ def test_boundary_rechecked_after_staging(setup, monkeypatch):
 def test_repository_fixture_bytes_unchanged():
     root = Path(__file__).resolve().parents[2]
     for key, expected in {
-        "garden-demo": "ffd7f7eb02c5d88f1f3e4880a505e140d60562cb113973fc448aeaabcffac540",
-        "automotive": "209f3fd646b2bf5cfd97f646c2c7868ba376edf9e11bf262bb09a02a5f3759e0",
+        "books/garden-demo": "ffd7f7eb02c5d88f1f3e4880a505e140d60562cb113973fc448aeaabcffac540",
+        "tests/fixtures/legacy-automotive": (
+            "209f3fd646b2bf5cfd97f646c2c7868ba376edf9e11bf262bb09a02a5f3759e0"
+        ),
     }.items():
         # CRLF and LF checkouts must agree; bytes are also checked in browser tests.
-        raw = (root / "books" / key / "book.yaml").read_bytes().replace(b"\r\n", b"\n")
+        raw = (root / key / "book.yaml").read_bytes().replace(b"\r\n", b"\n")
         assert hashlib.sha256(raw).hexdigest() == expected
 
 

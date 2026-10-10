@@ -27,7 +27,7 @@ with tempfile.TemporaryDirectory(prefix="puzzlepress-browser-") as directory:
     target = books / "planning-ready"
     target.mkdir()
     (target / "book.yaml").write_text(
-        (ROOT / "books/automotive/book.yaml")
+        (ROOT / "tests/fixtures/legacy-automotive/book.yaml")
         .read_text(encoding="utf-8")
         .replace("Automotive Word Search", "Planning Acceptance Book"),
         encoding="utf-8",

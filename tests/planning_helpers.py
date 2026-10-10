@@ -1,6 +1,7 @@
 """Shared planning fixtures: a small complete plan and helpers to evaluate variants.
 
-The complete plan reaches `ready_for_approval` against books/automotive. Its
+The complete plan reaches `ready_for_approval` against the legacy automotive source
+fixture (tests/fixtures/legacy-automotive, same book ID as books/automotive). Its
 words are generic automotive terms written for tests; the research note is a
 synthetic test record, not a claim about any real source.
 """
@@ -19,6 +20,7 @@ if TYPE_CHECKING:
 
 ROOT = Path(__file__).resolve().parents[1]
 AUTOMOTIVE = ROOT / "books" / "automotive"
+LEGACY = ROOT / "tests" / "fixtures" / "legacy-automotive"
 
 ENGINE_WORDS = [
     "PISTON",
@@ -75,7 +77,8 @@ TOOL_WORDS = [
 
 
 def project() -> Project:
-    return load_project(AUTOMOTIVE).project
+    """A source without word_search, so plans are judged on their own content."""
+    return load_project(LEGACY).project
 
 
 def complete_plan() -> dict[str, object]:
