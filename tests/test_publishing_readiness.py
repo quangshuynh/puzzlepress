@@ -312,3 +312,53 @@ def test_composition_demo_remains_a_negative_example(tmp_path):
     }
     assert {"publishing_configured", "interior_kdp", "cover_present"} <= set(errors(report))
     assert not report.package_ready
+
+
+def _restyle_cover(source, output, **cover):
+    """Rewrite the cover as version 2 with `cover` changes, reconfirm, and rebuild it."""
+    from puzzlepress.cover.build import build_cover, write_cover
+    from puzzlepress.validation import validate_project
+    from puzzlepress.yaml_io import dump_project
+
+    data = load_project(source).project.to_dict()
+    data["cover"] = {**data["cover"], "version": 2, **cover}
+    project = validate_project(data).require_project()
+    (source / "book.yaml").write_text(dump_project(project), encoding="utf-8")
+    reconfirm(source, "rights", "ai_disclosure")
+    project = load_project(source).project
+    write_cover(build_cover(project, source, output), output, source)
+
+
+def test_hidden_cover_title_keeps_the_book_title_and_warns(ready):
+    source, output = ready
+    title = load_project(source).project.book.title
+    _restyle_cover(source, output, text={"title": {"visible": False}})
+    project = load_project(source).project
+    assert project.book.title == title
+    report = evaluate(source, output)
+    omitted = [f for f in report.findings if f.rule.code == "cover_text_omitted"]
+    assert len(omitted) == 1 and omitted[0].severity.value == "warning"
+    assert repr(title) in omitted[0].message
+    assert not [f for f in report.findings if f.rule.code == "cover_text_matches"]
+    assert report.package_ready
+
+
+def test_cover_display_text_must_match_the_book_details(ready):
+    source, output = ready
+    _restyle_cover(source, output, text={"title": {"text": "A Different Title"}})
+    report = evaluate(source, output)
+    findings = [f for f in report.findings if f.rule.code == "cover_text_matches"]
+    assert [f.field for f in findings] == ["cover.text.title.text"]
+    assert not report.package_ready
+
+
+def test_cover_display_text_may_differ_in_line_breaks_and_case(ready):
+    source, output = ready
+    title = load_project(source).project.book.title
+    words = title.upper().split(" ")
+    _restyle_cover(
+        source, output, text={"title": {"text": " ".join(words[:1]) + "\n" + " ".join(words[1:])}}
+    )
+    report = evaluate(source, output)
+    assert not [f for f in report.findings if f.rule.code.startswith("cover_text")]
+    assert report.package_ready
