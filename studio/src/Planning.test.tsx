@@ -83,7 +83,7 @@ test('project navigation links to Planning and to this project’s Publishing', 
   setup();
   await screen.findByRole('complementary', { name: 'Readiness' });
   const projectNav = screen.getByRole('navigation', { name: 'Project' });
-  expect(within(projectNav).getByRole('link', { name: 'Planning' })).toHaveAttribute(
+  expect(within(projectNav).getByRole('link', { name: 'Plan' })).toHaveAttribute(
     'aria-current',
     'page',
   );

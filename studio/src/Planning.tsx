@@ -72,6 +72,16 @@ const EVIDENCE: [Evidence, string, string][] = [
   ['preference', 'Your preference', 'A choice, not a finding'],
   ['unknown', 'Unknown', 'Not yet classified'],
 ];
+// Verified research reads differently from everything that is still an assumption.
+function EvidenceBadge({ evidence }: { evidence: Evidence }) {
+  const label = EVIDENCE.find(([e]) => e === evidence)?.[1] ?? evidence;
+  const verified = evidence === 'verified_source';
+  return (
+    <span className={`evidence-badge ${verified ? 'verified' : 'assumption'}`}>
+      {verified ? label : `${label} · not verified`}
+    </span>
+  );
+}
 const SOURCES: [WordSource, string][] = [
   ['unknown', 'Not recorded'],
   ['human', 'Written by people'],
@@ -485,8 +495,7 @@ function NoteEditor({
       >
         <summary>
           <code>{note.id}</code> {note.observation ? note.observation.slice(0, 80) : 'New note'}
-          {note.observation.length > 80 ? '…' : ''}{' '}
-          <span className="muted">· {EVIDENCE.find(([e]) => e === note.evidence)?.[1]}</span>
+          {note.observation.length > 80 ? '…' : ''} <EvidenceBadge evidence={note.evidence} />
           {own.length > 0 && (
             <span className="muted">
               {' '}
@@ -1956,15 +1965,24 @@ export function Planning({
   return (
     <div className="editor planning">
       <div className="editor-toolbar">
-        <div>
+        <div className="toolbar-title">
           <h2>Planning</h2>
           <p className={d.dirty ? 'draft-status' : 'muted'}>
+            <span aria-hidden="true" className="status-mark" />
             {d.dirty ? 'Unsaved changes' : plan ? 'Saved plan' : 'No plan yet'}
+          </p>
+          <p role="status" aria-live="polite" className="toolbar-message">
+            {d.message}
           </p>
         </div>
         {plan && (
           <div className="editor-actions">
-            <a href="#planning-readiness">Jump to readiness</a>
+            <a className="jump-link" href="#planning-readiness">
+              Jump to readiness
+            </a>
+            <button type="button" disabled={d.busy || !d.dirty} onClick={d.revert}>
+              Revert draft
+            </button>
             <button
               type="button"
               className="primary"
@@ -1973,19 +1991,13 @@ export function Planning({
             >
               Save plan
             </button>
-            <button type="button" disabled={d.busy || !d.dirty} onClick={d.revert}>
-              Revert draft
-            </button>
           </div>
         )}
+        <p className="small muted yaml-note">
+          Saved to <code>planning.yaml</code> beside <code>book.yaml</code>, which planning never
+          changes. Saving writes normalized YAML; comments are not preserved.
+        </p>
       </div>
-      <p className="small muted">
-        Saved to <code>planning.yaml</code> beside <code>book.yaml</code>, which planning never
-        changes. Saving writes normalized YAML; comments are not preserved.
-      </p>
-      <p role="status" aria-live="polite" className="small">
-        {d.message}
-      </p>
       {d.error && (
         <div role="alert" className="notice error">
           <h3>

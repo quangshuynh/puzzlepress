@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { PublishingChecklist } from './publishing-checklist';
 import { ApiError, request } from './api';
 import { DraftToolbar, type Draft } from './draft';
 import { FieldErrors, type Source } from './editor-fields';
@@ -1027,6 +1028,8 @@ function Readiness({
         ))}
       </ul>
       <p className="publishing-statement">{r.statement}</p>
+      <h4 className="checklist-heading">Checklist</h4>
+      <PublishingChecklist status={status} projectKey={d.key} />
       <section className="publishing-export" aria-labelledby="pub-export">
         <h3 id="pub-export">Export</h3>
         <p className="small">
@@ -1096,12 +1099,15 @@ function Readiness({
         </details>
       </section>
       <section aria-labelledby="pub-findings" className="publishing-findings">
-        <h3 id="pub-findings">Findings</h3>
-        {r.findings.length === 0 ? (
-          <p>No findings.</p>
-        ) : (
-          <FindingGroups findings={r.findings} projectKey={d.key} />
-        )}
+        <h3 id="pub-findings">All findings and checks</h3>
+        <details className="details">
+          <summary>Findings by severity ({r.findings.length})</summary>
+          {r.findings.length === 0 ? (
+            <p>No findings.</p>
+          ) : (
+            <FindingGroups findings={r.findings} projectKey={d.key} />
+          )}
+        </details>
         <details className="details rule-list">
           <summary>All checks ({r.rules.length})</summary>
           <ul>

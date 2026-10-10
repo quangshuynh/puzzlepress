@@ -43,7 +43,7 @@ test('shows structural validity and KDP readiness as separate text statuses', as
     'href',
     '#print-findings',
   );
-  expect(screen.getByRole('link', { name: 'Print', current: 'page' })).toBeVisible();
+  expect(screen.getByRole('link', { name: 'Print proof', current: 'page' })).toBeVisible();
   const findings = screen.getByRole('region', { name: 'Preflight findings' });
   expect(within(findings).getByRole('heading', { name: 'Blocking (1)' })).toBeVisible();
   expect(
@@ -268,7 +268,7 @@ test('unsaved drafts block builds with an explanation', async () => {
   const user = userEvent.setup();
   const title = await screen.findByLabelText('Section heading');
   await user.type(title, ' edited');
-  await user.click(screen.getByRole('link', { name: 'Print' }));
+  await user.click(screen.getByRole('link', { name: 'Print proof' }));
   await waitFor(() => expect(screen.getByText('No interior has been built.')).toBeVisible());
   expect(screen.getByRole('button', { name: 'Build interior' })).toBeDisabled();
   expect(

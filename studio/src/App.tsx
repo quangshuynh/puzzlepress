@@ -163,50 +163,27 @@ function ProjectWorkspace({
   if (!project) return <Loading />;
   const base = `/books/${encodeURIComponent(projectKey)}`;
   const result = generation?.report.puzzles.find((p) => p.id === puzzleId);
+  const count = project.source?.word_search?.puzzles.length ?? 0;
+  const book = project.source?.book;
   return (
     <>
-      <header className="page-heading project-heading">
-        <div>
-          <a className="back-link" href="/books">
-            Book library
+      <header className="project-heading">
+        <h1>
+          <a href={base} aria-current={section === 'overview' ? 'page' : undefined}>
+            {book?.title ?? projectKey}
           </a>
-          <h1>{project.source?.book.title}</h1>
-          {project.source?.book.subtitle && <p>{project.source.book.subtitle}</p>}
-          <p className="muted">
-            {project.source?.book.id} · {project.source?.book.language}
-          </p>
-        </div>
-        <span className="source-note">Local authoring studio</span>
+        </h1>
+        <p className="muted">
+          {book?.subtitle && <span>{book.subtitle} · </span>}
+          {book?.id} · {book?.language}
+          {(dirty || planDirty) && (
+            <span className="draft-chip">
+              <span aria-hidden="true" className="status-mark" /> Unsaved draft
+            </span>
+          )}
+        </p>
       </header>
-      <nav className="project-nav" aria-label="Project">
-        <a href={`${base}/planning`} aria-current={section === 'planning' ? 'page' : undefined}>
-          Planning
-        </a>
-        <a href={`${base}/edit`} aria-current={section === 'edit' ? 'page' : undefined}>
-          Edit
-        </a>
-        <a href={`${base}/book`} aria-current={section === 'book' ? 'page' : undefined}>
-          Book
-        </a>
-        <a href={`${base}/print`} aria-current={section === 'print' ? 'page' : undefined}>
-          Print
-        </a>
-        <a href={`${base}/cover`} aria-current={section === 'cover' ? 'page' : undefined}>
-          Cover
-        </a>
-        <a href={`${base}/publishing`} aria-current={section === 'publishing' ? 'page' : undefined}>
-          Publishing
-        </a>
-        <a href={base} aria-current={section === 'overview' ? 'page' : undefined}>
-          Overview
-        </a>
-        <a href={`${base}/puzzles`} aria-current={section === 'puzzles' ? 'page' : undefined}>
-          Puzzles <span>{project.source?.word_search?.puzzles.length ?? 0}</span>
-        </a>
-        <a href={`${base}/quality`} aria-current={section === 'quality' ? 'page' : undefined}>
-          Quality
-        </a>
-      </nav>
+      <ProjectNav base={base} section={section} count={count} />
       {project.source && (
         <DraftWorkspace
           project={project}
@@ -258,6 +235,64 @@ function ProjectWorkspace({
         </footer>
       )}
     </>
+  );
+}
+
+// Sections grouped by stage, in workflow order. Every earlier URL is unchanged.
+const NAV: { group: string; items: [string, string, string?][] }[] = [
+  {
+    group: 'Create',
+    items: [
+      ['planning', 'Plan'],
+      ['edit', 'Puzzles', 'count'],
+      ['book', 'Book'],
+      ['cover', 'Cover'],
+    ],
+  },
+  {
+    group: 'Review',
+    items: [
+      ['print', 'Print proof'],
+      ['puzzles', 'Solutions'],
+      ['quality', 'Quality'],
+    ],
+  },
+  { group: 'Publish', items: [['publishing', 'Publishing']] },
+];
+
+function ProjectNav({ base, section, count }: { base: string; section: string; count: number }) {
+  return (
+    <nav className="project-nav" aria-label="Project">
+      <a
+        className="nav-overview"
+        href={base}
+        aria-current={section === 'overview' ? 'page' : undefined}
+      >
+        Overview
+      </a>
+      {NAV.map(({ group, items }, index) => (
+        <div className="nav-group" key={group}>
+          {index > 0 && (
+            <span className="nav-arrow" aria-hidden="true">
+              →
+            </span>
+          )}
+          <span className="nav-group-label" id={`nav-${group.toLowerCase()}`}>
+            {group}
+          </span>
+          <ul aria-labelledby={`nav-${group.toLowerCase()}`}>
+            {items.map(([key, label, extra]) => (
+              <li key={key}>
+                <a href={`${base}/${key}`} aria-current={section === key ? 'page' : undefined}>
+                  {label}
+                  {extra === 'count' && <span className="nav-count">{count}</span>}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </nav>
   );
 }
 
@@ -318,50 +353,20 @@ export function App() {
       <a className="skip-link" href="#main">
         Skip to content
       </a>
-      <aside className="sidebar">
+      <header className="appbar">
         <a className="brand" href="/books">
           <img src="/logo.png" alt="" />
-          <span>
-            PuzzlePress<small>Publishing studio</small>
-          </span>
+          <span>PuzzlePress</span>
         </a>
-        <nav aria-label="Library">
-          <span className="nav-label">Library</span>
-          <a className="nav-active" href="/books" aria-current={isLibrary ? 'page' : undefined}>
-            <svg
-              viewBox="0 0 24 24"
-              width="20"
-              height="20"
-              aria-hidden="true"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <path d="M4 4h6v16H4zM14 4l5-1 3 16-5 1zM4 8h6M15 8l5-1" />
-            </svg>
+        <nav aria-label="Library" className="appbar-nav">
+          <a href="/books" aria-current={isLibrary ? 'page' : undefined}>
             Books
           </a>
         </nav>
-        <div className="sidebar-note">
-          <span className="sidebar-rule" />
-          <p>
-            A publishing practice,
-            <br />
-            one puzzle at a time.
-          </p>
-          <small>
-            Local workspace
-            <br />
-            Source stays on your machine
-          </small>
-        </div>
-      </aside>
+        <span className="appbar-note">Local studio · files stay on this machine</span>
+      </header>
       <div className="workspace">
-        <header className="topbar">
-          <span>Studio / Books</span>
-          <span>Word-search workspace</span>
-        </header>
-        <main id="main" ref={main} tabIndex={-1}>
+        <main id="main" ref={main} tabIndex={-1} className={isLibrary ? 'library-main' : undefined}>
           <RenderBoundary>
             {isLibrary ? (
               <Library />
