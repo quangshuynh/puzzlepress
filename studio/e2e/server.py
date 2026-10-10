@@ -22,8 +22,17 @@ with tempfile.TemporaryDirectory(prefix="puzzlepress-browser-") as directory:
         target = books / key
         target.mkdir(parents=True)
         shutil.copyfile(ROOT / "books" / key / "book.yaml", target / "book.yaml")
-    # Planning: the automotive demo with its plan, and a synthetic plan ready for approval.
+    # Planning: the automotive plan, and a synthetic plan ready for approval.
     shutil.copytree(ROOT / "books" / "automotive", books / "automotive")
+    # The 60-puzzle production book, built only inside this temporary directory.
+    shutil.copytree(ROOT / "books" / "automotive", books / "automotive-production")
+    source = books / "automotive-production" / "book.yaml"
+    source.write_text(
+        source.read_text(encoding="utf-8").replace(
+            "../../build/automotive-word-search", "../../build/automotive-production"
+        ),
+        encoding="utf-8",
+    )
     target = books / "planning-ready"
     target.mkdir()
     (target / "book.yaml").write_text(

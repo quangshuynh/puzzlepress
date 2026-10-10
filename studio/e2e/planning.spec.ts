@@ -27,7 +27,7 @@ async function open(page: Page, key: string, section = '') {
 const readiness = (page: Page) => page.getByRole('complementary', { name: 'Readiness' });
 const nav = (page: Page) => page.getByRole('navigation', { name: 'Plan sections' });
 
-test('review the automotive demo plan by section, keyboard and width', async ({ page }) => {
+test('review the automotive plan by section, keyboard and width', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -69,7 +69,10 @@ test('review the automotive demo plan by section, keyboard and width', async ({ 
     .getByRole('link', { name: /^Difficulty/ })
     .click();
   await expect(page.getByRole('list', { name: 'Planned puzzles in book order' })).toBeVisible();
-  await expect(page.getByText('53 not yet specified').first()).toBeVisible();
+  // All 60 planned puzzles are specified, in gradual order.
+  const strip = page.getByRole('list', { name: 'Planned puzzles in book order' }).first();
+  await expect(strip.locator('.level-cell')).toHaveCount(60);
+  await expect(strip.getByText('Puzzle 60, Timing and Ignition: Challenge')).toBeAttached();
   await page
     .locator('.plan-figure')
     .first()
@@ -90,7 +93,7 @@ test('review the automotive demo plan by section, keyboard and width', async ({ 
   await expect(
     page.getByRole('heading', { name: /Editorial review \(never blocks\)/ }),
   ).toBeVisible();
-  await expect(page.getByText(/Pool engines has 31 usable words/)).toBeVisible();
+  await expect(page.getByText(/Pool engines has 133 usable words/)).toBeVisible();
   await noAxeViolations(page);
   await page.locator('.planning-section').screenshot({ path: shot('planning-coverage') });
 
