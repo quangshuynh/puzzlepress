@@ -302,13 +302,32 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
     return app
 
 
-def main() -> None:
+def default_frontend() -> Path:
+    """This engine checkout's built Studio, so Studio can serve a library kept elsewhere.
+
+    An editable install resolves to the checkout's studio/dist from any working
+    directory (for example a separate book repository); otherwise ./studio/dist.
+    """
+    checkout = Path(__file__).resolve().parents[3] / "studio" / "dist"
+    return checkout if (checkout / "index.html").is_file() else Path("studio/dist")
+
+
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Run the local PuzzlePress authoring Studio.")
-    parser.add_argument("--books", type=Path, default=Path("books"))
-    parser.add_argument("--frontend", type=Path, default=Path("studio/dist"))
+    parser.add_argument(
+        "--books",
+        type=Path,
+        default=Path("books"),
+        help="Library folder whose subfolders each hold a book.yaml (any location)",
+    )
+    parser.add_argument("--frontend", type=Path, default=None, help="Built Studio (studio/dist)")
     parser.add_argument("--port", type=int, default=8000)
-    args = parser.parse_args()
-    uvicorn.run(create_app(args.books, args.frontend), host="127.0.0.1", port=args.port)
+    args = parser.parse_args(argv)
+    if not args.books.is_dir():
+        parser.error(f"--books {args.books} is not a directory of book projects.")
+    frontend = args.frontend if args.frontend is not None else default_frontend()
+    print(f"PuzzlePress Studio library: {args.books.resolve()}")
+    uvicorn.run(create_app(args.books, frontend), host="127.0.0.1", port=args.port)
 
 
 if __name__ == "__main__":
