@@ -301,6 +301,29 @@ puzzle IDs, composition text, the puzzle cap, AI disclosure, metadata and cover)
 It is printed, never written, and is not a `book.yaml` fragment: it creates or
 overwrites no puzzle definitions and generates nothing.
 
+## Production comparison
+
+`puzzlepress plan production PROJECT [--json]` compares the plan with the
+production book in `book.yaml`, whatever the plan's state, and prints a
+deterministic, versioned document (`comparison_version` 1): the planning
+identity, state and approval beside the production build identity; target,
+planned and produced puzzle counts; theme allocations; each level's planned
+settings beside its production profile and produced word counts; every puzzle
+in book order with its bank, profile, words and planned theme, level and title;
+vocabulary coverage per pool (used and unused words, the banks a pool became);
+produced words by recorded source; deviations; notes; and open questions.
+
+Puzzles match by ID; a puzzle's theme comes from its plan entry, so one pool may
+become several banks. Words compare by search form and in order. Deviation codes:
+`puzzle_count_differs`, `puzzle_missing`, `puzzle_unplanned`, `order_differs`,
+`title_differs`, `level_differs`, `words_differ`, `word_count_outside_level`,
+`word_outside_pool`, `profile_differs`, `profile_missing`, `allocation_differs`,
+`structure_differs`, `composition_missing`. Exit 0 when nothing deviates, 1 for
+deviations, a missing plan or a project without `word_search`, 2 for usage. It
+generates, writes and approves nothing: a matching comparison is not a planning
+approval, and it says so when the plan is not approved. Generation, quality,
+layout and the words' accuracy are not compared (see `not_compared`).
+
 ## Generator limits
 
 A project holds at most 100 puzzle definitions, 20 word banks of 100 entries and
@@ -331,6 +354,7 @@ puzzlepress plan validate PROJECT [--json]   # schema, references, vocabulary; e
 puzzlepress plan report PROJECT [--json]     # full report; exit 0 only when ready or approved
 puzzlepress plan approve PROJECT --identity ID | --withdraw
 puzzlepress plan handoff PROJECT [--json]    # approved plans only
+puzzlepress plan production PROJECT [--json] # plan versus book.yaml; exit 0 if no deviation
 ```
 
 Exit codes: 0 success, 1 missing, invalid or not ready, 2 usage. `report --json`
