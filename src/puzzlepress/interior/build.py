@@ -292,3 +292,63 @@ def style_currency(manifest: dict[str, object], project: Project) -> str | None:
     if recorded is None:
         return "An interior style was added after this interior was built."
     return "The interior style changed after this interior was built."
+
+
+@dataclass(frozen=True)
+class InteriorSample:
+    """A draft preview: the whole book laid out and validated, a few pages rendered."""
+
+    pdf: bytes
+    pages: tuple[tuple[int, str, str | None], ...]  # (physical page, kind, folio) per PDF page.
+    page_count: int
+    warnings: tuple[LayoutIssue, ...]
+
+
+def sample_interior(
+    project: Project,
+    spec: PrintSpecification,
+    source_directory: Path | None = None,
+    publication: tuple[BatchReport, PublicationPlan] | None = None,
+) -> InteriorSample:
+    """Lay out every page, then render the first page of each kind a style changes.
+
+    The same engine, validation and renderer as `build_interior`; only the set of
+    pages drawn differs, so a style edit never renders the whole book. Raises
+    ProjectError or InteriorError. `publication` reuses a generation and plan
+    made from this exact source (styles never change them).
+    """
+    from dataclasses import replace
+
+    from ..publication import PageKind
+    from .images import InteriorPhotos, encode_gray, load_photos
+
+    report, plan = publication or build_publication(project)
+    verification = verify_publication_plan(plan, project, report)
+    if not verification.valid:
+        raise RuntimeError(f"Publication plan failed verification: {verification.issues!r}")
+    style = project.interior
+    photos = load_photos(source_directory, style.images() if style else ())
+    placed = InteriorPhotos(style_images(style), {k: v.info for k, v in photos.items()})
+    layout = layout_interior(plan, report, spec, resolve_design(style), placed)
+    issues = validate_layout(layout, plan, report)
+    if issues:
+        raise InteriorError("layout_validation", issues)
+    wanted = (PageKind.TITLE_PAGE, PageKind.DIVIDER, PageKind.PUZZLE, PageKind.SOLUTIONS)
+    chosen = []
+    for kind in wanted:
+        page = next((p for p in layout.pages if p.kind == kind.value), None)
+        if page is not None:
+            chosen.append(page)
+    sample = replace(layout, pages=tuple(chosen))
+    encoded = {
+        (page.number, element.role): encode_gray(photos[element.sha256], element)
+        for page in chosen
+        for element in page.elements
+        if isinstance(element, ImageBlock)
+    }
+    return InteriorSample(
+        render_pdf(sample, encoded),
+        tuple((page.number, page.kind, page.folio) for page in chosen),
+        len(layout.pages),
+        layout.warnings,
+    )

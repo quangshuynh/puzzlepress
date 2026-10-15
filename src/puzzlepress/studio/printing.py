@@ -12,9 +12,16 @@ import re
 from collections import OrderedDict
 from pathlib import Path
 
+from puzzlepress.batch import BatchReport
 from puzzlepress.book_cli import describe
+from puzzlepress.identity import build_identity
 from puzzlepress.interior import DEFAULT_PROFILE, InteriorError, build_interior, write_interior
-from puzzlepress.interior.build import check_output_directory, write_preflight_report
+from puzzlepress.interior.build import (
+    check_output_directory,
+    sample_interior,
+    write_preflight_report,
+)
+from puzzlepress.interior.design import resolve_design
 from puzzlepress.interior.model import Box, InteriorLayout
 from puzzlepress.interior.spec import PROFILES
 from puzzlepress.models import Project
@@ -30,9 +37,13 @@ from puzzlepress.preflight import (
 from puzzlepress.preflight.context import parse_manifest
 from puzzlepress.preflight.rules import ink_bounds, kdp_safe_area
 from puzzlepress.project import resolve_output_directory
+from puzzlepress.publication import PublicationPlan, build_publication
 
+from .editing import DraftStore
 from .preview import SCALES, PageOutOfRange, PageRasterizer, PreviewUnavailable
 from .service import ProjectStore, StudioError, StudioService
+
+DRAFT_BUDGET = 48 * 1024 * 1024
 
 LOGGER = logging.getLogger(__name__)
 DIGEST = re.compile(r"[0-9a-f]{64}")
@@ -70,11 +81,22 @@ def _geometry(layout: InteriorLayout) -> list[dict[str, object]]:
 
 
 class PrintService:
-    def __init__(self, service: StudioService, rasterizer: PageRasterizer | None = None) -> None:
+    def __init__(
+        self,
+        service: StudioService,
+        rasterizer: PageRasterizer | None = None,
+        drafts: DraftStore | None = None,
+    ) -> None:
         self.service = service
         self.store: ProjectStore = service.store
         self.rasterizer = rasterizer or PageRasterizer()
+        self.drafts = drafts or DraftStore(service.store)
         self._reports: OrderedDict[tuple[str, ...], dict[str, object]] = OrderedDict()
+        # Generation and plan by build identity: a style edit never changes them.
+        self._publications: OrderedDict[str, tuple[BatchReport, PublicationPlan]] = OrderedDict()
+        self._drafts: OrderedDict[str, bytes] = OrderedDict()
+        self._draft_bytes = 0
+        self.draft_rasterizer = PageRasterizer(budget=32 * 1024 * 1024)
 
     def _locate(self, key: str) -> tuple[Project, str, Path, Path]:
         project, revision = self.store.snapshot(key)
@@ -185,6 +207,70 @@ class PrintService:
             except InteriorError:
                 LOGGER.warning("Could not write preflight.json", exc_info=True)
             return {"build": {"success": True}, **self._status(key, result)}
+
+    def draft(self, key: str, source_data: object) -> dict[str, object]:
+        """Render sample pages of the unsaved draft's interior in memory (no files).
+
+        The whole book is laid out and validated; only the first title page,
+        divider, puzzle and solution page are drawn, so style edits stay quick.
+        """
+        project = self.drafts.validate(key, source_data)
+        if project.composition is None:
+            raise StudioError(422, "no_composition", "This draft has no book composition.")
+        source = self.store.source(key).parent
+        with self.service.exclusive():
+            _, _, _, directory = self._locate(key)
+            profile = _built_profile(read_interior_artifacts(directory).manifest)
+            spec = PROFILES[profile or DEFAULT_PROFILE]
+            identity = build_identity(project)
+            publication = self._publications.get(identity)
+            try:
+                if publication is None:
+                    publication = build_publication(project)
+                    self._publications[identity] = publication
+                    while len(self._publications) > 2:
+                        self._publications.popitem(last=False)
+                sample = sample_interior(project, spec, source, publication)
+            except InteriorError as error:
+                return {
+                    "success": False,
+                    "stage": error.stage,
+                    "diagnostics": [issue.to_dict() for issue in error.issues],
+                }
+        digest = hashlib.sha256(sample.pdf).hexdigest()
+        if digest not in self._drafts:
+            self._drafts[digest] = sample.pdf
+            self._draft_bytes += len(sample.pdf)
+            while self._draft_bytes > DRAFT_BUDGET and len(self._drafts) > 1:
+                _, evicted = self._drafts.popitem(last=False)
+                self._draft_bytes -= len(evicted)
+        return {
+            "success": True,
+            "pdf_sha256": digest,
+            "page_count": sample.page_count,
+            "pages": [
+                {"index": index + 1, "physical_page": number, "kind": kind, "folio": folio}
+                for index, (number, kind, folio) in enumerate(sample.pages)
+            ],
+            "design": resolve_design(project.interior).to_dict(),
+            "warnings": [issue.to_dict() for issue in sample.warnings],
+        }
+
+    def draft_image(self, key: str, index: int, size: str, pdf_digest: str) -> bytes:
+        if size not in SCALES:
+            raise StudioError(404, "not_found", "Unknown preview size.")
+        self.store.source(key)
+        pdf = self._drafts.get(pdf_digest)
+        if pdf is None:
+            raise StudioError(409, "preview_stale", "This draft preview is no longer available.")
+        try:
+            return self.draft_rasterizer.png(pdf, pdf_digest, index, size)
+        except PageOutOfRange as error:
+            raise StudioError(404, "page_not_found", "The preview has no such page.") from error
+        except PreviewUnavailable as error:
+            raise StudioError(
+                503, "preview_unavailable", "Install the studio extra (pypdfium2) for previews."
+            ) from error
 
     def page_image(self, key: str, page: int, size: str, pdf_digest: str) -> bytes:
         if size not in SCALES:

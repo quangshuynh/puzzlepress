@@ -16,6 +16,7 @@ import hashlib
 import io
 import re
 from collections import OrderedDict
+from dataclasses import replace
 from pathlib import Path
 from threading import Lock
 
@@ -41,6 +42,7 @@ from puzzlepress.cover.build import (
     write_cover,
     write_cover_preflight,
 )
+from puzzlepress.cover.convert import convert_to_regions, design_presets
 from puzzlepress.cover.crop import crop_window
 from puzzlepress.cover.design import region_area, region_origin
 from puzzlepress.cover.font_assets import (
@@ -646,6 +648,63 @@ class CoverService:
                 "library": self._library(source, project, *_library_frame(build.layout)),
                 "preview": {"pdf_sha256": digest, "scales": COVER_SCALES},
             }
+
+    def convert(self, key: str, source_data: object) -> dict[str, object]:
+        """The version 3 equivalent of a draft's v1/v2 cover, verified by rendering both.
+
+        Nothing is saved: the browser offers the converted cover as a draft edit.
+        """
+        project = self.drafts.validate(key, source_data)
+        cover = project.cover
+        if cover is None:
+            raise StudioError(422, "no_cover", "This draft has no cover section.")
+        if cover.designed:
+            raise StudioError(422, "already_designed", "This cover is already a region design.")
+        converted = convert_to_regions(cover)
+        designed = replace(project, cover=converted)
+        with self.service.exclusive(wait=LOCK_WAIT):
+            source, directory = self._folders(key, project)
+            try:
+                interior = read_interior_facts(directory, project, require_current=False)
+                photos = self._photo_set(source, project)
+                fonts = load_cover_fonts(source, cover)
+                before = render_cover(
+                    project, interior, photos, fonts=fonts, allow_layout_issues=True
+                )
+                after = render_cover(
+                    designed, interior, photos, fonts=fonts, allow_layout_issues=True
+                )
+            except CoverError as error:
+                return {
+                    "success": False,
+                    "stage": error.stage,
+                    "diagnostics": [issue.to_dict() for issue in error.issues],
+                }
+        digest = self._remember(after.pdf)
+        return {
+            "success": True,
+            "cover": converted.to_dict(),
+            "identical": before.pdf == after.pdf,
+            "layout": present_layout(after.layout),
+            "preview": {"pdf_sha256": digest, "scales": COVER_SCALES},
+        }
+
+    def presets(self, key: str, source_data: object) -> dict[str, object]:
+        """Named version 3 starting points from the draft's photograph and colors."""
+        project = self.drafts.validate(key, source_data)
+        if project.cover is None:
+            raise StudioError(422, "no_cover", "This draft has no cover section.")
+        return {
+            "presets": [
+                {
+                    "id": preset.id,
+                    "name": preset.name,
+                    "description": preset.description,
+                    "cover": preset.config.to_dict(),
+                }
+                for preset in design_presets(project.cover)
+            ]
+        }
 
     # ------------------------------------------------------------ rasters
 

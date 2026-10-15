@@ -31,7 +31,12 @@ from ..preflight import report_bytes as interior_report_bytes
 
 
 class SourceChanged(Exception):
-    """The saved source changed while a rebuild was running."""
+    """The saved source changed while a rebuild was running.
+
+    `completed` holds the steps that finished (and wrote) before the change was seen.
+    """
+
+    completed: tuple["StepResult", ...] = ()
 
 
 @dataclass(frozen=True)
@@ -62,6 +67,22 @@ def rebuild(
 ) -> tuple[StepResult, ...]:
     """Run `actions` (an assessment's steps, in order). Raises SourceChanged."""
     results: list[StepResult] = []
+    try:
+        return _run(project, source, directory, spec, actions, before_write, results)
+    except SourceChanged as error:
+        error.completed = tuple(results)
+        raise
+
+
+def _run(
+    project: Project,
+    source: Path,
+    directory: Path,
+    spec: PrintSpecification,
+    actions: tuple[str, ...],
+    before_write: Callable[[], None],
+    results: list[StepResult],
+) -> tuple[StepResult, ...]:
     failed: str | None = None
 
     def skip(action: str) -> None:

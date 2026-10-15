@@ -19,11 +19,14 @@ from puzzlepress.cover.assets import MAX_ASSET_BYTES
 from puzzlepress.cover.font_assets import MAX_FONT_BYTES
 from puzzlepress.errors import ProjectError
 
+from .assets import AssetService
 from .covering import CoverService
 from .editing import DraftStore
 from .planning import PlanningInvalid, PlanningService
 from .printing import PrintService
+from .production import ProductionService
 from .publishing import PublishingService
+from .reviewing import ReviewService
 from .service import ProjectStore, StudioError, StudioService, issue_dicts, project_detail
 
 LOGGER = logging.getLogger(__name__)
@@ -64,23 +67,78 @@ class ApprovalRequest(BuildRequest):
     identity: str | None  # The planning identity reviewed; None withdraws the approval.
 
 
+class OptionalDraftRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    source: dict[str, object] | None = None
+
+
+class TrashRequest(OptionalDraftRequest):
+    path: str
+    sha256: str
+    revision: str
+
+
+class TrashedRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    trashed: str
+    sha256: str | None = None
+
+
+class ReviewRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    source_revision: str
+    revision: str | None
+    puzzle: str
+    status: str
+    identity: str | None = None
+    note: str | None = None
+    reviewer: str | None = None
+    reviewed_on: str | None = None
+
+
+class PolicyRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    revision: str | None
+    require_all: bool
+
+
+class ProofRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    revision: str | None
+    record: dict[str, object]
+
+
+class ProofRemoveRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    revision: str | None
+    id: str
+
+
 # The only non-JSON POSTs: photograph and font uploads. Their content types are not
 # CORS-safelisted, so another site cannot send one without a refused preflight.
 UPLOAD_PATH = re.compile(r"/api/projects/[^/]+/cover/(assets|fonts)")
 UPLOAD_TYPES = {"assets": ("image/jpeg", "image/png"), "fonts": ("font/ttf", "font/otf")}
 
 
-def error_response(status: int, code: str, message: str) -> JSONResponse:
-    return JSONResponse({"error": {"code": code, "message": message, "issues": []}}, status)
+def error_response(
+    status: int, code: str, message: str, uses: list[object] | None = None
+) -> JSONResponse:
+    error: dict[str, object] = {"code": code, "message": message, "issues": []}
+    if uses is not None:
+        error["uses"] = uses  # Where an asset is used, so Studio can link to each use.
+    return JSONResponse({"error": error}, status)
 
 
 def create_app(books: Path, frontend: Path) -> FastAPI:
     service = StudioService(ProjectStore(books.resolve()))
     drafts = DraftStore(service.store)
-    printing = PrintService(service)
+    printing = PrintService(service, drafts=drafts)
     covers = CoverService(service, drafts)
     publishing = PublishingService(service, drafts)
     planning = PlanningService(service)
+    assets = AssetService(service, drafts)
+    reviews = ReviewService(service)
+    production = ProductionService(service)
     app = FastAPI(title="PuzzlePress Studio", docs_url=None, redoc_url=None, openapi_url=None)
     app.add_middleware(
         TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"]
@@ -110,7 +168,7 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
 
     @app.exception_handler(StudioError)
     async def studio_error(request: Request, error: StudioError) -> JSONResponse:
-        return error_response(error.status, error.code, str(error))
+        return error_response(error.status, error.code, str(error), getattr(error, "uses", None))
 
     @app.exception_handler(ProjectError)
     async def project_error(request: Request, error: ProjectError) -> JSONResponse:
@@ -193,6 +251,18 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
     def build_interior(key: str, body: InteriorBuildRequest) -> dict[str, object]:
         return printing.build(key, body.revision, body.profile)
 
+    @app.post("/api/projects/{key}/draft/interior")
+    def draft_interior(key: str, body: DraftRequest) -> dict[str, object]:
+        return printing.draft(key, body.source)
+
+    @app.get("/api/projects/{key}/draft/interior/pages/{index}")
+    def draft_interior_page(key: str, index: int, size: str, pdf: str) -> Response:
+        return Response(
+            printing.draft_image(key, index, size, pdf),
+            media_type="image/png",
+            headers={"Cache-Control": "private, max-age=31536000, immutable"},
+        )
+
     @app.get("/api/projects/{key}/interior/pages/{page}")
     def interior_page(key: str, page: int, size: str, pdf: str) -> Response:
         image = printing.page_image(key, page, size, pdf)
@@ -209,6 +279,74 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
     @app.post("/api/projects/{key}/draft/cover")
     def draft_cover(key: str, body: DraftRequest) -> dict[str, object]:
         return covers.draft(key, body.source)
+
+    @app.post("/api/projects/{key}/draft/cover/convert")
+    def convert_cover(key: str, body: DraftRequest) -> dict[str, object]:
+        return covers.convert(key, body.source)
+
+    @app.post("/api/projects/{key}/draft/cover/presets")
+    def cover_presets(key: str, body: DraftRequest) -> dict[str, object]:
+        return covers.presets(key, body.source)
+
+    @app.post("/api/projects/{key}/assets/list")
+    def asset_library(key: str, body: OptionalDraftRequest) -> dict[str, object]:
+        return assets.listing(key, body.source)
+
+    @app.post("/api/projects/{key}/assets/trash")
+    def trash_asset(key: str, body: TrashRequest) -> dict[str, object]:
+        return assets.trash(key, body.path, body.sha256, body.revision, body.source)
+
+    @app.post("/api/projects/{key}/assets/restore")
+    def restore_asset(key: str, body: TrashedRequest) -> dict[str, object]:
+        return assets.restore(key, body.trashed)
+
+    @app.post("/api/projects/{key}/assets/purge")
+    def purge_asset(key: str, body: TrashedRequest) -> dict[str, object]:
+        if body.sha256 is None:
+            raise StudioError(422, "invalid_request", "Confirm the asset's SHA-256 to purge it.")
+        return assets.purge(key, body.trashed, body.sha256)
+
+    @app.get("/api/projects/{key}/reviews")
+    def review_status(key: str) -> dict[str, object]:
+        return reviews.reviews(key)
+
+    @app.post("/api/projects/{key}/reviews/record")
+    def record_review(key: str, body: ReviewRequest) -> dict[str, object]:
+        return reviews.record(
+            key,
+            body.source_revision,
+            body.revision,
+            body.puzzle,
+            body.status,
+            body.identity,
+            body.note,
+            body.reviewer,
+            body.reviewed_on,
+        )
+
+    @app.post("/api/projects/{key}/reviews/policy")
+    def review_policy(key: str, body: PolicyRequest) -> dict[str, object]:
+        return reviews.policy(key, body.revision, body.require_all)
+
+    @app.get("/api/projects/{key}/proofs")
+    def proof_status(key: str) -> dict[str, object]:
+        return reviews.proofs(key)
+
+    @app.post("/api/projects/{key}/proofs/record")
+    def record_proof(key: str, body: ProofRequest) -> dict[str, object]:
+        return reviews.record_proof(key, body.revision, body.record)
+
+    @app.post("/api/projects/{key}/proofs/remove")
+    def remove_proof(key: str, body: ProofRemoveRequest) -> dict[str, object]:
+        return reviews.remove_proof(key, body.revision, body.id)
+
+    @app.get("/api/projects/{key}/production")
+    def production_status(key: str) -> dict[str, object]:
+        return production.status(key)
+
+    @app.post("/api/projects/{key}/rebuild")
+    def rebuild_outdated(key: str, body: BuildRequest) -> dict[str, object]:
+        return production.rebuild(key, body.revision)
 
     @app.post("/api/projects/{key}/cover/build")
     def build_cover(key: str, body: BuildRequest) -> dict[str, object]:
@@ -315,6 +453,7 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
     @app.get("/books/{key}/quality")
     @app.get("/books/{key}/edit")
     @app.get("/books/{key}/book")
+    @app.get("/books/{key}/interior")
     @app.get("/books/{key}/print")
     @app.get("/books/{key}/cover")
     @app.get("/books/{key}/publishing")
