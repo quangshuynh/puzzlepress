@@ -28,6 +28,7 @@ from .production import ProductionService
 from .publishing import PublishingService
 from .reviewing import ReviewService
 from .service import ProjectStore, StudioError, StudioService, issue_dicts, project_detail
+from .templating import TemplateService
 
 LOGGER = logging.getLogger(__name__)
 
@@ -65,6 +66,33 @@ class PlanningSaveRequest(DraftRequest):
 
 class ApprovalRequest(BuildRequest):
     identity: str | None  # The planning identity reviewed; None withdraws the approval.
+
+
+class TemplateSaveRequest(DraftRequest):
+    name: str
+    description: str = ""
+
+
+class TemplateUpdateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    identity: str
+    name: str
+    description: str = ""
+
+
+class TemplateNameRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: str
+
+
+class TemplateDeleteRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    identity: str
+
+
+class TemplateImportRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    text: str
 
 
 class OptionalDraftRequest(BaseModel):
@@ -134,6 +162,7 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
     drafts = DraftStore(service.store)
     printing = PrintService(service, drafts=drafts)
     covers = CoverService(service, drafts)
+    templates = TemplateService(covers)
     publishing = PublishingService(service, drafts)
     planning = PlanningService(service)
     assets = AssetService(service, drafts)
@@ -347,6 +376,49 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
     @app.post("/api/projects/{key}/rebuild")
     def rebuild_outdated(key: str, body: BuildRequest) -> dict[str, object]:
         return production.rebuild(key, body.revision)
+
+    @app.get("/api/projects/{key}/cover/templates")
+    def cover_templates(key: str) -> dict[str, object]:
+        return templates.gallery(key)
+
+    @app.post("/api/projects/{key}/draft/cover/templates/{template_id}/preview")
+    def preview_cover_template(key: str, template_id: str, body: DraftRequest) -> dict[str, object]:
+        return templates.preview(key, template_id, body.source)
+
+    @app.post("/api/projects/{key}/cover/templates")
+    def save_cover_template(key: str, body: TemplateSaveRequest) -> dict[str, object]:
+        return templates.save(key, body.source, body.name, body.description)
+
+    @app.post("/api/projects/{key}/cover/templates/import")
+    def import_cover_template(key: str, body: TemplateImportRequest) -> dict[str, object]:
+        return templates.import_template(key, body.text)
+
+    @app.post("/api/projects/{key}/cover/templates/{template_id}/update")
+    def update_cover_template(
+        key: str, template_id: str, body: TemplateUpdateRequest
+    ) -> dict[str, object]:
+        return templates.update(key, template_id, body.identity, body.name, body.description)
+
+    @app.post("/api/projects/{key}/cover/templates/{template_id}/duplicate")
+    def duplicate_cover_template(
+        key: str, template_id: str, body: TemplateNameRequest
+    ) -> dict[str, object]:
+        return templates.duplicate(key, template_id, body.name)
+
+    @app.post("/api/projects/{key}/cover/templates/{template_id}/delete")
+    def delete_cover_template(
+        key: str, template_id: str, body: TemplateDeleteRequest
+    ) -> dict[str, object]:
+        return templates.delete(key, template_id, body.identity)
+
+    @app.get("/api/projects/{key}/cover/templates/{template_id}/export")
+    def export_cover_template(key: str, template_id: str) -> Response:
+        name, data = templates.export(key, template_id)
+        return Response(
+            data,
+            media_type="application/json",
+            headers={"Content-Disposition": f'attachment; filename="{name}"'},
+        )
 
     @app.post("/api/projects/{key}/cover/build")
     def build_cover(key: str, body: BuildRequest) -> dict[str, object]:

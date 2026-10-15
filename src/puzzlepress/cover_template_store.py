@@ -31,6 +31,7 @@ from .cover_template import (
     parse_template,
     template_bytes,
 )
+from .cover_validation import LAYER_ID
 from .errors import ValidationIssue
 
 DIRECTORY = "cover-templates"
@@ -87,6 +88,8 @@ def _directory(source_directory: Path) -> Path:
 
 
 def _path(source_directory: Path, template_id: str) -> Path:
+    if len(template_id) > 40 or not LAYER_ID.fullmatch(template_id):
+        raise TemplateError("template_not_found", "Template ids are lowercase letters and digits.")
     path = _directory(source_directory) / f"{template_id}.json"
     if path.is_symlink() or (path.exists() and not path.is_file()):
         raise TemplateError("not_file", f"{DIRECTORY}/{template_id}.json must be a regular file.")
