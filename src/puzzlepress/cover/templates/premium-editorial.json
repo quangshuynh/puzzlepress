@@ -1,0 +1,147 @@
+{
+  "category": "editorial",
+  "description": "Deep green with fine gold hairlines repeated front and back, and an optional framed photograph.",
+  "design": {
+    "elements": [
+      {
+        "color": "#c8b27d",
+        "from": {
+          "x": 156,
+          "y": 772
+        },
+        "id": "front-rule-top",
+        "name": "Top hairline",
+        "region": "front",
+        "to": {
+          "x": 456,
+          "y": 772
+        },
+        "type": "line",
+        "width": 0.75
+      },
+      {
+        "color": "#c8b27d",
+        "from": {
+          "x": 156,
+          "y": 20
+        },
+        "id": "front-rule-bottom",
+        "name": "Bottom hairline",
+        "region": "front",
+        "to": {
+          "x": 456,
+          "y": 20
+        },
+        "type": "line",
+        "width": 0.75
+      },
+      {
+        "box": {
+          "height": 312,
+          "width": 312,
+          "x": 150,
+          "y": 110
+        },
+        "fill": null,
+        "id": "photo-keyline",
+        "name": "Photo keyline",
+        "region": "front",
+        "requires_slot": 1,
+        "stroke": "#c8b27d",
+        "stroke_width": 0.75,
+        "type": "rect"
+      },
+      {
+        "box": {
+          "height": 296,
+          "width": 296,
+          "x": 158,
+          "y": 118
+        },
+        "crop": {
+          "zoom": 1.0
+        },
+        "id": "front-photo",
+        "name": "Framed photograph",
+        "region": "front",
+        "slot": 1,
+        "type": "photo"
+      },
+      {
+        "color": "#c8b27d",
+        "from": {
+          "x": 156,
+          "y": 772
+        },
+        "id": "back-rule-top",
+        "name": "Top hairline",
+        "region": "back",
+        "to": {
+          "x": 456,
+          "y": 772
+        },
+        "type": "line",
+        "width": 0.75
+      },
+      {
+        "color": "#c8b27d",
+        "from": {
+          "x": 36,
+          "y": 130
+        },
+        "id": "back-rule-bottom",
+        "name": "Lower hairline",
+        "region": "back",
+        "to": {
+          "x": 300,
+          "y": 130
+        },
+        "type": "line",
+        "width": 0.75
+      }
+    ],
+    "legibility": "none",
+    "regions": {
+      "back": {
+        "color": "#17322b"
+      },
+      "front": {
+        "color": "#17322b"
+      },
+      "spine": {
+        "color": "#17322b"
+      }
+    },
+    "spine_text": "auto",
+    "text": {
+      "author": {
+        "color": "#c8b27d"
+      },
+      "back_text": {
+        "color": "#efe9da"
+      },
+      "subtitle": {
+        "color": "#c8b27d"
+      },
+      "title": {
+        "color": "#efe9da"
+      }
+    },
+    "type": {
+      "align": "center",
+      "position": "top",
+      "style": "editorial",
+      "tone": "light"
+    }
+  },
+  "id": "premium-editorial",
+  "name": "Premium Editorial",
+  "palette": [
+    "#17322b",
+    "#c8b27d",
+    "#efe9da"
+  ],
+  "photo": "optional",
+  "provenance": "Original PuzzlePress vector design: shapes, rules and bundled type only; no logos, no third-party artwork.",
+  "template_version": 1
+}

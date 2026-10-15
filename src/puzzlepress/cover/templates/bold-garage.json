@@ -1,0 +1,156 @@
+{
+  "category": "bold",
+  "description": "Charcoal with stacked capitals in signal yellow, heavy rules and back-cover highlights.",
+  "design": {
+    "elements": [
+      {
+        "box": {
+          "height": 8,
+          "width": 540,
+          "x": 36,
+          "y": 770
+        },
+        "fill": "#f2c230",
+        "id": "front-bar-top",
+        "name": "Top bar",
+        "region": "front",
+        "stroke": null,
+        "type": "rect"
+      },
+      {
+        "box": {
+          "height": 330,
+          "width": 540,
+          "x": 36,
+          "y": 96
+        },
+        "crop": {
+          "zoom": 1.0
+        },
+        "id": "front-photo",
+        "name": "Front photograph",
+        "region": "front",
+        "slot": 1,
+        "type": "photo"
+      },
+      {
+        "box": {
+          "height": 6,
+          "width": 540,
+          "x": 36,
+          "y": 440
+        },
+        "fill": "#f2c230",
+        "id": "front-bar",
+        "name": "Rule",
+        "region": "front",
+        "stroke": null,
+        "type": "rect"
+      },
+      {
+        "box": {
+          "height": 8,
+          "width": 540,
+          "x": 36,
+          "y": 770
+        },
+        "fill": "#f2c230",
+        "id": "back-bar-top",
+        "name": "Top bar",
+        "region": "back",
+        "stroke": null,
+        "type": "rect"
+      },
+      {
+        "box": {
+          "height": 96,
+          "width": 380,
+          "x": 36,
+          "y": 140
+        },
+        "color": "#f2c230",
+        "font": "sans",
+        "id": "back-highlights",
+        "name": "Highlights",
+        "region": "back",
+        "rich": {
+          "blocks": [
+            {
+              "list": "bullet",
+              "runs": [
+                {
+                  "bold": true,
+                  "text": "{puzzle_count} puzzles"
+                }
+              ],
+              "space_after": 4
+            },
+            {
+              "list": "bullet",
+              "runs": [
+                {
+                  "bold": true,
+                  "text": "{theme_count} themes"
+                }
+              ],
+              "space_after": 4
+            },
+            {
+              "list": "bullet",
+              "runs": [
+                {
+                  "bold": true,
+                  "text": "{solutions}"
+                }
+              ],
+              "space_after": 4
+            }
+          ],
+          "rich": 1
+        },
+        "size": 13,
+        "type": "text"
+      }
+    ],
+    "legibility": "none",
+    "regions": {
+      "back": {
+        "color": "#24262a"
+      },
+      "front": {
+        "color": "#24262a"
+      },
+      "spine": {
+        "color": "#24262a"
+      }
+    },
+    "spine_text": "auto",
+    "text": {
+      "author": {
+        "color": "#f2c230"
+      },
+      "subtitle": {
+        "color": "#f5f5f0"
+      },
+      "title": {
+        "color": "#f2c230"
+      }
+    },
+    "type": {
+      "align": "left",
+      "position": "top",
+      "style": "bold",
+      "tone": "light"
+    }
+  },
+  "id": "bold-garage",
+  "name": "Bold Garage",
+  "palette": [
+    "#24262a",
+    "#f2c230",
+    "#f5f5f0"
+  ],
+  "photo": "optional",
+  "provenance": "Original PuzzlePress vector design: shapes, rules and bundled type only; no logos, no third-party artwork.",
+  "template_version": 1
+}

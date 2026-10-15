@@ -1,0 +1,222 @@
+{
+  "category": "puzzle",
+  "description": "A large title, the puzzle count in a badge, simple letter tiles and back-cover highlights.",
+  "design": {
+    "elements": [
+      {
+        "box": {
+          "height": 150,
+          "width": 180,
+          "x": 216,
+          "y": 120
+        },
+        "fill": "#c0392b",
+        "id": "count-badge",
+        "name": "Count badge",
+        "region": "front",
+        "stroke": null,
+        "type": "ellipse"
+      },
+      {
+        "align": "center",
+        "box": {
+          "height": 70,
+          "width": 160,
+          "x": 226,
+          "y": 160
+        },
+        "color": "#ffffff",
+        "font": "sans-bold",
+        "id": "count",
+        "line_spacing": 1.15,
+        "name": "Puzzle count",
+        "region": "front",
+        "size": 22,
+        "text": "{puzzle_count}\nPUZZLES",
+        "type": "text"
+      },
+      {
+        "box": {
+          "height": 64,
+          "width": 64,
+          "x": 126,
+          "y": 300
+        },
+        "fill": "#c0392b",
+        "id": "tile-1",
+        "name": "Tile 1",
+        "region": "front",
+        "stroke": null,
+        "type": "rect"
+      },
+      {
+        "box": {
+          "height": 64,
+          "width": 64,
+          "x": 200,
+          "y": 300
+        },
+        "fill": "#1d2a44",
+        "id": "tile-2",
+        "name": "Tile 2",
+        "region": "front",
+        "stroke": null,
+        "type": "rect"
+      },
+      {
+        "box": {
+          "height": 64,
+          "width": 64,
+          "x": 274,
+          "y": 300
+        },
+        "fill": "#c0392b",
+        "id": "tile-3",
+        "name": "Tile 3",
+        "region": "front",
+        "stroke": null,
+        "type": "rect"
+      },
+      {
+        "box": {
+          "height": 64,
+          "width": 64,
+          "x": 348,
+          "y": 300
+        },
+        "fill": "#1d2a44",
+        "id": "tile-4",
+        "name": "Tile 4",
+        "region": "front",
+        "stroke": null,
+        "type": "rect"
+      },
+      {
+        "box": {
+          "height": 64,
+          "width": 64,
+          "x": 422,
+          "y": 300
+        },
+        "fill": "#c0392b",
+        "id": "tile-5",
+        "name": "Tile 5",
+        "region": "front",
+        "stroke": null,
+        "type": "rect"
+      },
+      {
+        "box": {
+          "height": 33,
+          "width": 630,
+          "x": -9,
+          "y": 768
+        },
+        "fill": "#1d2a44",
+        "id": "back-band",
+        "name": "Back band",
+        "region": "back",
+        "stroke": null,
+        "type": "rect"
+      },
+      {
+        "box": {
+          "height": 33,
+          "width": 630,
+          "x": -9,
+          "y": 768
+        },
+        "fill": "#1d2a44",
+        "id": "front-band",
+        "name": "Front band",
+        "region": "front",
+        "stroke": null,
+        "type": "rect"
+      },
+      {
+        "box": {
+          "height": 96,
+          "width": 380,
+          "x": 36,
+          "y": 140
+        },
+        "color": "#1d2a44",
+        "font": "sans-bold",
+        "id": "back-highlights",
+        "name": "Highlights",
+        "region": "back",
+        "rich": {
+          "blocks": [
+            {
+              "list": "bullet",
+              "runs": [
+                {
+                  "text": "{puzzle_count} puzzles"
+                }
+              ],
+              "space_after": 4
+            },
+            {
+              "list": "bullet",
+              "runs": [
+                {
+                  "text": "{theme_count} themes"
+                }
+              ],
+              "space_after": 4
+            },
+            {
+              "list": "bullet",
+              "runs": [
+                {
+                  "text": "{solutions}"
+                }
+              ],
+              "space_after": 4
+            }
+          ],
+          "rich": 1
+        },
+        "size": 13,
+        "type": "text"
+      }
+    ],
+    "legibility": "none",
+    "regions": {
+      "back": {
+        "color": "#fbf3e1"
+      },
+      "front": {
+        "color": "#fbf3e1"
+      },
+      "spine": {
+        "color": "#fbf3e1"
+      }
+    },
+    "spine_text": "auto",
+    "text": {
+      "subtitle": {
+        "color": "#c0392b"
+      },
+      "title": {
+        "color": "#1d2a44"
+      }
+    },
+    "type": {
+      "align": "center",
+      "position": "top",
+      "style": "bold",
+      "tone": "dark"
+    }
+  },
+  "id": "classic-puzzle-collection",
+  "name": "Classic Puzzle Collection",
+  "palette": [
+    "#fbf3e1",
+    "#c0392b",
+    "#1d2a44"
+  ],
+  "photo": "none",
+  "provenance": "Original PuzzlePress vector design: shapes, rules and bundled type only; no logos, no third-party artwork.",
+  "template_version": 1
+}

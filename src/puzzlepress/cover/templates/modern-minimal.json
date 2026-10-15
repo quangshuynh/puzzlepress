@@ -1,0 +1,94 @@
+{
+  "category": "minimal",
+  "description": "Generous whitespace, a strong sans title and a small photographic accent.",
+  "design": {
+    "elements": [
+      {
+        "box": {
+          "height": 5,
+          "width": 48,
+          "x": 36,
+          "y": 700
+        },
+        "fill": "#d94f2b",
+        "id": "front-accent",
+        "name": "Accent",
+        "region": "front",
+        "stroke": null,
+        "type": "rect"
+      },
+      {
+        "box": {
+          "height": 180,
+          "width": 180,
+          "x": 396,
+          "y": 80
+        },
+        "crop": {
+          "zoom": 1.0
+        },
+        "id": "front-photo",
+        "name": "Photo accent",
+        "region": "front",
+        "slot": 1,
+        "type": "photo"
+      },
+      {
+        "box": {
+          "height": 5,
+          "width": 48,
+          "x": 36,
+          "y": 770
+        },
+        "fill": "#d94f2b",
+        "id": "back-accent",
+        "name": "Accent",
+        "region": "back",
+        "stroke": null,
+        "type": "rect"
+      }
+    ],
+    "legibility": "none",
+    "regions": {
+      "back": {
+        "color": "#f7f6f2"
+      },
+      "front": {
+        "color": "#f7f6f2"
+      },
+      "spine": {
+        "color": "#f7f6f2"
+      }
+    },
+    "spine_text": "auto",
+    "text": {
+      "back_text": {
+        "color": "#2b2b2b"
+      },
+      "subtitle": {
+        "color": "#5c5c5c"
+      },
+      "title": {
+        "color": "#2b2b2b",
+        "font": "sans-bold",
+        "size": 44
+      }
+    },
+    "type": {
+      "align": "left",
+      "position": "middle",
+      "style": "minimal",
+      "tone": "dark"
+    }
+  },
+  "id": "modern-minimal",
+  "name": "Modern Minimal",
+  "palette": [
+    "#f7f6f2",
+    "#d94f2b",
+    "#2b2b2b"
+  ],
+  "photo": "optional",
+  "provenance": "Original PuzzlePress vector design: shapes, rules and bundled type only; no logos, no third-party artwork.",
+  "template_version": 1
+}

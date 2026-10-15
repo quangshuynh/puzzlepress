@@ -1,0 +1,126 @@
+{
+  "category": "dynamic",
+  "description": "Diagonal colour blocks in race red and deep ink around a front photograph. No logos.",
+  "design": {
+    "elements": [
+      {
+        "box": {
+          "height": 330,
+          "width": 621,
+          "x": 0,
+          "y": 90
+        },
+        "crop": {
+          "zoom": 1.0
+        },
+        "id": "front-photo",
+        "name": "Front photograph",
+        "region": "front",
+        "slot": 1,
+        "type": "photo"
+      },
+      {
+        "color": "#d7263d",
+        "from": {
+          "x": 0,
+          "y": 470
+        },
+        "id": "front-stripe",
+        "name": "Diagonal stripe",
+        "region": "front",
+        "to": {
+          "x": 608,
+          "y": 412
+        },
+        "type": "line",
+        "width": 24
+      },
+      {
+        "color": "#14213d",
+        "from": {
+          "x": 0,
+          "y": 88
+        },
+        "id": "front-stripe-ink",
+        "name": "Lower stripe",
+        "region": "front",
+        "to": {
+          "x": 608,
+          "y": 72
+        },
+        "type": "line",
+        "width": 10
+      },
+      {
+        "box": {
+          "height": 120,
+          "width": 630,
+          "x": -9,
+          "y": -9
+        },
+        "fill": "#14213d",
+        "id": "back-block",
+        "name": "Back colour block",
+        "region": "back",
+        "stroke": null,
+        "type": "rect"
+      },
+      {
+        "color": "#d7263d",
+        "from": {
+          "x": 4,
+          "y": 150
+        },
+        "id": "back-stripe",
+        "name": "Back stripe",
+        "region": "back",
+        "to": {
+          "x": 612,
+          "y": 120
+        },
+        "type": "line",
+        "width": 14
+      }
+    ],
+    "legibility": "none",
+    "regions": {
+      "back": {
+        "color": "#f3f3f0"
+      },
+      "front": {
+        "color": "#f3f3f0"
+      },
+      "spine": {
+        "color": "#f3f3f0"
+      }
+    },
+    "spine_text": "auto",
+    "text": {
+      "imprint": {
+        "color": "#f3f3f0"
+      },
+      "subtitle": {
+        "color": "#d7263d"
+      },
+      "title": {
+        "color": "#14213d"
+      }
+    },
+    "type": {
+      "align": "left",
+      "position": "top",
+      "style": "bold",
+      "tone": "dark"
+    }
+  },
+  "id": "motorsport-energy",
+  "name": "Motorsport Energy",
+  "palette": [
+    "#f3f3f0",
+    "#d7263d",
+    "#14213d"
+  ],
+  "photo": "required",
+  "provenance": "Original PuzzlePress vector design: shapes, rules and bundled type only; no logos, no third-party artwork.",
+  "template_version": 1
+}
