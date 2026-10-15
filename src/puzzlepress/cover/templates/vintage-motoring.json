@@ -1,0 +1,140 @@
+{
+  "category": "classic",
+  "description": "Burgundy and muted gold with framed serif type and a framed description panel.",
+  "design": {
+    "elements": [
+      {
+        "box": {
+          "height": 752,
+          "width": 572,
+          "x": 20,
+          "y": 20
+        },
+        "fill": null,
+        "id": "front-frame",
+        "name": "Outer frame",
+        "region": "front",
+        "stroke": "#c9a35b",
+        "stroke_width": 1.5,
+        "type": "rect"
+      },
+      {
+        "box": {
+          "height": 738,
+          "width": 558,
+          "x": 27,
+          "y": 27
+        },
+        "fill": null,
+        "id": "front-frame-inner",
+        "name": "Inner frame",
+        "region": "front",
+        "stroke": "#c9a35b",
+        "stroke_width": 0.75,
+        "type": "rect"
+      },
+      {
+        "box": {
+          "height": 252,
+          "width": 332,
+          "x": 140,
+          "y": 150
+        },
+        "fill": null,
+        "id": "photo-keyline",
+        "name": "Photo keyline",
+        "region": "front",
+        "requires_slot": 1,
+        "stroke": "#c9a35b",
+        "stroke_width": 1.0,
+        "type": "rect"
+      },
+      {
+        "box": {
+          "height": 240,
+          "width": 320,
+          "x": 146,
+          "y": 156
+        },
+        "crop": {
+          "zoom": 1.0
+        },
+        "id": "front-photo",
+        "name": "Front photograph",
+        "region": "front",
+        "slot": 1,
+        "type": "photo"
+      },
+      {
+        "box": {
+          "height": 752,
+          "width": 572,
+          "x": 20,
+          "y": 20
+        },
+        "fill": null,
+        "id": "back-frame",
+        "name": "Outer frame",
+        "region": "back",
+        "stroke": "#c9a35b",
+        "stroke_width": 1.5,
+        "type": "rect"
+      },
+      {
+        "box": {
+          "height": 466,
+          "width": 552,
+          "x": 30,
+          "y": 300
+        },
+        "fill": "#47131a",
+        "id": "back-panel",
+        "name": "Description panel",
+        "region": "back",
+        "stroke": "#c9a35b",
+        "stroke_width": 0.75,
+        "type": "rect"
+      }
+    ],
+    "legibility": "none",
+    "regions": {
+      "back": {
+        "color": "#5b1a22"
+      },
+      "front": {
+        "color": "#5b1a22"
+      },
+      "spine": {
+        "color": "#5b1a22"
+      }
+    },
+    "spine_text": "auto",
+    "text": {
+      "author": {
+        "color": "#c9a35b"
+      },
+      "back_text": {
+        "color": "#f1e6d2"
+      },
+      "title": {
+        "color": "#c9a35b"
+      }
+    },
+    "type": {
+      "align": "center",
+      "position": "top",
+      "style": "editorial",
+      "tone": "light"
+    }
+  },
+  "id": "vintage-motoring",
+  "name": "Vintage Motoring",
+  "palette": [
+    "#5b1a22",
+    "#c9a35b",
+    "#47131a"
+  ],
+  "photo": "optional",
+  "provenance": "Original PuzzlePress vector design: shapes, rules and bundled type only; no logos, no third-party artwork.",
+  "template_version": 1
+}

@@ -156,6 +156,7 @@ export function CoverCanvas({
   onMoveElement,
   onAnnounce,
   fitWidth = false,
+  focus = null,
 }: {
   projectKey: string;
   layout: CoverLayoutView;
@@ -177,6 +178,8 @@ export function CoverCanvas({
   onAnnounce: (message: string) => void;
   // Phones: fit the width and let the canvas take the cover's own height.
   fitWidth?: boolean;
+  // A box (page points) to scroll into the middle of the canvas: "Fit selection".
+  focus?: { box: PtBox; key: number } | null;
 }) {
   const [frame, size] = useSize();
   const [drag, setDrag] = useState<Drag | null>(null);
@@ -232,13 +235,47 @@ export function CoverCanvas({
       dy = ay - (original.y + original.height / 2);
       guides.y = ay;
     }
-    ghost = { ...original, x: original.x + dx, y: original.y + dy };
     const safe =
       panel === 'spine'
         ? g.regions.spine_safe
         : g.regions[panel === 'back' ? 'back_safe' : 'front_safe'];
+    // Edges snap to the KDP safe area when no centre line already holds them.
+    if (guides.x === undefined) {
+      const left = original.x + dx;
+      const right = left + original.width;
+      if (Math.abs(left - safe.x) * scale < SNAP) {
+        dx = safe.x - original.x;
+        guides.x = safe.x;
+      } else if (Math.abs(right - (safe.x + safe.width)) * scale < SNAP) {
+        dx = safe.x + safe.width - original.width - original.x;
+        guides.x = safe.x + safe.width;
+      }
+    }
+    if (guides.y === undefined) {
+      const bottom = original.y + dy;
+      const top = bottom + original.height;
+      if (Math.abs(bottom - safe.y) * scale < SNAP) {
+        dy = safe.y - original.y;
+        guides.y = safe.y;
+      } else if (Math.abs(top - (safe.y + safe.height)) * scale < SNAP) {
+        dy = safe.y + safe.height - original.height - original.y;
+        guides.y = safe.y + safe.height;
+      }
+    }
+    ghost = { ...original, x: original.x + dx, y: original.y + dy };
     outside = !contains(safe, ghost);
   }
+
+  useLayoutEffect(() => {
+    const element = frame.current;
+    if (!focus || !element) return;
+    const centreX = (focus.box.x + focus.box.width / 2 - box.x) * scale;
+    const centreY = (box.y + box.height - (focus.box.y + focus.box.height / 2)) * scale;
+    element.scrollLeft = Math.max(0, centreX - element.clientWidth / 2);
+    element.scrollTop = Math.max(0, centreY - element.clientHeight / 2);
+    // Only a new fit request scrolls; zoom or layout changes alone do not.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focus?.key, scale]);
 
   const finishDrag = () => {
     if (!drag) return;

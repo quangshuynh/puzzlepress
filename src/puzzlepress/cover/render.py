@@ -182,6 +182,9 @@ def _shape(canvas: Canvas, shape: CoverShape) -> None:
 def _text(canvas: Canvas, line: CoverText) -> None:
     canvas.setFont(font_name(line.face), line.size)
     canvas.setFillColorRGB(*line.color)
+    if line.underline is not None:  # A filled rectangle in the text color.
+        box = line.underline
+        canvas.rect(box.x, box.y, box.width, box.height, stroke=0, fill=1)
     draw = {
         Anchor.START: canvas.drawString,
         Anchor.MIDDLE: canvas.drawCentredString,

@@ -13,9 +13,11 @@ import {
   clamp,
   layerName,
   layerOf,
+  panelOf,
   round,
   setLayer,
   starterCover,
+  viewBox,
   type View,
 } from './cover-model';
 import { CoverTools, PhotoLibrary, Tabs, type ToolTab } from './cover-tools';
@@ -38,6 +40,7 @@ import type {
   CoverStatus,
   ElementRegion,
   Issue,
+  PtBox,
 } from './types';
 import { ErrorState, Loading, Status } from './ui';
 
@@ -103,6 +106,7 @@ export function Cover({ d }: { d: Draft }) {
   const [dock, setDock] = useState<Dock>('tools');
   const [trial, setTrial] = useState<CoverAsset | null>(null);
   const [announce, setAnnounce] = useState('');
+  const [focus, setFocus] = useState<{ box: PtBox; key: number } | null>(null);
   const history = useRef<CoverConfig[]>([]);
   const [epoch, setEpoch] = useState(d.epoch);
   const base = `/api/projects/${encodeURIComponent(d.key)}`;
@@ -343,6 +347,14 @@ export function Cover({ d }: { d: Draft }) {
       }}
       onChoosePhoto={choosePhoto}
       onConvert={() => setConverting(true)}
+      onApplyTemplate={(next, template) => {
+        update(next);
+        setSelected(null);
+        setTrial(null);
+        setAnnounce(
+          `Applied the ${template.name} template to the draft. Undo restores the previous cover.`,
+        );
+      }}
       notice={notice}
       setNotice={setNotice}
     />
@@ -373,6 +385,7 @@ export function Cover({ d }: { d: Draft }) {
       cover={cover}
       book={d.draft.book}
       library={draft?.library}
+      layout={draft?.layout}
       checks={checks}
       issues={issues}
       update={update}
@@ -401,6 +414,34 @@ export function Cover({ d }: { d: Draft }) {
       onSelect={select}
     />
   );
+  function selectionBox(layer: string | null): PtBox | undefined {
+    const layout = draft?.layout;
+    if (!layer || !layout) return undefined;
+    return (
+      layout.elements?.find((e) => e.layer === layer)?.bounds ??
+      layout.texts.find((t) => t.layer === layer)?.box ??
+      (layer === 'photo' ? layout.photo?.region : undefined)
+    );
+  }
+  function fitSelection() {
+    const layout = draft?.layout;
+    const target = selectionBox(selected);
+    if (!layout || !target || !cover || !selected) return;
+    const element = elementOf(cover, selected);
+    const panel =
+      element && element.region !== 'wrap'
+        ? element.region
+        : selected === 'photo' || element
+          ? 'wrap'
+          : panelOf(selected, cover);
+    const frame = viewBox(layout.geometry, panel);
+    const room = Math.min(frame.width / target.width, frame.height / target.height) * 0.6;
+    const next = [...ZOOMS].reverse().find((z) => z <= room) ?? 1;
+    setView(panel);
+    setZoom(next);
+    setFocus({ box: target, key: Date.now() });
+    setAnnounce(`Zoomed to ${layerName(cover, selected)}.`);
+  }
   const sideTabs = [
     ['properties', 'Properties'],
     ['checks', blocking ? `Checks (${blocking})` : 'Checks'],
@@ -425,7 +466,10 @@ export function Cover({ d }: { d: Draft }) {
         {mode === 'wide' && tools}
         <section className="cover-stage" aria-label="Cover preview" id="cover-canvas" tabIndex={-1}>
           <div className="stage-toolbar" role="toolbar" aria-label="Canvas">
-            <div role="group" aria-label="View" className="segmented-inline">
+            <span className="group-label" id="cover-preview-label">
+              Preview
+            </span>
+            <div role="group" aria-labelledby="cover-preview-label" className="segmented-inline">
               {VIEWS.map(([key, name]) => (
                 <button
                   key={key}
@@ -494,6 +538,14 @@ export function Cover({ d }: { d: Draft }) {
                 ))}
               </fieldset>
             </details>
+            <button
+              type="button"
+              disabled={!selectionBox(selected)}
+              title="Zoom to the selected layer"
+              onClick={() => fitSelection()}
+            >
+              Fit selection
+            </button>
             <button
               type="button"
               disabled={history.current.length === 0}
@@ -585,6 +637,7 @@ export function Cover({ d }: { d: Draft }) {
               onMoveElement={moveLayer}
               onAnnounce={setAnnounce}
               fitWidth={mode === 'narrow'}
+              focus={focus}
             />
           ) : (
             !draftError &&

@@ -36,7 +36,7 @@ puzzlepress-studio = "puzzlepress.studio.server:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-puzzlepress = ["py.typed", "interior/fonts/*", "cover/fonts/*"]
+puzzlepress = ["py.typed", "interior/fonts/*", "cover/fonts/*", "cover/templates/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

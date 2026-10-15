@@ -167,8 +167,18 @@ Small status marks differ in shape as well as color. The supplied logo is preser
   outlined in dashed purple. There are no effects, free paths, filters or browser
   drawing: every element is laid out and rendered by Python. Converting to regions
   is an explicit dialog showing Python's preview. The asset library is a ruled
-  list with thumbnails, facts and every use; removal goes to a trash with restore,
-  and permanent deletion is a second, red confirmation.
+  list with a status chip (In use, Draft only, Unused, In trash) and details
+  collapsed; removal goes to a trash with restore, and permanent deletion is a
+  second, red confirmation. Templates come first in the tools: ruled cards with a
+  Python thumbnail, name, description, category, photo need and fonts; a native
+  modal dialog shows the large preview beside what stays, what is replaced and
+  what is kept, with Cancel and a single primary Apply. The region picker heads
+  the tools as "Editing region" with the current region as a chip; the canvas
+  toolbar labels its view group "Preview". The text editor has a compact toolbar
+  (B, I, U, font, size, colour, alignment, lists, heading, clear) whose
+  unavailable variants are visibly disabled with a reason; inspector sections run
+  Content, Typography, Paragraph, Layout, Position, Effects, Validation. Checks
+  are split into Blocking and Advisory groups.
 - Interior: a style sheet beside sample pages. Presets are radio rows with one
   line each; overrides show "Preset" until set; sections open with a heavy ink
   rule. Sample pages are rasters of Python's PDF of the draft, labeled with their
@@ -212,7 +222,9 @@ Small status marks differ in shape as well as color. The supplied logo is preser
   author wrote.
 - Don't present Cover Studio as an image editor or imply AI generation, and don't
   draw cover type in the browser.
-- Don't let a hidden or restyled cover layer change book metadata.
+- Don't let a hidden or restyled cover layer change book metadata, or a template
+  replace the book's title, author, photographs or declarations.
+- Don't imitate a missing bold or italic face, or accept HTML as cover text.
 - Don't introduce gradients, glass effects, decorative charts or nested cards in
   the interface (a cover region gradient is authored content, rendered by Python).
 - Don't imply that no quality findings means publication readiness, or that an

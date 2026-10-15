@@ -1,0 +1,297 @@
+{
+  "category": "technical",
+  "description": "A blueprint grid with thin rules and a drafting frame. Diagrams only; no invented specifications.",
+  "design": {
+    "elements": [
+      {
+        "color": "#5f8fbf",
+        "from": {
+          "x": 108,
+          "y": 90
+        },
+        "id": "grid-v1",
+        "name": "Grid 1",
+        "region": "front",
+        "to": {
+          "x": 108,
+          "y": 450
+        },
+        "type": "line",
+        "width": 0.75
+      },
+      {
+        "color": "#5f8fbf",
+        "from": {
+          "x": 180,
+          "y": 90
+        },
+        "id": "grid-v2",
+        "name": "Grid 2",
+        "region": "front",
+        "to": {
+          "x": 180,
+          "y": 450
+        },
+        "type": "line",
+        "width": 0.75
+      },
+      {
+        "color": "#5f8fbf",
+        "from": {
+          "x": 252,
+          "y": 90
+        },
+        "id": "grid-v3",
+        "name": "Grid 3",
+        "region": "front",
+        "to": {
+          "x": 252,
+          "y": 450
+        },
+        "type": "line",
+        "width": 0.75
+      },
+      {
+        "color": "#5f8fbf",
+        "from": {
+          "x": 324,
+          "y": 90
+        },
+        "id": "grid-v4",
+        "name": "Grid 4",
+        "region": "front",
+        "to": {
+          "x": 324,
+          "y": 450
+        },
+        "type": "line",
+        "width": 0.75
+      },
+      {
+        "color": "#5f8fbf",
+        "from": {
+          "x": 396,
+          "y": 90
+        },
+        "id": "grid-v5",
+        "name": "Grid 5",
+        "region": "front",
+        "to": {
+          "x": 396,
+          "y": 450
+        },
+        "type": "line",
+        "width": 0.75
+      },
+      {
+        "color": "#5f8fbf",
+        "from": {
+          "x": 468,
+          "y": 90
+        },
+        "id": "grid-v6",
+        "name": "Grid 6",
+        "region": "front",
+        "to": {
+          "x": 468,
+          "y": 450
+        },
+        "type": "line",
+        "width": 0.75
+      },
+      {
+        "color": "#5f8fbf",
+        "from": {
+          "x": 540,
+          "y": 90
+        },
+        "id": "grid-v7",
+        "name": "Grid 7",
+        "region": "front",
+        "to": {
+          "x": 540,
+          "y": 450
+        },
+        "type": "line",
+        "width": 0.75
+      },
+      {
+        "color": "#5f8fbf",
+        "from": {
+          "x": 36,
+          "y": 90
+        },
+        "id": "grid-h1",
+        "name": "Grid 8",
+        "region": "front",
+        "to": {
+          "x": 576,
+          "y": 90
+        },
+        "type": "line",
+        "width": 0.75
+      },
+      {
+        "color": "#5f8fbf",
+        "from": {
+          "x": 36,
+          "y": 162
+        },
+        "id": "grid-h2",
+        "name": "Grid 9",
+        "region": "front",
+        "to": {
+          "x": 576,
+          "y": 162
+        },
+        "type": "line",
+        "width": 0.75
+      },
+      {
+        "color": "#5f8fbf",
+        "from": {
+          "x": 36,
+          "y": 234
+        },
+        "id": "grid-h3",
+        "name": "Grid 10",
+        "region": "front",
+        "to": {
+          "x": 576,
+          "y": 234
+        },
+        "type": "line",
+        "width": 0.75
+      },
+      {
+        "color": "#5f8fbf",
+        "from": {
+          "x": 36,
+          "y": 306
+        },
+        "id": "grid-h4",
+        "name": "Grid 11",
+        "region": "front",
+        "to": {
+          "x": 576,
+          "y": 306
+        },
+        "type": "line",
+        "width": 0.75
+      },
+      {
+        "color": "#5f8fbf",
+        "from": {
+          "x": 36,
+          "y": 378
+        },
+        "id": "grid-h5",
+        "name": "Grid 12",
+        "region": "front",
+        "to": {
+          "x": 576,
+          "y": 378
+        },
+        "type": "line",
+        "width": 0.75
+      },
+      {
+        "color": "#5f8fbf",
+        "from": {
+          "x": 36,
+          "y": 450
+        },
+        "id": "grid-h6",
+        "name": "Grid 13",
+        "region": "front",
+        "to": {
+          "x": 576,
+          "y": 450
+        },
+        "type": "line",
+        "width": 0.75
+      },
+      {
+        "box": {
+          "height": 732,
+          "width": 552,
+          "x": 30,
+          "y": 30
+        },
+        "fill": null,
+        "id": "front-frame",
+        "name": "Drawing frame",
+        "region": "front",
+        "stroke": "#e6eef7",
+        "stroke_width": 1.0,
+        "type": "rect"
+      },
+      {
+        "box": {
+          "height": 732,
+          "width": 552,
+          "x": 30,
+          "y": 30
+        },
+        "fill": null,
+        "id": "back-frame",
+        "name": "Drawing frame",
+        "region": "back",
+        "stroke": "#e6eef7",
+        "stroke_width": 1.0,
+        "type": "rect"
+      },
+      {
+        "color": "#5f8fbf",
+        "from": {
+          "x": 36,
+          "y": 130
+        },
+        "id": "back-rule",
+        "name": "Back rule",
+        "region": "back",
+        "to": {
+          "x": 420,
+          "y": 130
+        },
+        "type": "line",
+        "width": 0.75
+      }
+    ],
+    "legibility": "none",
+    "regions": {
+      "back": {
+        "color": "#1f4e79"
+      },
+      "front": {
+        "color": "#1f4e79"
+      },
+      "spine": {
+        "color": "#1f4e79"
+      }
+    },
+    "spine_text": "auto",
+    "text": {
+      "title": {
+        "color": "#e6eef7",
+        "font": "sans-bold"
+      }
+    },
+    "type": {
+      "align": "left",
+      "position": "top",
+      "style": "minimal",
+      "tone": "light"
+    }
+  },
+  "id": "technical-blueprint",
+  "name": "Technical Blueprint",
+  "palette": [
+    "#1f4e79",
+    "#5f8fbf",
+    "#e6eef7"
+  ],
+  "photo": "none",
+  "provenance": "Original PuzzlePress vector design: shapes, rules and bundled type only; no logos, no third-party artwork.",
+  "template_version": 1
+}

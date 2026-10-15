@@ -42,6 +42,7 @@ from .cover_config import (
     TitlePosition,
 )
 from .cover_design import Element, GradientDirection, Region
+from .cover_richtext import is_rich, read_rich
 from .errors import ValidationIssue
 
 # A portable asset reference: one level below cover-assets, lowercase, no traversal.
@@ -166,15 +167,27 @@ def validate_cover(
     if not isinstance(background, str) or not HEX_COLOR.fullmatch(background):
         reader.issue(f"{path}.background", "color", "Use a #RRGGBB sRGB color.")
         background = CoverConfig.background
+    fonts = _fonts(reader, data.get("fonts", []), f"{path}.fonts")
+    font_ids = {font.id for font in fonts}
     back_text = None
-    if "back_text" in data:
+    back_rich = None
+    if is_rich(data.get("back_text")):
+        if version < 2:
+            reader.issue(
+                f"{path}.back_text",
+                "requires_version_2",
+                "Cover version 1 has plain back text only; set version: 2 to format it.",
+            )
+        back_rich = read_rich(
+            reader, data["back_text"], f"{path}.back_text", font_ids, MAX_BACK_TEXT
+        )
+        back_text = back_rich.plain() if back_rich is not None else None
+    elif "back_text" in data:
         back_text = _body(reader, data["back_text"], f"{path}.back_text")
         if len(back_text) > MAX_BACK_TEXT:
             reader.issue(
                 f"{path}.back_text", "text", f"Back-cover text is limited to {MAX_BACK_TEXT}."
             )
-    fonts = _fonts(reader, data.get("fonts", []), f"{path}.fonts")
-    font_ids = {font.id for font in fonts}
     text = _text_layers(reader, data.get("text", {}), f"{path}.text", font_ids)
     extra = _extra_layers(reader, data.get("extra", []), f"{path}.extra", font_ids)
     regions = None
@@ -205,6 +218,7 @@ def validate_cover(
             fonts=fonts,
             regions=regions,
             elements=elements,
+            back_rich=back_rich,
         ),
         (),
     )

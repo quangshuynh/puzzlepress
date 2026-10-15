@@ -1,0 +1,78 @@
+{
+  "category": "photographic",
+  "description": "A large front photograph under refined serif type, with a calm navy back and spine.",
+  "design": {
+    "elements": [
+      {
+        "crop": {
+          "zoom": 1.0
+        },
+        "id": "front-photo",
+        "name": "Front photograph",
+        "region": "front",
+        "slot": 1,
+        "type": "photo"
+      },
+      {
+        "color": "#f4efe4",
+        "from": {
+          "x": 36,
+          "y": 150
+        },
+        "id": "back-rule",
+        "name": "Back rule",
+        "region": "back",
+        "to": {
+          "x": 300,
+          "y": 150
+        },
+        "type": "line",
+        "width": 0.75
+      },
+      {
+        "box": {
+          "height": 22,
+          "width": 360,
+          "x": 36,
+          "y": 158
+        },
+        "color": "#f4efe4",
+        "font": "serif-italic",
+        "id": "back-count",
+        "name": "Puzzle count",
+        "region": "back",
+        "size": 13,
+        "text": "{puzzle_count} word search puzzles",
+        "type": "text"
+      }
+    ],
+    "legibility": "shade",
+    "regions": {
+      "back": {
+        "color": "#1d2a44"
+      },
+      "front": {
+        "color": "#1d2a44"
+      },
+      "spine": {
+        "color": "#1d2a44"
+      }
+    },
+    "spine_text": "auto",
+    "type": {
+      "align": "center",
+      "position": "top",
+      "style": "editorial",
+      "tone": "light"
+    }
+  },
+  "id": "photographic-editorial",
+  "name": "Photographic Editorial",
+  "palette": [
+    "#1d2a44",
+    "#f4efe4"
+  ],
+  "photo": "required",
+  "provenance": "Original PuzzlePress vector design: shapes, rules and bundled type only; no logos, no third-party artwork.",
+  "template_version": 1
+}

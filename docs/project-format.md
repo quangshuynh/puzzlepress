@@ -117,7 +117,11 @@ Two optional authored files may sit beside `book.yaml`, outside every identity
 and read by no build: `reviews.yaml` (editorial reviews) and `proofs.yaml` (proof
 records). Each is revision-checked and written atomically; see
 [production design](production-design-polish.md). Removed assets go to
-`cover-assets/.trash/`, which no import or listing reads.
+`cover-assets/.trash/`, which no import or listing reads. Project cover templates
+live in `cover-templates/<id>.json` (at most 100 files of 256 KB each). They are
+read only when Studio lists or applies them, never by a build, and are outside
+every identity: applying one writes an ordinary `cover` section
+([cover templates and rich text](cover-templates-rich-text.md)).
 
 Absent `word_search` is omitted from canonical inputs, preserving all legacy
 identities. Likewise, a present `composition` is included in full with envelope

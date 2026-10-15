@@ -28,6 +28,12 @@ function facts(asset: LibraryAsset): string {
     .join(' · ');
 }
 
+function state(asset: LibraryAsset): ['in-use' | 'draft-only' | 'unused', string] {
+  if (asset.uses.some((use) => use.source === 'saved')) return ['in-use', 'In use'];
+  if (asset.uses.length) return ['draft-only', 'Draft only'];
+  return ['unused', 'Unused'];
+}
+
 type Pending = { kind: 'trash'; asset: LibraryAsset } | { kind: 'purge'; entry: TrashEntry };
 
 export function AssetsPanel({
@@ -99,9 +105,8 @@ export function AssetsPanel({
         <h3>Assets</h3>
       </div>
       <p className="small muted">
-        Imported photographs and fonts in this project. Identical files are stored once. An asset
-        used by the saved book or this draft cannot be removed; removing moves it to the
-        project&apos;s trash, where it can be restored.
+        Assets in use cannot be removed. Removing moves a file to the trash, where it can be
+        restored.
       </p>
       <div className="navigator-filters">
         <label className="sr-only" htmlFor="asset-search">
@@ -152,47 +157,55 @@ export function AssetsPanel({
               )}
               <div className="asset-facts">
                 <strong title={asset.path}>{asset.name}</strong>
-                <span className="small muted">
-                  {asset.kind === 'photo' ? 'Photograph' : 'Font'} · {facts(asset)} ·{' '}
-                  {bytes(asset.bytes)}
-                </span>
-                {asset.sha256 && (
-                  <code className="small identity" title={asset.sha256}>
-                    SHA-256 {asset.sha256.slice(0, 16)}…
-                  </code>
-                )}
-                {asset.kind === 'font' && licenses && (
-                  <span className="small muted">
-                    License:{' '}
-                    {licenses[asset.path] ?? 'not recorded (you record it; it is not verified)'}
+                <span className="small">
+                  <span className={`asset-state ${state(asset)[0]}`}>{state(asset)[1]}</span>{' '}
+                  <span className="muted">
+                    {asset.kind === 'photo' ? 'Photograph' : 'Font'} · {bytes(asset.bytes)}
                   </span>
-                )}
+                </span>
                 {asset.problem && (
                   <span className="small field-errors">
                     Unusable: {asset.problem.replaceAll('_', ' ')}
                   </span>
                 )}
-                {asset.in_use ? (
-                  <ul className="asset-uses small">
-                    {asset.uses.map((use) => (
-                      <li key={`${use.source}-${use.path}`}>
-                        <Status tone="neutral">{use.source === 'draft' ? 'Draft' : 'Saved'}</Status>{' '}
-                        {use.label}{' '}
-                        {onShowUse && (
-                          <button
-                            type="button"
-                            className="link-button"
-                            onClick={() => onShowUse(use)}
-                          >
-                            Show
-                          </button>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <span className="small muted">Not used by the saved book or this draft.</span>
-                )}
+                <details className="asset-details">
+                  <summary className="small">Details</summary>
+                  <span className="small muted">{facts(asset)}</span>
+                  {asset.sha256 && (
+                    <code className="small identity" title={asset.sha256}>
+                      SHA-256 {asset.sha256.slice(0, 16)}…
+                    </code>
+                  )}
+                  {asset.kind === 'font' && licenses && (
+                    <span className="small muted">
+                      License:{' '}
+                      {licenses[asset.path] ?? 'not recorded (you record it; it is not verified)'}
+                    </span>
+                  )}
+                  {asset.in_use ? (
+                    <ul className="asset-uses small">
+                      {asset.uses.map((use) => (
+                        <li key={`${use.source}-${use.path}`}>
+                          <Status tone="neutral">
+                            {use.source === 'draft' ? 'Draft' : 'Saved'}
+                          </Status>{' '}
+                          {use.label}{' '}
+                          {onShowUse && (
+                            <button
+                              type="button"
+                              className="link-button"
+                              onClick={() => onShowUse(use)}
+                            >
+                              Show
+                            </button>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span className="small muted">Not used by the saved book or this draft.</span>
+                  )}
+                </details>
               </div>
               <button
                 type="button"
@@ -223,8 +236,11 @@ export function AssetsPanel({
               <li key={entry.trashed}>
                 <div className="asset-facts">
                   <strong>{entry.restores_to.split('/').pop()}</strong>
-                  <span className="small muted">
-                    {entry.kind === 'photo' ? 'Photograph' : 'Font'} · {bytes(entry.bytes)}
+                  <span className="small">
+                    <span className="asset-state trash">In trash</span>{' '}
+                    <span className="muted">
+                      {entry.kind === 'photo' ? 'Photograph' : 'Font'} · {bytes(entry.bytes)}
+                    </span>
                   </span>
                 </div>
                 <div className="button-row">

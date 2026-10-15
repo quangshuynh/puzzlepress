@@ -62,6 +62,8 @@ from puzzlepress.cover.model import (
     CoverLayout,
     CoverPhoto,
     CoverShape,
+    CoverText,
+    CoverTextBox,
     ImageResolution,
     StackItem,
 )
@@ -82,8 +84,9 @@ from .preview import PageOutOfRange, PageRasterizer, PreviewUnavailable
 from .service import StudioError, StudioService
 
 DIGEST = re.compile(r"[0-9a-f]{64}")
-# A full 8.5 x 11 in wrap is about 1260 x 810 pt: ~1 px/pt to view, 2.5 to inspect.
-COVER_SCALES = {"preview": 1.0, "detail": 2.5}
+# A full 8.5 x 11 in wrap is about 1260 x 810 pt: ~1 px/pt to view, 2.5 to inspect,
+# 0.3 for template gallery cards.
+COVER_SCALES = {"thumb": 0.3, "preview": 1.0, "detail": 2.5}
 LOCK_WAIT = 60.0
 DRAFT_BUDGET = 160 * 1024 * 1024
 PHOTO_CACHE = 4
@@ -321,6 +324,107 @@ def layout_checks(layout: CoverLayout, page_count: int) -> list[dict[str, str]]:
                 "message": reasons[layout.spine.reason],
             }
         )
+    return checks
+
+
+MIN_CONTRAST = 3.0  # WCAG large-text contrast; cover type is mostly large.
+
+
+def _luminance(color: tuple[float, float, float]) -> float:
+    def channel(c: float) -> float:
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+    r, g, b = (channel(c) for c in color)
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def contrast_ratio(first: tuple[float, float, float], second: tuple[float, float, float]) -> float:
+    a, b = sorted((_luminance(first), _luminance(second)), reverse=True)
+    return (a + 0.05) / (b + 0.05)
+
+
+def _inside(box: Box, x: float, y: float) -> bool:
+    return box.x <= x <= box.right and box.y <= y <= box.top
+
+
+def _behind(layout: CoverLayout, text: CoverText) -> tuple[float, float, float] | None:
+    """The solid color under the middle of a line, or None over a photograph or gradient."""
+    x, y = text.bounds.x + text.bounds.width / 2, text.bounds.y + text.bounds.height / 2
+    color: tuple[float, float, float] | None = layout.background.color
+    for fill in layout.region_fills:
+        if _inside(fill.box, x, y):
+            color = None if fill.gradient else fill.color
+    stack = layout.stack
+    book_text = "_element:" not in text.role
+    limit = next(
+        (
+            i
+            for i, item in enumerate(stack)
+            if isinstance(item, CoverTextBox) and item.role == text.role
+        ),
+        len(stack),
+    )
+    for item in stack[:limit]:
+        if isinstance(item, CoverPhoto) and _inside(item.region, x, y):
+            color = None
+        elif (
+            isinstance(item, CoverShape)
+            and item.fill is not None
+            and item.opacity >= 1.0
+            and not item.rotation
+            and item.kind != "line"
+            and _inside(item.box, x, y)
+        ):
+            if item.kind == "ellipse":
+                rx, ry = item.box.width / 2, item.box.height / 2
+                dx, dy = x - (item.box.x + rx), y - (item.box.y + ry)
+                if (dx / rx) ** 2 + (dy / ry) ** 2 > 1:
+                    continue
+            color = item.fill
+    if book_text:
+        for panel in layout.panels:
+            if _inside(panel.box, x, y):
+                color = panel.color
+    return color
+
+
+def design_checks(layout: CoverLayout) -> list[dict[str, str]]:
+    """Advisory design findings: low contrast and template photo placeholders. Never blocking."""
+    if not layout.config.designed:
+        return []
+    checks: list[dict[str, str]] = []
+    flagged: set[str] = set()
+    for text in layout.texts:
+        layer = _layer_of(text.role)
+        if layer in flagged:
+            continue
+        background = _behind(layout, text)
+        if background is None:
+            continue
+        ratio = contrast_ratio(text.color, background)
+        if ratio < MIN_CONTRAST:
+            flagged.add(layer)
+            checks.append(
+                {
+                    "code": "low_contrast",
+                    "severity": "warning",
+                    "layer": layer,
+                    "message": f"This text has a contrast of {ratio:.1f}:1 against its "
+                    f"background; aim for at least {MIN_CONTRAST:g}:1 so it reads in print "
+                    "and in thumbnails.",
+                }
+            )
+    for element in layout.config.elements:
+        if element.id.startswith("photo-slot-") and element.name and "placeholder" in element.name:
+            checks.append(
+                {
+                    "code": "template_photo_placeholder",
+                    "severity": "warning",
+                    "layer": f"element:{element.id}",
+                    "message": "This template frame is waiting for a photograph. Import one in "
+                    "Photos and place it, or delete the placeholder.",
+                }
+            )
     return checks
 
 
@@ -644,7 +748,8 @@ class CoverService:
                 "layout": present_layout(build.layout),
                 "checks": issue_checks(build.layout_issues)
                 + display_checks(project)
-                + layout_checks(build.layout, interior.page_count),
+                + layout_checks(build.layout, interior.page_count)
+                + design_checks(build.layout),
                 "buildable": not build.layout_issues,
                 "display": cover_display(project.cover, CoverCopy.from_project(project)),
                 "library": self._library(source, project, *_library_frame(build.layout)),

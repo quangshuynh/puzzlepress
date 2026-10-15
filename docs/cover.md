@@ -131,6 +131,14 @@ implicitly; Studio's **Convert to regions** produces a version 3 cover that
 renders the same bytes. The full schema, coordinate system, spine and barcode
 rules are in [production design](production-design-polish.md#cover-regions-cover-version-3).
 
+### Templates and rich text
+
+A template applies a complete version 3 design without touching the book
+details. `back_text` (version 2 and up) and text boxes (version 3) may hold a
+rich text document instead of a string. Unformatted text stays a plain string,
+and every cover that does not use formatting renders the same bytes as before.
+Both are described in [cover templates and rich text](cover-templates-rich-text.md).
+
 ### Imported fonts
 
 A deliberately bounded first implementation: one static font with TrueType (glyf)
@@ -448,7 +456,9 @@ design), a region picker (full wrap, back, spine, front), the canvas with
 selectable, draggable text and elements, and an inspector for the selected layer,
 region or the photograph's print quality. Draft previews also render layouts that fail
 validation (text moved out of its safe area) so they can be corrected; the
-response marks them not buildable and builds still refuse them.
+response marks them not buildable and builds still refuse them. The **Templates**
+tab applies a template to the draft only, and the text editor formats back-cover
+text and text boxes ([cover templates and rich text](cover-templates-rich-text.md)).
 
 ## Limitations
 
@@ -461,7 +471,10 @@ variable fonts, collections or WOFF); no kerning or ligatures (ReportLab draws
 glyph advances); spine text keeps its preset face. Offsets are relative to the
 layout's own position, so changing the preset or text length moves the starting
 point. Unused photos and fonts are removed only through the asset library's
-trash, never automatically. Spine text needs 80+ pages
+trash, never automatically. Rich text has no kerning, hyphenation or justified
+alignment; bold or italic needs a bundled or imported face that has it. Templates
+are authored for 8.5 x 11 in and scaled; project templates that use imported
+fonts work only in projects holding the same font files. Spine text needs 80+ pages
 and a spine wide enough for 7 pt type.
 The cover demo's photograph is a synthetic stand-in. KDP metadata and the publishing package are described in
 [publishing](publishing.md).

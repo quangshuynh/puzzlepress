@@ -1,14 +1,19 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { request, upload } from './api';
 import { ROLES, addExtra, fontId, fontUsers, layerOf, setLayer } from './cover-model';
 import { AssetsPanel } from './assets';
+import { TemplatesTab } from './cover-templates';
+import { plainOf } from './rich-text-model';
 import { LayersTab, PresetsSection, RegionPicker, ShapesTab } from './cover-elements';
 import { FieldErrors, matchIssues, type Source } from './editor-fields';
 import type {
+  AssetListing,
+  AssetUse,
   CoverAsset,
   CoverConfig,
   CoverLayoutView,
   CoverLibrary,
+  CoverTemplateInfo,
   ElementRegion,
   FontFacts,
   Issue,
@@ -19,6 +24,7 @@ import type {
 // cover's design presets. Each tab edits authored values only.
 
 export const TOOL_TABS = [
+  ['templates', 'Templates'],
   ['layers', 'Layers'],
   ['photo', 'Photos'],
   ['text', 'Text'],
@@ -134,6 +140,8 @@ export function PhotoLibrary({
   notice,
   setNotice,
   placeLabel,
+  source,
+  onShowUse,
 }: {
   projectKey: string;
   cover: CoverConfig;
@@ -144,17 +152,56 @@ export function PhotoLibrary({
   notice: string;
   setNotice: (message: string) => void;
   placeLabel?: string;
+  source?: Source; // The draft: with it, each photo shows its uses and unused ones can be removed.
+  onShowUse?: (use: AssetUse) => void;
 }) {
   const [assets, setAssets] = useState<CoverAsset[]>();
+  const [listing, setListing] = useState<AssetListing>();
   const [busy, setBusy] = useState(false);
+  const [round, setRound] = useState(0);
   const base = `/api/projects/${encodeURIComponent(projectKey)}/cover/assets`;
+  const assetsBase = `/api/projects/${encodeURIComponent(projectKey)}/assets`;
   useEffect(() => {
     const controller = new AbortController();
     request<{ assets: CoverAsset[] }>(base, controller.signal)
       .then((data) => !controller.signal.aborted && setAssets(data.assets))
       .catch((err: Error) => !controller.signal.aborted && setNotice(err.message));
     return () => controller.abort();
-  }, [base, setNotice]);
+  }, [base, setNotice, round]);
+  const latest = useRef(source);
+  latest.current = source;
+  const signature = JSON.stringify(source?.cover ?? null);
+  useEffect(() => {
+    if (!latest.current) return;
+    const controller = new AbortController();
+    request<AssetListing>(`${assetsBase}/list`, controller.signal, { source: latest.current })
+      .then((data) => !controller.signal.aborted && setListing(data))
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [assetsBase, signature, round]);
+  const remove = async (path: string, sha256: string, name: string) => {
+    if (
+      !window.confirm(
+        `Remove ${name}? It moves to this project's trash (Assets tab), where it can be restored.`,
+      )
+    )
+      return;
+    setBusy(true);
+    try {
+      await request<AssetListing>(`${assetsBase}/trash`, new AbortController().signal, {
+        path,
+        sha256,
+        revision: listing?.revision,
+        source: latest.current,
+      });
+      setNotice(`Moved ${name} to the project's trash. Restore it from the Assets tab.`);
+      setRound((n) => n + 1);
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : 'The photograph was not removed.');
+    } finally {
+      setBusy(false);
+    }
+  };
   const photos: PhotoOption[] = library?.photos ?? assets ?? [];
   const importPhoto = async (file: File) => {
     if (!['image/jpeg', 'image/png'].includes(file.type)) {
@@ -216,6 +263,8 @@ export function PhotoLibrary({
             const current = inUse(cover, photo.path);
             const comparing = trial?.path === photo.path;
             const name = photo.path.replace('cover-assets/', '');
+            const listed = listing?.assets?.find((asset) => asset.path === photo.path);
+            const uses = listed?.uses ?? [];
             return (
               <li
                 key={photo.path}
@@ -263,7 +312,41 @@ export function PhotoLibrary({
                       </button>
                     </>
                   )}
+                  {listed && (
+                    <button
+                      type="button"
+                      className="small-button"
+                      disabled={busy || uses.length > 0 || !photo.sha256}
+                      aria-label={
+                        uses.length
+                          ? `Remove ${name} (unavailable: in use)`
+                          : `Remove ${name} from the project`
+                      }
+                      title={uses.length ? 'In use: remove it from these layers first.' : undefined}
+                      onClick={() => photo.sha256 && void remove(photo.path, photo.sha256, name)}
+                    >
+                      Remove…
+                    </button>
+                  )}
                 </div>
+                {uses.length > 0 && (
+                  <p className="photo-uses">
+                    Used by{' '}
+                    {uses.map((use, i) => (
+                      <span key={`${use.source}-${use.path}`}>
+                        {i > 0 && ', '}
+                        {onShowUse ? (
+                          <button type="button" onClick={() => onShowUse(use)}>
+                            {use.label}
+                          </button>
+                        ) : (
+                          use.label
+                        )}
+                        {use.source === 'draft' ? ' (draft)' : ''}
+                      </span>
+                    ))}
+                  </p>
+                )}
               </li>
             );
           })}
@@ -294,7 +377,7 @@ function TextTab({
   const rows: [string, string, string][] = ROLES.map(([role, name]) => [
     role,
     name,
-    role === 'back_text' ? (cover.back_text ?? '') : (display?.[role] ?? ''),
+    role === 'back_text' ? plainOf(cover.back_text) : (display?.[role] ?? ''),
   ]);
   for (const extra of cover.extra ?? [])
     rows.push([
@@ -809,6 +892,7 @@ export function CoverTools({
   onTrial,
   onChoosePhoto,
   onConvert,
+  onApplyTemplate,
   notice,
   setNotice,
 }: {
@@ -830,12 +914,34 @@ export function CoverTools({
   onTrial: (asset: CoverAsset | null) => void;
   onChoosePhoto: (asset: CoverAsset) => void;
   onConvert: () => void;
+  onApplyTemplate: (cover: CoverConfig, template: CoverTemplateInfo) => void;
   notice: string;
   setNotice: (message: string) => void;
 }) {
   const licenses = Object.fromEntries((cover.fonts ?? []).map((font) => [font.path, font.license]));
+  const showUse = (use: AssetUse) => {
+    const match = use.path.match(/^cover\.elements\.(\d+)\./);
+    if (match) {
+      const element = cover.elements?.[Number(match[1])];
+      if (element) onSelect(`element:${element.id}`);
+    } else if (use.path === 'cover.image') onSelect('photo');
+    else if (use.area === 'book')
+      window.location.assign(`/books/${encodeURIComponent(projectKey)}/interior`);
+    else if (use.path.startsWith('cover.fonts')) setTab('fonts');
+  };
   return (
     <section className="cover-panel cover-tools" aria-label="Cover tools">
+      {cover.version < 3 && (
+        <div className="legacy-banner">
+          <p>
+            This cover uses the version {cover.version} single-photo layout. Convert it to a region
+            design to add layers and shapes, or apply a template.
+          </p>
+          <button type="button" className="small-button" onClick={onConvert}>
+            Convert to region design…
+          </button>
+        </div>
+      )}
       <RegionPicker region={region} onChange={onRegion} />
       <Tabs
         label="Cover tools"
@@ -850,6 +956,9 @@ export function CoverTools({
         aria-labelledby={`cover-tools-tab-${tab}`}
         className="panel-body"
       >
+        {tab === 'templates' && (
+          <TemplatesTab projectKey={projectKey} source={source} onApply={onApplyTemplate} />
+        )}
         {tab === 'layers' && (
           <LayersTab
             cover={cover}
@@ -874,6 +983,8 @@ export function CoverTools({
                 ? `Place on ${region === 'wrap' ? 'the full wrap' : `the ${region}`}`
                 : undefined
             }
+            source={source}
+            onShowUse={showUse}
           />
         )}
         {tab === 'text' && (
@@ -910,16 +1021,7 @@ export function CoverTools({
             projectKey={projectKey}
             draft={source}
             licenses={licenses}
-            onShowUse={(use) => {
-              const match = use.path.match(/^cover\.elements\.(\d+)\./);
-              if (match) {
-                const element = cover.elements?.[Number(match[1])];
-                if (element) onSelect(`element:${element.id}`);
-              } else if (use.path === 'cover.image') onSelect('photo');
-              else if (use.area === 'book')
-                window.location.assign(`/books/${encodeURIComponent(projectKey)}/interior`);
-              else if (use.path.startsWith('cover.fonts')) setTab('fonts');
-            }}
+            onShowUse={showUse}
           />
         )}
         {tab === 'design' && (

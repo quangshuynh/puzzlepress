@@ -272,7 +272,9 @@ Artifact and consistency rules: `output_directory`, `interior_present`,
 `cover_structural`, `cover_kdp`, `cover_warnings`, `cover_text_matches` (the
 built cover prints the current title, subtitle, author and imprint: KDP requires
 cover and details to match; a cover version 2 display override must equal the
-detail apart from spacing, line breaks and capitals), `cover_text_omitted`
+detail apart from spacing, line breaks and capitals; a cover template keeps the
+book's own details, and rich back-cover text is compared and confirmed as its
+plain words, so neither causes a mismatch), `cover_text_omitted`
 (warning: the cover hides the title or author; KDP's wording requires a match
 but does not state that the title must appear, so the author decides; hiding
 cover text never changes the book details), `cover_matches_interior` (page count, paper, profile, trim and

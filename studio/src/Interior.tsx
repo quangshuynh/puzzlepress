@@ -19,6 +19,9 @@ import { Loading, Status } from './ui';
 // and renders a few sample pages; nothing here draws a page. Dividers are
 // composition (real pages in the plan), so enabling them changes the page count.
 
+// Draft previews fail fast while Studio is busy; retry this many times, a second apart.
+const BUSY_RETRIES = 5;
+
 type Section = 'title_page' | 'puzzle_pages' | 'solution_pages' | 'dividers';
 
 const PRESETS: [InteriorStyle['preset'], string, string][] = [
@@ -69,7 +72,9 @@ export function Interior({ d }: { d: Draft }) {
   useEffect(() => {
     if (!composition) return;
     const controller = new AbortController();
-    const timer = setTimeout(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    // A short read (such as the interior status) can hold Studio's lock for a moment.
+    const run = (attempt: number) => {
       setPending(true);
       request<InteriorDraft>(`${base}/draft/interior`, controller.signal, {
         source: latest.current,
@@ -78,17 +83,24 @@ export function Interior({ d }: { d: Draft }) {
           if (controller.signal.aborted) return;
           setPreview(data);
           setPreviewError('');
+          setPending(false);
         })
         .catch((err: Error) => {
           if (controller.signal.aborted) return;
+          const busy = err instanceof ApiError && err.code === 'generation_busy';
+          if (busy && attempt < BUSY_RETRIES) {
+            timer = setTimeout(() => run(attempt + 1), 1000);
+            return;
+          }
           setPreviewError(
-            err instanceof ApiError && err.code === 'generation_busy'
+            busy
               ? 'Studio is busy generating; the preview will refresh on your next edit.'
               : err.message,
           );
-        })
-        .finally(() => !controller.signal.aborted && setPending(false));
-    }, 600);
+          setPending(false);
+        });
+    };
+    timer = setTimeout(() => run(0), 600);
     return () => {
       clearTimeout(timer);
       controller.abort();

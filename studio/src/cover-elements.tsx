@@ -18,7 +18,8 @@ import {
   setRegion,
   updateElement,
 } from './cover-elements-model';
-import { ROLES, layerOf, round, setLayer } from './cover-model';
+import { ROLES, bodyFace, layerOf, round, setLayer } from './cover-model';
+import { RichTextEditor } from './rich-text';
 import { BUNDLED, Group, NumberField, PhotoInspector, SEVERITY, Slider } from './cover-inspector';
 import { ColorField, EyeIcon, Segmented } from './cover-tools';
 import { FieldErrors, matchIssues, type Source } from './editor-fields';
@@ -49,20 +50,34 @@ export function RegionPicker({
   region: ElementRegion;
   onChange: (region: ElementRegion) => void;
 }) {
+  const name = REGION_NAMES.find(([key]) => key === region)?.[1] ?? region;
   return (
-    <div role="group" aria-label="Region" className="segmented-inline region-picker">
-      {REGION_NAMES.map(([key, name]) => (
-        <button
-          key={key}
-          type="button"
-          aria-pressed={region === key}
-          aria-label={`${name} region`}
-          onClick={() => onChange(key)}
-        >
+    <>
+      <p className="editing-region" id="editing-region-label">
+        <strong>Editing region</strong>
+        <span className="region-current" aria-live="polite">
           {name}
-        </button>
-      ))}
-    </div>
+        </span>
+        <span className="small muted">New layers and photos go here.</span>
+      </p>
+      <div
+        role="group"
+        aria-labelledby="editing-region-label"
+        className="segmented-inline region-picker"
+      >
+        {REGION_NAMES.map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            aria-pressed={region === key}
+            aria-label={`${label} region`}
+            onClick={() => onChange(key)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -328,13 +343,16 @@ function BoxFields({
   issues,
   disabled,
   onChange,
+  only,
 }: {
   box: ElementBox;
   path: string;
   issues: Issue[];
   disabled: boolean;
   onChange: (box: ElementBox) => void;
+  only?: (keyof ElementBox)[];
 }) {
+  const shown = (key: keyof ElementBox) => !only || only.includes(key);
   const field = (key: keyof ElementBox, label: string) => (
     <NumberField
       id={`${path}-${key}`.replaceAll('.', '-')}
@@ -351,11 +369,11 @@ function BoxFields({
   );
   return (
     <fieldset className="field-grid" disabled={disabled}>
-      <legend className="sr-only">Position and size</legend>
-      {field('x', 'X from left')}
-      {field('y', 'Y from bottom')}
-      {field('width', 'Width')}
-      {field('height', 'Height')}
+      <legend className="sr-only">{only ? 'Box' : 'Position and size'}</legend>
+      {shown('x') && field('x', 'X from left')}
+      {shown('y') && field('y', 'Y from bottom')}
+      {shown('width') && field('width', 'Width')}
+      {shown('height') && field('height', 'Height')}
     </fieldset>
   );
 }
@@ -388,6 +406,10 @@ export function ElementInspector({
   const elementChecks = checks.filter((check) => check.layer === layer);
   const view = layout?.photos?.find((photo) => photo.layer === layer);
   const size = layout ? (layout.regions?.[element.region]?.origin ?? null) : null;
+  const importedFonts = (cover.fonts ?? []).map((font): [string, string] => {
+    const facts = library?.fonts.find((f) => f.path === font.path);
+    return [font.id, `${facts?.full_name ?? font.id} (imported)`];
+  });
   const fontKeys = [
     ...BUNDLED,
     ...(cover.fonts ?? []).map((font): [string, string] => {
@@ -532,54 +554,121 @@ export function ElementInspector({
           <EyeIcon open={element.visible !== false} />
         </button>
       </div>
-      {heading}
+      {element.type === 'text'
+        ? elementChecks.length > 0 && (
+            <p className="small">
+              <a href="#element-validation">
+                {elementChecks.length} finding{elementChecks.length > 1 ? 's' : ''} in Validation
+              </a>
+            </p>
+          )
+        : heading}
       <fieldset className="inspector-fields" disabled={locked}>
         <legend className="sr-only">{name}</legend>
         {element.type === 'text' && (
-          <Group title="Text">
-            <div className="editor-field">
-              <label htmlFor="element-text">Text</label>
-              <textarea
+          <>
+            <Group title="Content">
+              <RichTextEditor
                 id="element-text"
-                rows={4}
-                value={element.text}
-                aria-describedby="element-text-hint"
-                aria-invalid={matchIssues(issues, `${path}.text`).length ? true : undefined}
-                onChange={(e) => set({ text: e.target.value })}
+                label="Text"
+                value={element.rich ?? element.text ?? ''}
+                baseFace={element.font ?? bodyFace(cover)}
+                fonts={importedFonts}
+                maxLength={600}
+                disabled={locked}
+                invalid={matchIssues(issues, path).some((i) => /\.(text|rich)/.test(i.path))}
+                hint="Your own words, wrapped to the box width; text that does not fit is reported, never cut off. This is not the book title or author. Formatting applies to the selection only."
+                onChange={(value) => {
+                  const next = updateElement(cover, element.id, {}) as CoverConfig;
+                  const elements = (next.elements ?? []).map((item) => {
+                    if (item.id !== element.id || item.type !== 'text') return item;
+                    const { text: _t, rich: _r, ...rest } = item;
+                    void _t;
+                    void _r;
+                    return typeof value === 'string'
+                      ? { ...rest, text: value }
+                      : { ...rest, rich: value };
+                  });
+                  update({ ...next, elements });
+                }}
               />
-              <p className="small muted field-hint" id="element-text-hint">
-                Your own words, wrapped to the box width; line breaks are kept. Text that does not
-                fit is reported, never cut off. This is not the book title or author.
-              </p>
               <FieldErrors id={`${path}.text`} issues={matchIssues(issues, `${path}.text`)} />
-            </div>
-            <div className="editor-field">
-              <label htmlFor="element-font">Font</label>
-              <select
-                id="element-font"
-                value={element.font ?? ''}
-                onChange={(e) => set({ font: e.target.value || undefined })}
-              >
-                <option value="">Preset body face</option>
-                {fontKeys.map(([key, label]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="field-grid">
-              <NumberField
-                id="element-size"
-                label="Size"
-                value={element.size}
-                min={4}
-                max={160}
-                step={0.5}
-                unit="pt"
-                issues={issues}
-                path={`${path}.size`}
-                onChange={(size) => size !== undefined && set({ size })}
+              <FieldErrors id={`${path}.rich`} issues={matchIssues(issues, `${path}.rich`)} />
+            </Group>
+            <Group title="Typography">
+              <div className="editor-field">
+                <label htmlFor="element-font">Box font</label>
+                <select
+                  id="element-font"
+                  value={element.font ?? ''}
+                  onChange={(e) => set({ font: e.target.value || undefined })}
+                >
+                  <option value="">Preset body face</option>
+                  {fontKeys.map(([key, label]) => (
+                    <option key={key} value={key}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field-grid">
+                <NumberField
+                  id="element-size"
+                  label="Size"
+                  value={element.size}
+                  min={4}
+                  max={160}
+                  step={0.5}
+                  unit="pt"
+                  issues={issues}
+                  path={`${path}.size`}
+                  onChange={(size) => size !== undefined && set({ size })}
+                />
+                <NumberField
+                  id="element-tracking"
+                  label="Letter spacing"
+                  value={element.letter_spacing}
+                  placeholder="0"
+                  min={-2}
+                  max={20}
+                  step={0.25}
+                  unit="pt"
+                  issues={issues}
+                  path={`${path}.letter_spacing`}
+                  onChange={(letter_spacing) =>
+                    set({ letter_spacing: letter_spacing || undefined })
+                  }
+                />
+              </div>
+              <Segmented
+                legend="Case"
+                value={element.case ?? 'as_written'}
+                options={[
+                  ['as_written', 'As written'],
+                  ['upper', 'Capitals'],
+                ]}
+                onChange={(value) => set({ case: value === 'as_written' ? undefined : value })}
+              />
+              <ColorField
+                id="element-color"
+                label="Text color"
+                value={element.color}
+                fallback="#f4efe4"
+                issues={matchIssues(issues, `${path}.color`)}
+                path={`${path}.color`}
+                onChange={(color) => set({ color })}
+              />
+            </Group>
+            <Group title="Paragraph">
+              <Segmented
+                legend="Box alignment"
+                value={element.align}
+                options={[
+                  ['left', 'Left'],
+                  ['center', 'Center'],
+                  ['right', 'Right'],
+                ]}
+                onChange={(align) => set({ align })}
               />
               <NumberField
                 id="element-leading"
@@ -593,49 +682,36 @@ export function ElementInspector({
                 path={`${path}.line_spacing`}
                 onChange={(line_spacing) => line_spacing !== undefined && set({ line_spacing })}
               />
-              <NumberField
-                id="element-tracking"
-                label="Letter spacing"
-                value={element.letter_spacing}
-                placeholder="0"
-                min={-2}
-                max={20}
-                step={0.25}
-                unit="pt"
+              <p className="small muted">
+                Paragraph alignment, lists and spacing set in the text above override these box
+                defaults for the paragraphs you select.
+              </p>
+            </Group>
+            <Group title="Layout">
+              <BoxFields
+                box={element.box}
+                path={`${path}.box`}
                 issues={issues}
-                path={`${path}.letter_spacing`}
-                onChange={(letter_spacing) => set({ letter_spacing: letter_spacing || undefined })}
+                disabled={locked}
+                only={['width', 'height']}
+                onChange={(box) => set({ box })}
               />
-            </div>
-            <Segmented
-              legend="Alignment"
-              value={element.align}
-              options={[
-                ['left', 'Left'],
-                ['center', 'Center'],
-                ['right', 'Right'],
-              ]}
-              onChange={(align) => set({ align })}
-            />
-            <Segmented
-              legend="Case"
-              value={element.case ?? 'as_written'}
-              options={[
-                ['as_written', 'As written'],
-                ['upper', 'Capitals'],
-              ]}
-              onChange={(value) => set({ case: value === 'as_written' ? undefined : value })}
-            />
-            <ColorField
-              id="element-color"
-              label="Text color"
-              value={element.color}
-              fallback="#f4efe4"
-              issues={matchIssues(issues, `${path}.color`)}
-              path={`${path}.color`}
-              onChange={(color) => set({ color })}
-            />
-          </Group>
+            </Group>
+            <Group title="Position">
+              <BoxFields
+                box={element.box}
+                path={`${path}.box`}
+                issues={issues}
+                disabled={locked}
+                only={['x', 'y']}
+                onChange={(box) => set({ box })}
+              />
+              <p className="small muted">
+                Points from the {element.region} region&apos;s bottom-left trim corner; 72 pt is one
+                inch. Drag on the canvas or use the arrow keys there.
+              </p>
+            </Group>
+          </>
         )}
         {(element.type === 'rect' || element.type === 'ellipse') && (
           <Group title="Fill and stroke">
@@ -758,9 +834,9 @@ export function ElementInspector({
             />
           </Group>
         )}
-        {element.type !== 'line' && (
+        {element.type !== 'line' && element.type !== 'text' && (
           <Group title="Position and size">
-            {element.type !== 'text' && (
+            {
               <label className="check">
                 <input
                   type="checkbox"
@@ -774,7 +850,7 @@ export function ElementInspector({
                 />
                 <span>Fill the whole region, bleed included</span>
               </label>
-            )}
+            }
             {element.box && (
               <BoxFields
                 box={element.box}
@@ -784,7 +860,7 @@ export function ElementInspector({
                 onChange={(box) => set({ box })}
               />
             )}
-            {element.type !== 'text' && element.box && (
+            {element.box && (
               <NumberField
                 id="element-rotation"
                 label="Rotation"
@@ -806,6 +882,33 @@ export function ElementInspector({
           </Group>
         )}
       </fieldset>
+      {element.type === 'text' && (
+        <>
+          <Group title="Effects">
+            <label className="check">
+              <input
+                type="checkbox"
+                checked={element.visible !== false}
+                onChange={() => set({ visible: element.visible === false ? undefined : false })}
+              />
+              <span>Show on the cover</span>
+            </label>
+            <p className="small muted">
+              Shadows, outlines and transparency are not offered for text: covers print solid color
+              only.
+            </p>
+          </Group>
+          <Group title="Validation">
+            <div id="element-validation">
+              {elementChecks.length ? (
+                heading
+              ) : (
+                <p className="small muted">No findings for this text box in the draft.</p>
+              )}
+            </div>
+          </Group>
+        </>
+      )}
       {general}
     </div>
   );

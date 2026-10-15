@@ -183,7 +183,8 @@ test('assets: an unused photo goes to the trash and back; used assets are protec
   await openCover(page);
   await page.getByRole('tab', { name: 'Assets' }).click();
   const list = page.getByRole('list', { name: 'Project assets' });
-  await expect(list.getByText('Not used by the saved book or this draft.')).toBeVisible();
+  await expect(list.locator('.asset-state.unused')).toHaveText(['Unused']);
+  await expect(list.locator('.asset-state.in-use')).not.toHaveCount(0);
   await expect(page.getByRole('button', { name: /^Remove harbour-dusk/ })).toBeDisabled();
   const spare = page.getByRole('button', { name: /^Remove spare-photo/ });
   await spare.focus();
@@ -201,7 +202,13 @@ test('assets: an unused photo goes to the trash and back; used assets are protec
   expect((await trashed).status()).toBe(200);
   await expect(page.getByText(/Moved spare-photo.* to the project's trash/)).toBeVisible();
   await page.getByText('Trash (1)').click();
+  await expect(page.getByRole('button', { name: 'Restore' })).toBeVisible();
   await captureElement(page, '.cover-tools', 'assets-library');
+  // A full-page capture briefly resizes the page, which can move the tool panel between
+  // layouts and close the trash; open it again before restoring.
+  const trash = page.locator('.asset-trash');
+  if (!(await trash.evaluate((d) => (d as HTMLDetailsElement).open)))
+    await page.getByText('Trash (1)').click();
   const restored = page.waitForResponse((r) => r.url().endsWith('/assets/restore'));
   await page.getByRole('button', { name: 'Restore' }).click();
   expect((await restored).status()).toBe(200);
