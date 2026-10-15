@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Locator, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 // Production design and publishing polish, on a disposable copy of the cover demo.
@@ -7,6 +7,29 @@ import AxeBuilder from '@axe-core/playwright';
 
 const KEY = 'design-demo';
 const shot = (name: string) => `../docs/images/studio/${name}.png`;
+
+// Full-page captures start at the top with nothing focused, so the sticky header and
+// the skip link are not painted halfway down the image.
+async function capture(page: Page, name: string, fullPage: boolean) {
+  await page.evaluate(() => {
+    (document.activeElement as HTMLElement | null)?.blur();
+    window.scrollTo(0, 0);
+  });
+  await page.screenshot({ path: shot(name), fullPage });
+}
+
+// Element captures clip a full-page capture taken from the top, so tall elements are
+// never scrolled under the sticky header.
+async function captureElement(page: Page, selector: string | Locator, name: string) {
+  const element = typeof selector === 'string' ? page.locator(selector) : selector;
+  await page.evaluate(() => {
+    (document.activeElement as HTMLElement | null)?.blur();
+    window.scrollTo(0, 0);
+  });
+  const box = await element.boundingBox();
+  if (!box) throw new Error(`${name}: element is not visible`);
+  await page.screenshot({ path: shot(name), fullPage: true, clip: box });
+}
 const WIDTHS: [string, number, number][] = [
   ['1440', 1440, 1000],
   ['1024', 1024, 900],
@@ -73,7 +96,7 @@ test('region design: convert, add, nudge, lock, reorder, save and build', async 
   const dialog = page.getByRole('dialog', { name: 'Convert to a region design' });
   await expect(dialog.getByText(/the PDFs are byte-identical/)).toBeVisible();
   await noAxeViolations(page);
-  await page.locator('.dialog').screenshot({ path: shot('cover-convert') });
+  await captureElement(page, '.dialog', 'cover-convert');
   const converted = draft(page);
   await dialog.getByRole('button', { name: 'Use region design' }).press('Enter');
   await converted;
@@ -124,7 +147,7 @@ test('region design: convert, add, nudge, lock, reorder, save and build', async 
     'Ellipse ellipse-1',
     'Photograph photo',
   ]);
-  await page.locator('.cover-studio').screenshot({ path: shot('cover-layers-stack') });
+  await captureElement(page, '.cover-studio', 'cover-layers-stack');
   await layers.getByRole('button', { name: /^Ellipse ellipse-1/ }).click();
   page.once('dialog', (d) => void d.accept());
   await page.getByRole('button', { name: 'Delete' }).click();
@@ -148,7 +171,7 @@ test('region design: convert, add, nudge, lock, reorder, save and build', async 
   for (const [name, width, height] of WIDTHS) {
     await page.setViewportSize({ width, height });
     await noOverflow(page);
-    await page.screenshot({ path: shot(`cover-regions-${name}`), fullPage: name === '390' });
+    await capture(page, `cover-regions-${name}`, name === '390');
   }
   expect(errors).toEqual([]);
 });
@@ -169,7 +192,7 @@ test('assets: an unused photo goes to the trash and back; used assets are protec
   await expect(confirm.getByText(/moves to this project's trash/)).toBeVisible();
   await expect(confirm.getByText(/^[0-9a-f]{64}$/)).toBeVisible();
   await noAxeViolations(page);
-  await page.locator('.dialog').screenshot({ path: shot('assets-remove') });
+  await captureElement(page, '.dialog', 'assets-remove');
   await confirm.getByRole('button', { name: 'Cancel' }).press('Enter');
   await expect(confirm).toBeHidden();
   await spare.click();
@@ -178,7 +201,7 @@ test('assets: an unused photo goes to the trash and back; used assets are protec
   expect((await trashed).status()).toBe(200);
   await expect(page.getByText(/Moved spare-photo.* to the project's trash/)).toBeVisible();
   await page.getByText('Trash (1)').click();
-  await page.locator('.cover-tools').screenshot({ path: shot('assets-library') });
+  await captureElement(page, '.cover-tools', 'assets-library');
   const restored = page.waitForResponse((r) => r.url().endsWith('/assets/restore'));
   await page.getByRole('button', { name: 'Restore' }).click();
   expect((await restored).status()).toBe(200);
@@ -213,7 +236,7 @@ test('interior design: preset, dividers and Python sample pages', async ({ page 
     await page.setViewportSize({ width, height });
     await noOverflow(page);
     if (name === '1440' || name === '390')
-      await page.screenshot({ path: shot(`interior-design-${name}`), fullPage: name === '390' });
+      await capture(page, `interior-design-${name}`, name === '390');
   }
 });
 
@@ -229,7 +252,7 @@ test('rebuild: the stale banner explains, plans and reports confirmed results', 
   const panel = page.getByRole('region', { name: 'Rebuild outdated artifacts' });
   await expect(panel.getByText('Rebuild the interior and its preflight report')).toBeVisible();
   await noAxeViolations(page);
-  await panel.screenshot({ path: shot('rebuild-plan') });
+  await captureElement(page, panel, 'rebuild-plan');
   const rebuilt = page.waitForResponse((r) => r.url().endsWith('/rebuild'));
   await panel.getByRole('button', { name: /^Rebuild \d steps?$/ }).focus();
   await page.keyboard.press('Enter');
@@ -237,7 +260,7 @@ test('rebuild: the stale banner explains, plans and reports confirmed results', 
   const results = panel.getByRole('list', { name: 'Rebuild results' });
   await expect(results.getByText('succeeded').first()).toBeVisible();
   await expect(panel.getByText(/server confirmed every step/)).toBeVisible();
-  await panel.screenshot({ path: shot('rebuild-results') });
+  await captureElement(page, panel, 'rebuild-results');
   await expect(page.locator('.stale-banner')).toBeHidden();
   await noOverflow(page);
 });
@@ -256,7 +279,7 @@ test('editorial review: record, filter, move on, and see it go stale on edit', a
   await page.getByRole('button', { name: 'Next unreviewed' }).click();
   await expect(page.getByRole('heading', { name: /Puzzle 2/ })).toBeVisible();
   await noAxeViolations(page);
-  await page.locator('.editor-layout').screenshot({ path: shot('puzzles-review') });
+  await captureElement(page, '.editor-layout', 'puzzles-review');
   // Editing the reviewed puzzle and saving makes its review stale.
   await page.getByRole('button', { name: /^1\./ }).click();
   await page.getByLabel('Puzzle title').fill('Harbour Revisited');
@@ -288,7 +311,7 @@ test('publishing: final steps keep decisions open and record a proof honestly', 
   await expect(overview.getByText(/Recorded proof-1/)).toBeVisible();
   await expect(overview.getByText('Print Previewer', { exact: true })).toBeVisible();
   await noAxeViolations(page);
-  await overview.screenshot({ path: shot('publishing-final-steps') });
+  await captureElement(page, overview, 'publishing-final-steps');
   // Keyboard navigation from a checklist item to where it is fixed.
   const disclosure = checklist.getByRole('listitem').filter({ hasText: 'AI disclosure' });
   await disclosure.locator('summary').focus();
