@@ -254,6 +254,32 @@ test('templates: browse without saving, preview, apply, undo, save and reuse', a
   expect(errors).toEqual([]);
 });
 
+test('the template gallery and overlay menu fit at every width', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await openCover(page);
+  await page.getByRole('tab', { name: 'Templates' }).click();
+  // Every card shows this book rendered with its template before the captures.
+  const thumbs = page.getByRole('list', { name: 'Built-in templates' }).locator('img');
+  await expect(thumbs).toHaveCount(8, { timeout: 30000 });
+  await expect
+    .poll(() =>
+      thumbs.evaluateAll((all) => all.every((i) => (i as HTMLImageElement).naturalWidth > 0)),
+    )
+    .toBe(true);
+  for (const [name, width, height] of WIDTHS) {
+    await page.setViewportSize({ width, height });
+    await noOverflow(page);
+    const menu = page.locator('.stage-toolbar details.menu');
+    await menu.locator('summary').click();
+    const body = (await menu.locator('.menu-body').boundingBox())!;
+    expect(body.x).toBeGreaterThanOrEqual(0);
+    expect(body.x + body.width).toBeLessThanOrEqual(width);
+    await noAxeViolations(page);
+    await menu.locator('summary').click();
+    await capture(page, `cover-templates-${name}`, name === '390');
+  }
+});
+
 test('rich text: format the selection, keep it through typing and undo, save and build', async ({
   page,
 }) => {
@@ -321,23 +347,4 @@ test('rich text: format the selection, keep it through typing and undo, save and
   await page.getByRole('button', { name: /Build cover|Rebuild cover/ }).click();
   expect((await cover).status()).toBe(200);
   await expect(page.getByText('Cover built and preflight complete.')).toBeVisible();
-});
-
-test('the template gallery and overlay menu fit at every width', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await openCover(page);
-  await page.getByRole('tab', { name: 'Templates' }).click();
-  await expect(page.getByRole('list', { name: 'Built-in templates' })).toBeVisible();
-  for (const [name, width, height] of WIDTHS) {
-    await page.setViewportSize({ width, height });
-    await noOverflow(page);
-    const menu = page.locator('.stage-toolbar details.menu');
-    await menu.locator('summary').click();
-    const body = (await menu.locator('.menu-body').boundingBox())!;
-    expect(body.x).toBeGreaterThanOrEqual(0);
-    expect(body.x + body.width).toBeLessThanOrEqual(width);
-    await noAxeViolations(page);
-    await menu.locator('summary').click();
-    await capture(page, `cover-templates-${name}`, name === '390');
-  }
 });

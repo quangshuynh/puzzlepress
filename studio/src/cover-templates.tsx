@@ -155,7 +155,6 @@ export function TemplatesTab({
             className="template-thumb"
             src={previewUrl(projectKey, result.preview.pdf_sha256, 'thumb')}
             alt={`${template.name} applied to this book: back, spine and front`}
-            loading="lazy"
           />
         ) : (
           <div className="template-thumb" role="img" aria-label={`${template.name} colors`}>

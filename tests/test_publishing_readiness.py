@@ -362,3 +362,70 @@ def test_cover_display_text_may_differ_in_line_breaks_and_case(ready):
     report = evaluate(source, output)
     assert not [f for f in report.findings if f.rule.code.startswith("cover_text")]
     assert report.package_ready
+
+
+def _apply_template(source, output, template_id, back_text=None):
+    """Apply a built-in template as Studio does, save, reconfirm and rebuild the cover."""
+    from dataclasses import replace
+
+    from puzzlepress.cover.build import build_cover, write_cover
+    from puzzlepress.cover.geometry import cover_geometry
+    from puzzlepress.cover_template import apply_template
+    from puzzlepress.cover_template_store import find_template
+    from puzzlepress.interior.spec import Paper, inches
+    from puzzlepress.validation import validate_project
+    from puzzlepress.yaml_io import dump_project
+
+    trim = (inches(8.5), inches(11))
+    project = load_project(source).project
+    spine = cover_geometry(29, *trim, Paper.WHITE).spine_width
+    cover = apply_template(find_template(None, template_id), project, spine, trim).cover
+    data = replace(project, cover=cover).to_dict()
+    if back_text is not None:
+        data["cover"]["back_text"] = back_text
+    project = validate_project(data).require_project()
+    (source / "book.yaml").write_text(dump_project(project), encoding="utf-8")
+    reconfirm(source, "rights", "ai_disclosure")
+    project = load_project(source).project
+    write_cover(build_cover(project, source, output), output, source)
+
+
+@pytest.mark.parametrize(
+    "template_id",
+    [
+        "photographic-editorial",
+        "bold-garage",
+        "motorsport-energy",
+        "vintage-motoring",
+        "modern-minimal",
+        "technical-blueprint",
+        "classic-puzzle-collection",
+        "premium-editorial",
+    ],
+)
+def test_a_template_cover_prints_the_book_details_without_false_mismatches(ready, template_id):
+    source, output = ready
+    before = load_project(source).project.book
+    _apply_template(source, output, template_id)
+    project = load_project(source).project
+    assert project.book == before and project.cover.version == 3
+    report = evaluate(source, output)
+    assert not [f for f in report.findings if f.rule.code.startswith("cover_text")]
+    assert report.package_ready
+
+
+def test_formatted_back_text_reads_as_its_plain_words(ready):
+    source, output = ready
+    rich = {
+        "rich": 1,
+        "blocks": [
+            {"type": "heading", "runs": [{"text": "Sixteen puzzles"}]},
+            {"runs": [{"text": "Grids from the "}, {"text": "harbour", "italic": True}]},
+        ],
+    }
+    _apply_template(source, output, "photographic-editorial", back_text=rich)
+    project = load_project(source).project
+    assert project.cover.back_text == "Sixteen puzzles\nGrids from the harbour"
+    report = evaluate(source, output)
+    assert not [f for f in report.findings if f.rule.code.startswith("cover_text")]
+    assert report.package_ready
