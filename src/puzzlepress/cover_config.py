@@ -24,6 +24,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .cover_design import CoverRegions, Element
+    from .cover_richtext import RichText
 
 COVER_VERSION = 3
 SUPPORTED_VERSIONS = (1, 2, 3)
@@ -251,6 +252,8 @@ class CoverConfig:
     # Version 3: region backgrounds and the element stack (bottom to top).
     regions: "CoverRegions | None" = None
     elements: "tuple[Element, ...]" = ()
+    # Version 2+: the back text as a rich text document; `back_text` is its plain text.
+    back_rich: "RichText | None" = None
 
     @property
     def designed(self) -> bool:
@@ -296,7 +299,9 @@ class CoverConfig:
                 "background": self.background,
                 "spine_text": self.spine_text.value,
             }
-        if self.back_text is not None:
+        if self.back_rich is not None:
+            data["back_text"] = self.back_rich.to_dict()
+        elif self.back_text is not None:
             data["back_text"] = self.back_text
         text = {role.value: layer.to_dict() for role, layer in self.text if not layer.is_default}
         if text:

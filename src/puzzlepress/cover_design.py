@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 
 from .cover_config import CoverImage, Crop, LayerAlign, LetterCase
+from .cover_richtext import RichText
 
 MAX_ELEMENTS = 24
 MAX_PHOTO_ELEMENTS = 4
@@ -201,7 +202,12 @@ class LineElement(ElementBase):
 
 @dataclass(frozen=True)
 class TextBoxElement(ElementBase):
-    """The author's own text, wrapped to the box width; overflow is never truncated."""
+    """The author's own text, wrapped to the box width; overflow is never truncated.
+
+    With `rich`, the box holds a rich text document and `text` is its plain text
+    (what publishing reads); the box's own font, size, color and spacing are the
+    defaults every run and block inherits.
+    """
 
     box: ElementBox = ElementBox(0.0, 0.0, 144.0, 72.0)
     text: str = ""
@@ -212,10 +218,16 @@ class TextBoxElement(ElementBase):
     line_spacing: float = 1.3
     letter_spacing: float = 0.0
     case: LetterCase = LetterCase.AS_WRITTEN
+    rich: RichText | None = None
 
     def to_dict(self) -> dict[str, object]:
         data = self._common(ElementType.TEXT)
-        data |= {"box": self.box.to_dict(), "text": self.text, "size": self.size}
+        data["box"] = self.box.to_dict()
+        if self.rich is not None:
+            data["rich"] = self.rich.to_dict()
+        else:
+            data["text"] = self.text
+        data["size"] = self.size
         if self.font is not None:
             data["font"] = self.font
         data |= {

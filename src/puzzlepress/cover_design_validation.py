@@ -41,6 +41,7 @@ from .cover_design import (
     ShapeElement,
     TextBoxElement,
 )
+from .cover_richtext import RichText, read_rich
 from .cover_validation import (
     BUNDLED_FACES,
     HEX_COLOR,
@@ -59,7 +60,18 @@ FIELDS = {
     ElementType.ELLIPSE: COMMON | {"box", "fill", "stroke", "stroke_width", "opacity", "rotation"},
     ElementType.LINE: COMMON | {"from", "to", "color", "width"},
     ElementType.TEXT: COMMON
-    | {"box", "text", "font", "size", "color", "align", "line_spacing", "letter_spacing", "case"},
+    | {
+        "box",
+        "text",
+        "rich",
+        "font",
+        "size",
+        "color",
+        "align",
+        "line_spacing",
+        "letter_spacing",
+        "case",
+    },
 }
 REGIONS = {
     ElementType.PHOTO: (Region.WRAP, Region.BACK, Region.FRONT),
@@ -317,9 +329,19 @@ def _text_box(
     if "box" not in data:
         reader.issue(f"{item}.box", "required", "A text box needs a box: x, y, width, height.")
     box = _box(reader, data.get("box", {}), f"{item}.box", 6.0) if "box" in data else None
-    if "text" not in data:
+    rich: RichText | None = None
+    if "rich" in data and "text" in data:
+        reader.issue(
+            f"{item}.rich", "text_and_rich", "A text box holds plain text or rich text, not both."
+        )
+    if "rich" in data:
+        rich = read_rich(reader, data["rich"], f"{item}.rich", font_ids, MAX_ELEMENT_TEXT)
+        text = rich.plain() if rich is not None else ""
+    elif "text" not in data:
         reader.issue(f"{item}.text", "required", "A text box needs its text.")
-    text = _text(reader, data.get("text"), f"{item}.text") if "text" in data else ""
+        text = ""
+    else:
+        text = _text(reader, data.get("text"), f"{item}.text")
     font = data.get("font")
     if font is not None and (
         not isinstance(font, str) or (font not in BUNDLED_FACES and font not in font_ids)
@@ -349,4 +371,5 @@ def _text_box(
         line_spacing=line or 1.3,
         letter_spacing=letter or 0.0,
         case=case,
+        rich=rich,
     )
