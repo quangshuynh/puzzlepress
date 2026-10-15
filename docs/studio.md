@@ -252,11 +252,42 @@ text, and duplicates or deletes. Locked elements neither drag nor nudge.
 **Design** offers named presets. Python reports overflow, spine, fold and barcode
 issues beside the element they concern.
 
-**Assets** lists every photograph and font in the project with its size, digest
-and every use in the saved source and the draft. **Remove…** opens a confirmation
-for an unused asset and moves it to the project trash; used assets show where
-they are used instead. The trash lists removed files with **Restore** and a
-permanent delete behind a second confirmation.
+**Assets** gives each photograph and font a status: In use, Draft only, Unused
+or In trash. **Details** shows the file's size, digest and every use in the saved
+source and the draft. **Remove…** opens a confirmation for an unused asset and
+moves it to the project trash. Used assets show where they are used instead. The
+trash lists removed files with **Restore**, and permanent deletion needs a second
+confirmation. In the **Photos** library, each photograph lists the layers that
+use it (**Used by**, each a link that selects the layer). An unused photograph
+has its own **Remove…**, which asks for confirmation and then moves it to the
+trash.
+
+**Templates** ([cover templates and rich text](cover-templates-rich-text.md)) is
+the first tools tab. Each card shows a thumbnail of this book rendered by
+Python with the template, its name, description and category, whether it needs a
+photograph, and the fonts it uses. Browsing saves nothing and leaves the draft
+alone. **Preview…** opens a larger Python preview listing the book details that
+stay, what the template replaces and what it keeps, any photo placeholder, and
+the blocking and advisory check counts. **Apply template** puts the design into
+the unsaved draft, where **Undo** or **Revert draft** restores the previous
+cover. The tab also offers **Save as template**, **Duplicate**, and for project
+templates **Rename**, **Export** and **Delete** (with confirmation), plus
+**Import a template file…**. A version 1 or 2 cover shows a banner above the
+tools that leads to **Convert to region design…**.
+
+**Rich text**: back-cover text and text boxes use a formatting editor. Bold,
+italic and underline (Ctrl/⌘+B, I, U), font, size and colour apply only to the
+selection; alignment, lists, heading and paragraph spacing apply to the selected
+paragraphs. Paste is plain text. Variants the face lacks are disabled with a
+reason. The text inspector is grouped into Content, Typography, Paragraph,
+Layout, Position, Effects and Validation.
+
+**Canvas**: the **Preview** group (Full wrap, Back, Spine, Front) is labelled, and
+the tools panel heads with the current **Editing region**. Dragging snaps to the
+region's centre lines and to the KDP safe-area edges (6 px). **Fit selection**
+zooms to the selected layer. **Overlays** stays within the window at every width.
+Checks list **Blocking** findings, which stop a build, separately from
+**Advisory** ones, which do not; preflight is unchanged.
 
 ## Publishing
 

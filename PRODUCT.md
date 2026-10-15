@@ -28,7 +28,9 @@ structural and modeled-KDP preflight, a photography-first full-wrap paperback
 cover built from the author's own photograph and the interior's real facts
 (per-layer text controls, imported fonts, a photo library with print-quality
 feedback, independent back/spine/front regions with native shapes, lines and text
-boxes in layers), a reference-aware asset library with a reversible trash,
+boxes in layers, eight original cover templates and project templates applied
+to the draft only, rich text for back-cover text and text boxes), a
+reference-aware asset library with a reversible trash,
 grayscale interior styles and theme divider pages, per-puzzle editorial review
 bound to content identity, dependency-aware rebuilds of outdated artifacts, a
 production overview with human-proof records, and KDP

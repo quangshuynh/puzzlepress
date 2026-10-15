@@ -2,10 +2,45 @@
 
 ## Completed scope
 
-Production design and publishing polish (Interval 12.2) on branch
-`feat/production-design-publishing-polish` from main `ceed0a4` (PR #7 merged);
-pushed, not merged; no PR, tag, release or deployment. No Interval 13 work.
-Guide: docs/production-design-polish.md.
+Cover templates, rich text and Studio fixes (Interval 12.3) on branch
+`feat/cover-templates-rich-text` from main `a2b3688`; pushed, not merged; no PR,
+tag, release or deployment. No Interval 13 work. Guide:
+docs/cover-templates-rich-text.md.
+
+- Templates (`cover_template`, `cover_template_store`, `cover/templates/*.json`):
+  versioned JSON (`template_version` 1, <=256 KB) holding a version 3 design with
+  photo slots (<=4), `requires_slot` and book bindings; eight original built-ins
+  (Photographic Editorial leads); project templates in `cover-templates/<id>.json`
+  (<=100) with atomic, identity-checked save, rename, duplicate, delete, import
+  and export; built-ins protected; imported fonts checked by path and SHA-256.
+  Applying replaces only the design, keeps book details, overrides, back text,
+  extras, fonts and photographs, and turns a missing required photo into a
+  reported placeholder.
+- Rich text (`cover_richtext`, `cover/richtext`): blocks and runs (bold, italic,
+  underline, size, family, colour; alignment, lists, heading, spacing, breaks),
+  <=40 blocks x 80 runs, in `back_text` (v2+) and text boxes (`rich`, v3).
+  Measured layout; `text_overflow`, `text_box_overflow`,
+  `unsupported_character`, `font_variant_unavailable`; never clipped or faked.
+  Unformatted documents are stored as strings and render identical bytes; other
+  checks read the plain words.
+- Studio: Templates tab (Python thumbnails, preview dialog, Apply into the
+  undoable draft, save/duplicate/rename/export/delete/import), rich text editor,
+  sectioned text inspector, Editing region heading, labelled Preview group,
+  legacy conversion banner, Fit selection, safe-area snapping, overlay menu
+  within the window, photo library Remove and Used-by links, asset status chips,
+  Blocking/Advisory checks with advisory `low_contrast` and
+  `template_photo_placeholder`. Interior previews retry while Studio is briefly
+  busy. API: GET /cover/templates, POST /draft/cover/templates/{id}/preview,
+  POST /cover/templates (save), /import, /{id}/update, /{id}/duplicate,
+  /{id}/delete, GET /{id}/export.
+
+Engine, build identity, renderer, cover renderer and profile, publishing and
+planning versions unchanged; demo interiors and covers are byte-identical to
+main with equal identities.
+
+Earlier: production design and publishing polish (Interval 12.2), branch
+`feat/production-design-publishing-polish`, merged to main as PR #8. Guide:
+docs/production-design-polish.md.
 
 - Cover version 3 (`cover_design`, `cover_design_validation`, `cover/design`,
   `cover/convert`): back/spine/front regions (color, optional two-stop gradient)
@@ -370,9 +405,47 @@ revision `sha256-<bytes>`; validate, stage, fsync, reload, recheck, `os.replace`
 reload. Canonical YAML loses comments/formatting. One Studio process per library;
 small external-editor race remains. Drafts memory-only; no autosave/undo/merge.
 
-## Actual local verification (Windows, Python 3.13.15, Node 24.18.0)
+## Actual local verification
 
-Production design and publishing polish, 2026-10-15:
+Cover templates, rich text and Studio fixes, 2026-10-15 (Linux container,
+Python 3.13, Chromium 1194 via `STUDIO_BROWSER_PATH`):
+
+- Python: **1661 passed** (1651 in the full run plus 9 readiness tests added
+  after it started, and `test_external_library` passing in a scratch
+  `--basetemp`: that test refuses a basetemp inside the repository, so it failed
+  once when `.pytest_cache/tmp` was used). Ruff lint and format, strict mypy
+  (120 files), pip check, `git diff --check`, and the AGENTS CLI commands with
+  the same exit codes as main (`publish validate`/`inspect` exit 1 on
+  publishing-demo on both).
+- Frontend: tsc, ESLint, Prettier, 80 Vitest, build. Playwright **32/32** with
+  axe, including `templates.spec.ts`: browsing writes nothing, preview, Apply,
+  Undo to the exact previous cover, save and delete a project template,
+  selection-only bold through typing and undo, bold-italic disabled, photo
+  removal with Used-by links, and the gallery and overlay menu at 1440, 1024,
+  768 and 390 px with no horizontal overflow. One earlier full run had a
+  publishing readiness wait time out under load; that spec passed alone and in
+  the full rerun. `polish.spec.ts` interior design also failed on main here:
+  the interior status read held the lock when the draft preview fired. Interior
+  previews now retry.
+- Compatibility: cover-demo and publishing-demo interiors and covers have the
+  same PDF digests and cover identities as main. All eight templates render
+  without layout issues at 24/95/300/550 pages, white and cream paper, and with
+  or without a photograph or author. Every template applied to a publishing-ready
+  book leaves readiness with no `cover_text_*` findings and the package ready.
+- External book: a disposable copy of puzzlepress-books `books/automotive`
+  (`2eb9551`, no cover yet) with a synthetic 5,400 x 3,500 blue-car photograph.
+  Every template previews buildable with no blocking checks; only the advisory
+  `spine_text_omitted` appears at 95 pages. Photographic Editorial gives a navy
+  back and spine with the car on the front, and the cover builds structurally
+  valid and KDP ready. Readiness shows no `cover_text_*` finding and blocks
+  only on the author's decisions. The books repository's status and file
+  digests were identical before and after.
+- Performance on that copy (one run, except medians of three for drafts):
+  interior build 4.8 s, photo import 3.5 s, v1 draft 0.37 s, eight gallery
+  previews 1.5 s cold and 0.4 s cached, template draft 0.21 s, rich back text
+  draft 0.23 s, save 0.55 s, cover build 0.98 s, readiness 4.6 s.
+
+Production design and publishing polish (Windows, Python 3.13.15, Node 24.18.0):
 
 - Python: **1553 passed, 6 skipped (symlink permission)**, 1 Starlette httpx warning; run with a scratch
   `--basetemp` and `-p no:cacheprovider` because this machine's
@@ -406,6 +479,15 @@ Production design and publishing polish, 2026-10-15:
   status and 15 recorded file digests were identical before and after.
 
 ## Limits and decisions for review
+
+Templates and rich text: templates are authored at 8.5 x 11 in and scaled; a
+project template using imported fonts works only where the same font files
+exist; a template whose body face lacks a variant used in formatted back text
+previews `font_variant_unavailable` until that formatting changes. Rich text has
+no kerning, hyphenation or justification. Photo-library removal confirms with
+the browser's dialog (the Assets tab keeps its own). The canvas offers
+centre and safe-area snapping and Fit selection, but no rulers, multi-select or
+alignment tools.
 
 Production polish: interior photographs are grayscale and placed with a centred
 crop in Studio (other crops in YAML); no element grouping, alignment tools or

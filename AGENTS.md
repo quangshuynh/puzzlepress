@@ -50,6 +50,12 @@ and local Web Studio share the same core. Read `CONTEXT.md` for current scope.
 - Cover design elements and interior styles are laid out and rendered by Python
   only; translucency is flattened by Python or reported, never emitted as PDF
   transparency. Conversion between cover versions is explicit, never implicit.
+- Cover templates replace only the cover design: applying one never changes book
+  details, the interior, publishing metadata or declarations, never substitutes
+  an unrelated photograph (a missing one is a reported placeholder), and lands in
+  the draft only. Templates hold no book identity or attestations. Rich text is
+  structured data, never HTML; unformatted text stays a plain string and renders
+  byte-identically, and other checks read its plain words.
 - Assets are removed only by moving an unreferenced file to the project trash;
   purging is a second explicit step. Never delete a referenced asset.
 - Editorial reviews (`reviews.yaml`) and proof records (`proofs.yaml`) are authored
