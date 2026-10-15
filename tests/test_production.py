@@ -241,3 +241,14 @@ def test_review_policy_is_an_internal_gate(tmp_path):
     assert items["human_review"]["blocks_export"] is False
     assert "not a KDP requirement" not in items["human_review"]["why"]
     assert "KDP does not require them" in items["human_review"]["why"]
+
+
+def test_stale_preflight_says_out_of_date_not_broken(tmp_path):
+    source, output = _publishing_demo(tmp_path)
+    data = load_project(source).project.to_dict()
+    data["word_search"]["puzzles"][0]["title"] = "Renamed Puzzle"
+    _save(source, data)
+    items = {i["code"]: i for i in overview(load_project(source).project, source, output)["items"]}
+    assert items["interior_current"]["status"] == "blocking"
+    assert items["interior_preflight"]["status"] == "blocking"
+    assert "out of date" in items["interior_preflight"]["detail"]

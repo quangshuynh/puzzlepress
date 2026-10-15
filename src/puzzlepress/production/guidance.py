@@ -237,10 +237,13 @@ def _artifact_item(
 
 
 def _preflight_item(
-    code: str, title: str, structural: str, kdp: str, area: str, warnings: str
+    code: str, title: str, structural: str, kdp: str, area: str, warnings: str, stale: bool
 ) -> Item:
     if structural == "missing":
         status, detail = "blocking", "No artifact to check."
+    elif stale and structural != "valid":
+        # The built file no longer matches its source: say that, not that the book is broken.
+        status, detail = "blocking", "The built file is out of date; rebuild it, then check again."
     elif structural != "valid":
         status, detail = "blocking", "Structurally invalid."
     elif kdp != "ready":
@@ -309,6 +312,7 @@ def overview(project: Project, source: Path, directory: Path) -> dict[str, objec
             str(interior_v["kdp"]),
             "print",
             _messages(readiness, "interior_warnings"),
+            assessment.state("interior").state == "stale",
         ),
     ]
     cover_state = assessment.state("cover").state
@@ -331,6 +335,7 @@ def overview(project: Project, source: Path, directory: Path) -> dict[str, objec
             str(cover_v["kdp"]),
             "cover",
             _messages(readiness, "cover_warnings"),
+            cover_state == "stale",
         )
     )
     resolution = None
