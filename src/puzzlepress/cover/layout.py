@@ -11,6 +11,7 @@ every position is computed exactly as in version 1.
 """
 
 import math
+from collections.abc import Mapping
 from dataclasses import dataclass, replace
 
 from ..cover_config import (
@@ -29,12 +30,16 @@ from ..cover_config import (
     TitlePosition,
     hex_rgb,
 )
+from ..cover_design import LineElement, PhotoElement, Region, ShapeElement, TextBoxElement
 from ..interior.issues import LayoutIssue
 from ..interior.model import Anchor, Box
 from ..interior.spec import KDP_COVER, inches
 from ..models import Project
 from .assets import PhotoInfo
 from .crop import crop_window, image_placement
+from .design import PlacedPhoto, design_warnings, element_role, flatten, page_box, region_fills
+from .design import photo as design_photo
+from .design import shape as design_shape
 from .font_assets import NO_FONTS, CoverFonts
 from .fonts import CoverFace, is_bundled, metrics, missing_characters, text_width
 from .geometry import CoverGeometry
@@ -44,6 +49,7 @@ from .model import (
     CoverLayout,
     CoverPhoto,
     CoverText,
+    CoverTextBox,
     Fill,
     ImageResolution,
     ShadeBand,
@@ -716,18 +722,193 @@ def _panel(role: str, x0: float, x1: float, box: Box, media: Box, color: RGB) ->
     return Fill(role, Box(x0, low, x1 - x0, high - low), color)
 
 
+def _text_box(
+    element: TextBoxElement, preset: Preset, geometry: CoverGeometry, fonts: CoverFonts
+) -> tuple[list[CoverText], CoverTextBox]:
+    """A version 3 text box: wrapped to its width from its top edge, never truncated.
+
+    Lines that do not fit the box's height are still placed (below it) so a draft
+    can show them; validation reports `text_box_overflow` and builds refuse.
+    """
+    role = element_role(element)
+    box = page_box(geometry, element.region, element.box)
+    layer = TextLayer(
+        font=element.font,
+        size=element.size,
+        color=element.color,
+        align=element.align,
+        line_spacing=element.line_spacing,
+        letter_spacing=element.letter_spacing or None,
+        case=element.case,
+    )
+    style = _style(
+        role,
+        layer,
+        fonts,
+        preset.body_face,
+        element.size,
+        element.line_spacing,
+        False,
+        hex_rgb(element.color),
+        element.align,
+    )
+    text = style.text(element.text)
+    _check_glyphs(text, style.face, f"cover.{role}")
+    lines = wrap(text, style.face, element.size, box.width, style.tracking)
+    if lines is None:
+        raise _fail(
+            "text_overflow",
+            "A word in this text box is wider than the box; widen it or set a smaller size.",
+            f"cover.{role}",
+        )
+    placed = _place(_group(lines, style, element.size, 0.0), box.top, box)
+    return placed, CoverTextBox(role, box)
+
+
+def _over_photo_groups(
+    geometry: CoverGeometry,
+    front_boxes: list[tuple[str, Box]],
+    back_boxes: list[tuple[str, Box]],
+    extra_boxes: list[tuple[str, str, Box]],
+) -> list[_Group]:
+    """Every book-text group with the x range its legibility panel spans."""
+    media = geometry.media
+    groups = [_Group(role, geometry.front.x, media.right, box) for role, box in front_boxes]
+    for role, box in back_boxes:
+        right = geometry.barcode_keep_clear.x if role == "imprint" else geometry.back.right
+        groups.append(_Group(role, media.x, right, box))
+    for panel, role, box in extra_boxes:
+        if panel == "front":
+            groups.append(_Group(role, geometry.front.x, media.right, box))
+        else:
+            groups.append(_Group(role, media.x, geometry.back.right, box))
+    return groups
+
+
+def _layout_designed(
+    book_id: str,
+    config: CoverConfig,
+    geometry: CoverGeometry,
+    photos: Mapping[str, PhotoInfo],
+    fonts: CoverFonts,
+    preset: Preset,
+    book_texts: list[CoverText],
+    spine: list[CoverText],
+    spine_status: SpineStatus,
+    groups: list[_Group],
+) -> CoverLayout:
+    """Version 3: region fills, the element stack, then legibility over photographs."""
+    regions = config.regions
+    assert regions is not None
+    background, fills = region_fills(geometry, regions)
+    placed_items: list[object] = []
+    stack_texts: list[CoverText] = []
+    for element in config.elements:
+        if not element.visible:
+            continue
+        if isinstance(element, PhotoElement):
+            placed_items.append(design_photo(geometry, element, photos[element.image.sha256]))
+        elif isinstance(element, ShapeElement | LineElement):
+            placed_items.append(design_shape(geometry, element))
+        else:
+            lines, box = _text_box(element, preset, geometry, fonts)
+            placed_items.append(box)
+            stack_texts += lines
+    resolutions = tuple(i.resolution for i in placed_items if isinstance(i, PlacedPhoto))
+    items = flatten(
+        [i.photo if isinstance(i, PlacedPhoto) else i for i in placed_items], geometry, regions
+    )
+    media, tone = geometry.media, config.type.tone
+    placed = [item for item in items if isinstance(item, CoverPhoto)]
+    over = [g for g in groups if any(p.region.overlaps(g.box, 0) for p in placed)]
+    spine_over = bool(spine) and any(p.region.overlaps(geometry.spine, 0) for p in placed)
+    panels: list[Fill] = []
+    if config.legibility is Legibility.PANEL:
+        for g in over:
+            region = Region.BACK if g.x0 == media.x else Region.FRONT
+            color = hex_rgb(regions.style(region).color)
+            panels.append(_panel(f"panel_{g.role}", g.x0, g.x1, g.box, media, color))
+        if spine_over:
+            panels.append(Fill("panel_spine", geometry.spine, hex_rgb(regions.spine.color)))
+    elif config.legibility is Legibility.SHADE:
+        for index, item in enumerate(items):
+            if not isinstance(item, CoverPhoto):
+                continue
+            area = item.region
+            bands = [
+                _band(area.x, area.right, g.box, media, tone)
+                for g in over
+                if area.overlaps(g.box, 0)
+            ]
+            if spine_over and area.overlaps(geometry.spine, 0):
+                bands.append(
+                    ShadeBand(
+                        max(area.x, geometry.spine.x),
+                        min(area.right, geometry.spine.right),
+                        (media.y, media.top),
+                        0.0,
+                        SHADE_STRENGTH[tone],
+                        SHADE_TOWARD[tone],
+                    )
+                )
+            items[index] = replace(item, shade=tuple(bands))
+    stack = tuple(items)
+    texts = tuple(book_texts + stack_texts)
+    used = {t.face for t in texts}
+    custom = tuple(sorted(f.info.postscript_name for f in fonts.by_id.values() if f.key in used))
+    return CoverLayout(
+        book_id=book_id,
+        config=config,
+        geometry=geometry,
+        background=background,
+        stack=stack,  # type: ignore[arg-type]
+        panels=tuple(panels),
+        texts=texts,
+        spine=spine_status,
+        resolutions=resolutions,
+        fonts=custom,
+        region_fills=fills,
+        warnings=tuple(design_warnings(config, stack, geometry)),
+    )
+
+
 def layout_cover(
     book_id: str,
     copy: CoverCopy,
     config: CoverConfig,
     geometry: CoverGeometry,
-    photo: PhotoInfo,
+    photo: PhotoInfo | Mapping[str, PhotoInfo],
     fonts: CoverFonts = NO_FONTS,
 ) -> CoverLayout:
-    """Raises CoverError(stage 'layout') when authored text cannot be set safely."""
+    """Raises CoverError(stage 'layout') when authored text cannot be set safely.
+
+    `photo` is the decoded photograph (versions 1 and 2) or every photograph the
+    configuration places, keyed by SHA-256.
+    """
     preset = PRESETS[config.type.style]
     color = LIGHT if config.type.tone is TextTone.LIGHT else DARK
     media = geometry.media
+    front, front_boxes = _front(copy, preset, config, geometry.front_design, color, fonts)
+    spine, spine_status = _spine(copy, preset, config, geometry, color)
+    back, back_boxes = _back(copy, preset, config, geometry, color, fonts)
+    extra, extra_boxes = _extra(config, preset, geometry, color, fonts)
+    if config.designed:
+        photos = photo if isinstance(photo, Mapping) else {photo.sha256: photo}
+        return _layout_designed(
+            book_id,
+            config,
+            geometry,
+            photos,
+            fonts,
+            preset,
+            front + spine + back + extra,
+            spine,
+            spine_status,
+            _over_photo_groups(geometry, front_boxes, back_boxes, extra_boxes),
+        )
+    assert config.image is not None
+    if isinstance(photo, Mapping):
+        photo = photo[config.image.sha256]
     full = config.layout is CoverLayoutKind.FULL_WRAP
     region = (
         media
@@ -735,10 +916,6 @@ def layout_cover(
         else Box(geometry.front.x, media.y, media.right - geometry.front.x, media.height)
     )
     window = crop_window(photo.width, photo.height, region, config.crop)
-    front, front_boxes = _front(copy, preset, config, geometry.front_design, color, fonts)
-    spine, spine_status = _spine(copy, preset, config, geometry, color)
-    back, back_boxes = _back(copy, preset, config, geometry, color, fonts)
-    extra, extra_boxes = _extra(config, preset, geometry, color, fonts)
 
     fill = config.rgb()
     panels: list[Fill] = []
@@ -800,10 +977,10 @@ def layout_cover(
         config=config,
         geometry=geometry,
         background=Fill("background", media, fill),
-        photo=photo_element,
+        stack=(photo_element,),
         panels=tuple(panels),
         texts=texts,
         spine=spine_status,
-        resolution=resolution,
+        resolutions=(resolution,),
         fonts=custom,
     )

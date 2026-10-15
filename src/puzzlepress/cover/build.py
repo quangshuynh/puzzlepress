@@ -13,6 +13,7 @@ import hashlib
 import io
 import json
 import os
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -22,7 +23,8 @@ from pypdf.errors import PyPdfError
 from reportlab import Version as REPORTLAB_VERSION
 
 from .. import __version__
-from ..cover_config import CoverConfig
+from ..cover_config import CoverConfig, CoverImage
+from ..cover_design import EDITING_FIELDS, PhotoElement
 from ..identity import IDENTITY_VERSION, build_identity
 from ..interior.build import (
     MANIFEST_NAME as INTERIOR_MANIFEST,
@@ -194,7 +196,16 @@ def semantic_config(config: CoverConfig) -> dict[str, object]:
     out so recording them never makes a cover stale.
     """
     data = config.to_dict()
-    data["image"] = {"sha256": config.image.sha256}
+    if config.image is not None:
+        data["image"] = {"sha256": config.image.sha256}
+    if config.designed:
+        elements = []
+        for element in config.elements:
+            item = {k: v for k, v in element.to_dict().items() if k not in EDITING_FIELDS}
+            if isinstance(element, PhotoElement):
+                item["image"] = {"sha256": element.image.sha256}
+            elements.append(item)
+        data["elements"] = elements
     if config.fonts:
         data["fonts"] = [{"id": font.id, "sha256": font.sha256} for font in config.fonts]
     return data
@@ -234,24 +245,34 @@ class CoverBuild:
     layout: CoverLayout
     pdf: bytes
     manifest: dict[str, object]
-    image_size: tuple[int, int]
+    image_sizes: tuple[tuple[int, int], ...]  # Embedded pixels of each photograph, in order.
     layout_issues: tuple[LayoutIssue, ...] = ()  # Only from allow_layout_issues previews.
+
+    @property
+    def image_size(self) -> tuple[int, int]:
+        """The embedded photograph of a version 1 or 2 cover."""
+        return self.image_sizes[0]
+
+
+ENCODING = f"baseline JPEG, quality {JPEG_QUALITY}, 4:4:4, no metadata"
 
 
 def render_cover(
     project: Project,
     interior: InteriorFacts,
-    photo: Photo,
+    photo: Photo | Mapping[str, Photo],
     asset_path: str | None = None,
     fonts: CoverFonts = NO_FONTS,
     allow_layout_issues: bool = False,
 ) -> CoverBuild:
     """Pure: lay out, validate, render and inspect. Raises CoverError.
 
-    `fonts` are the configuration's imported fonts, already loaded. With
-    `allow_layout_issues` (Studio draft previews only) a layout that fails
-    validation, such as text moved out of its safe area, still renders and its
-    issues are returned in `CoverBuild.layout_issues`; builds never pass it.
+    `photo` is the decoded photograph, or every photograph the configuration
+    references keyed by SHA-256 (version 3). `fonts` are the configuration's
+    imported fonts, already loaded. With `allow_layout_issues` (Studio draft
+    previews only) a layout that fails validation, such as text moved out of its
+    safe area, still renders and its issues are returned in
+    `CoverBuild.layout_issues`; builds never pass it.
     """
     config = project.cover
     if config is None:
@@ -264,42 +285,68 @@ def render_cover(
             f"Imported fonts are not loaded: {', '.join(missing)}.",
             "cover.fonts",
         )
-    if photo.info.sha256 != config.image.sha256:
-        raise cover_error(
-            "asset", "asset_digest_mismatch", "The photo is not the configured one.", "cover.image"
-        )
+    photos = photo if isinstance(photo, Mapping) else {photo.info.sha256: photo}
+    for image in config.images():
+        if image.sha256 not in photos or photos[image.sha256].info.sha256 != image.sha256:
+            raise cover_error(
+                "asset",
+                "asset_digest_mismatch",
+                "The photo is not the configured one.",
+                "cover.image",
+            )
     geometry = cover_geometry(
         interior.page_count, interior.trim_width, interior.trim_height, interior.paper
     )
     copy = CoverCopy.from_project(project)
-    layout = layout_cover(project.book.id, copy, config, geometry, photo.info, fonts)
+    infos = {digest: decoded.info for digest, decoded in photos.items()}
+    layout = layout_cover(project.book.id, copy, config, geometry, infos, fonts)
     issues = validate_cover_layout(layout, interior.trim_width, interior.trim_height)
     if issues and not allow_layout_issues:
         raise CoverError("layout_validation", issues)
-    jpeg, size = prepare_photo(photo, layout.photo)
-    pdf = render_cover_pdf(layout, jpeg, size)
-    pdf_issues = inspect_cover_pdf(pdf, layout, size)
+    encoded = [prepare_photo(photos[item.sha256], item) for item in layout.photos]
+    sizes = tuple(size for _, size in encoded)
+    pdf = render_cover_pdf(layout, encoded)
+    pdf_issues = inspect_cover_pdf(pdf, layout, sizes)
     if pdf_issues:
         raise CoverError("pdf_verification", pdf_issues)
     inputs = cover_inputs(project, config, interior)
+    provenance: dict[str, object] = {
+        "interior_identity": interior.interior_identity,
+        "source_identity": interior.source_identity,
+        "interior_pdf_sha256": interior.pdf_sha256,
+    }
+    resolution = layout.resolution
+    pictures: dict[str, object]
+    if config.image is not None:
+        provenance["photo_path"] = asset_path or config.image.path
+        pictures = {
+            "photo": photos[config.image.sha256].info.to_dict(),
+            "resolution": None if resolution is None else resolution.to_dict(),
+            "embedded_photo": {"pixels": list(sizes[0]), "encoding": ENCODING},
+        }
+    else:
+        provenance["photo_paths"] = sorted({image.path for image in config.images()})
+        pictures = {
+            "photos": [
+                {
+                    "role": item.role,
+                    "photo": photos[item.sha256].info.to_dict(),
+                    "resolution": res.to_dict(),
+                    "embedded": {"pixels": list(size), "encoding": ENCODING},
+                }
+                for item, res, size in zip(layout.photos, layout.resolutions, sizes, strict=True)
+            ],
+            "resolution": None if resolution is None else resolution.to_dict(),
+            "design_warnings": [issue.to_dict() for issue in layout.warnings],
+        }
     manifest: dict[str, object] = {
         "manifest_version": MANIFEST_VERSION,
         "cover_identity": cover_identity(inputs),
         **inputs,
-        "provenance": {
-            "interior_identity": interior.interior_identity,
-            "source_identity": interior.source_identity,
-            "interior_pdf_sha256": interior.pdf_sha256,
-            "photo_path": asset_path or config.image.path,
-        },
+        "provenance": provenance,
         "geometry": {"trim": trim_name(interior.trim_width, interior.trim_height)}
         | geometry.to_dict(),
-        "photo": photo.info.to_dict(),
-        "resolution": layout.resolution.to_dict(),
-        "embedded_photo": {
-            "pixels": list(size),
-            "encoding": f"baseline JPEG, quality {JPEG_QUALITY}, 4:4:4, no metadata",
-        },
+        **pictures,
         "spine_text": layout.spine.to_dict(),
         # What the front and back print for each book detail (None: hidden or absent).
         "display": cover_display(config, copy),
@@ -310,7 +357,7 @@ def render_cover(
             "bytes": len(pdf),
         },
     }
-    return CoverBuild(layout, pdf, manifest, size, issues)
+    return CoverBuild(layout, pdf, manifest, sizes, issues)
 
 
 def build_cover(project: Project, project_directory: Path, output: Path) -> CoverBuild:
@@ -322,9 +369,18 @@ def build_cover(project: Project, project_directory: Path, output: Path) -> Cove
     except InteriorError as error:
         raise CoverError("output", error.issues) from error
     interior = read_interior_facts(directory, project)
-    photo = decode_photo(read_asset(project_directory, project.cover.image))
+    photos = load_photos(project_directory, project.cover.images())
     fonts = load_cover_fonts(project_directory, project.cover)
-    return render_cover(project, interior, photo, fonts=fonts)
+    return render_cover(project, interior, photos, fonts=fonts)
+
+
+def load_photos(project_directory: Path, images: tuple[CoverImage, ...]) -> dict[str, Photo]:
+    """Read, verify and decode every referenced photograph. Raises CoverError."""
+    photos: dict[str, Photo] = {}
+    for image in images:
+        if image.sha256 not in photos:
+            photos[image.sha256] = decode_photo(read_asset(project_directory, image))
+    return photos
 
 
 @dataclass(frozen=True)

@@ -112,9 +112,11 @@ def _family(name: str) -> str:
 
 
 def cover_contract_issues(
-    facts: CoverPdfFacts, layout: CoverLayout, image_size: tuple[int, int] | None
+    facts: CoverPdfFacts,
+    layout: CoverLayout,
+    image_sizes: tuple[tuple[int, int], ...] | None,
 ) -> tuple[LayoutIssue, ...]:
-    """The PDF faithfully carries `layout`; `image_size` is the embedded photo's pixels."""
+    """The PDF faithfully carries `layout`; `image_sizes` are each photograph's pixels."""
     issues: list[LayoutIssue] = []
 
     def fail(code: str, message: str) -> None:
@@ -152,14 +154,18 @@ def cover_contract_issues(
             fail("font_not_embedded", f"Font {font.name} is not embedded.")
         if not _family(font.name).startswith(allowed):
             fail("font_not_bundled", f"Font {font.name} is not a bundled or imported cover font.")
-    if image_size is not None:
-        if len(facts.images) != 1:
-            fail("pdf_image", f"The cover has {len(facts.images)} images; it must have one.")
+    if image_sizes is not None:
+        placed = len(image_sizes)
+        if len(facts.images) != placed:
+            fail(
+                "pdf_image",
+                f"The cover has {len(facts.images)} images; its layout places {placed}.",
+            )
+        elif sorted((i.width, i.height) for i in facts.images) != sorted(image_sizes):
+            fail("pdf_image", "The embedded photographs are not the layout's pixel crops.")
         for image in facts.images:
             if image.filters != ("/DCTDecode",) or image.color_space != "/DeviceRGB":
                 fail("pdf_image", "The photograph is not a DeviceRGB JPEG.")
-            if (image.width, image.height) != image_size:
-                fail("pdf_image", "The embedded photograph is not the layout's pixel crop.")
             if PRIVATE_SEGMENTS & set(image.segments) or "INVALID" in image.segments:
                 fail("pdf_metadata_leak", "The embedded photograph carries metadata segments.")
     if facts.operators & STROKE_OPERATORS:
@@ -181,9 +187,9 @@ def cover_contract_issues(
 
 
 def inspect_cover_pdf(
-    data: bytes, layout: CoverLayout, image_size: tuple[int, int]
+    data: bytes, layout: CoverLayout, image_sizes: tuple[tuple[int, int], ...]
 ) -> tuple[LayoutIssue, ...]:
     facts = read_cover_facts(data)
     if isinstance(facts, LayoutIssue):
         return (facts,)
-    return cover_contract_issues(facts, layout, image_size)
+    return cover_contract_issues(facts, layout, image_sizes)

@@ -13,6 +13,7 @@ about authorship, rights or ownership.
 
 import hashlib
 
+from ..cover_design import TextBoxElement
 from ..identity import IDENTITY_VERSION
 from ..models import Project
 from .identity import canonical
@@ -61,8 +62,14 @@ def _content(project: Project) -> dict[str, object]:
         ],
         "solutions_title": composition.solutions.title if composition else None,
         "cover_text": cover.back_text if cover else None,
-        "photograph": cover.image.sha256 if cover else None,
+        "photograph": cover.image.sha256 if cover and cover.image else None,
     }
+    # Cover version 3 content, present only when used so earlier reviews stay valid.
+    if cover is not None and cover.designed:
+        content["cover_photographs"] = sorted({image.sha256 for image in cover.images()})
+        content["cover_text_boxes"] = [
+            element.text for element in cover.elements if isinstance(element, TextBoxElement)
+        ]
     # Cover version 2 content, present only when used so earlier reviews stay valid.
     if cover is not None and cover.extra:
         content["cover_layers"] = [layer.text for layer in cover.extra]

@@ -273,7 +273,7 @@ def test_contract_catches_tampered_layouts():
     wide = replace(g, media=replace(g.media, width=g.media.width + 1))
     assert "invalid_wrap_dimensions" in _codes(replace(layout, geometry=wide))
     short = replace(layout.photo, region=replace(layout.photo.region, width=g.media.width - 9))
-    assert "insufficient_bleed" in _codes(replace(layout, photo=short))
+    assert "insufficient_bleed" in _codes(replace(layout, stack=(short,)))
 
 
 def test_cover_fonts_are_bundled_pinned_and_cover_latin_1():
