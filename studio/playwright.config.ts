@@ -8,6 +8,9 @@ export default defineConfig({
     baseURL: 'http://127.0.0.1:8015',
     browserName: 'chromium',
     channel: process.env.STUDIO_BROWSER_CHANNEL || undefined,
+    launchOptions: process.env.STUDIO_BROWSER_PATH
+      ? { executablePath: process.env.STUDIO_BROWSER_PATH }
+      : {},
     trace: 'retain-on-failure',
   },
   webServer: {
