@@ -78,6 +78,7 @@ def test_cover_change_rebuilds_only_the_cover(built):
     _, assessment = _state(source, output)
     assert _actions(assessment) == [("build_cover", False)]
     assert "cover design changed" in assessment.state("cover").reasons[0]
+    assert not any(r.startswith("[") for r in assessment.state("cover").reasons)
     assert [r.status for r in _run(source, output, assessment)] == ["succeeded"]
     assert (output / "interior.pdf").read_bytes() == interior_before
 

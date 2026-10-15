@@ -239,6 +239,7 @@ def test_production_overview_and_rebuild(studio):
     after = build_all(client)
     assert after["assessment"]["outdated"] is False
     assert [r["status"] for r in after["rebuild"]["results"]] == ["succeeded", "succeeded"]
+    assert after["proofs"]["revision"] is None  # No proofs.yaml yet: records start from null.
     items = {i["code"]: i["status"] for i in after["items"]}
     assert (
         items["interior_current"] == "completed" and items["print_previewer"] == "external_pending"

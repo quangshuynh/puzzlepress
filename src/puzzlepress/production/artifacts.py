@@ -93,7 +93,12 @@ def _messages(
     results: dict[str, Outcome], findings: list[tuple[str, str]], codes: tuple[str, ...]
 ) -> tuple[str, ...]:
     failed = {code for code in codes if results.get(code) is Outcome.FAILED}
-    return tuple(message for code, message in findings if code in failed)
+    # Findings may open with their issue code in brackets; reasons are for people.
+    return tuple(
+        message.split("] ", 1)[1] if message.startswith("[") and "] " in message else message
+        for code, message in findings
+        if code in failed
+    )
 
 
 def assess(

@@ -270,7 +270,11 @@ def overview(project: Project, source: Path, directory: Path) -> dict[str, objec
     assessment: Assessment = assess(project, readiness, source, directory)
     reviews = evaluate_reviews(project, read_reviews(source).document)
     artifacts = current_artifacts(directory)
-    proofs = evaluate_proofs(read_proofs(source).document, artifacts)
+    loaded_proofs = read_proofs(source)
+    proofs = {
+        "revision": loaded_proofs.revision,  # Proof records are saved against this revision.
+        **evaluate_proofs(loaded_proofs.document, artifacts),
+    }
     interior_v = verdicts["interior"]
     cover_v = verdicts["cover"]
     assert isinstance(interior_v, dict) and isinstance(cover_v, dict)
