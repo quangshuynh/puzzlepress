@@ -4150,3 +4150,23 @@ button.primary.danger {
     padding: 16px;
   }
 }
+.finding-measure,
+.finding-measure code,
+.guide-list,
+.artifact-list {
+  overflow-wrap: anywhere;
+}
+.review-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+.review-head h4 {
+  margin: 0;
+  font-size: 13px;
+}
+.review-head .button-row {
+  margin: 4px 0;
+}

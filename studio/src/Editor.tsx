@@ -469,7 +469,7 @@ function PuzzleNavigator({
             value={reviewFilter}
             onChange={(e) => setReviewFilter(e.target.value as ReviewState | '')}
           >
-            <option value="">All review states</option>
+            <option value="">All reviews</option>
             {(Object.keys(REVIEW_LABELS) as ReviewState[]).map((state) => (
               <option key={state} value={state}>
                 {REVIEW_LABELS[state]}

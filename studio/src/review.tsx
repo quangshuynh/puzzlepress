@@ -132,58 +132,16 @@ export function ReviewControls({
     }
   };
   return (
-    <details className="review-panel" open={review.state !== 'reviewed'}>
-      <summary>
-        Editorial review <ReviewBadge state={review.state} />
-      </summary>
-      <p className="small muted">
-        Your judgment of this puzzle&apos;s words, title and theme as saved. It is not an automated
-        check, and it never changes the puzzle or the PDF.
-        {review.state === 'stale' &&
-          ' The content changed after the last judgment; review it again.'}
-      </p>
-      {unsaved && (
-        <p className="draft-status small">
-          This puzzle has unsaved edits. Save first: a review covers the saved content.
-        </p>
-      )}
-      <fieldset disabled={busy || unsaved} className="review-fields">
-        <legend className="sr-only">Record a review</legend>
-        <div className="editor-field">
-          <label htmlFor="review-note">Editorial notes</label>
-          <textarea
-            id="review-note"
-            rows={3}
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          />
-        </div>
-        <div className="field-pair">
-          <div className="editor-field">
-            <label htmlFor="review-reviewer">Reviewer (optional)</label>
-            <input
-              id="review-reviewer"
-              value={reviewer}
-              onChange={(e) => setReviewer(e.target.value)}
-            />
-          </div>
-          <div className="editor-field">
-            <label htmlFor="review-date">Date reviewed (optional)</label>
-            <input
-              id="review-date"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
-          </div>
-        </div>
-        <p className="small muted">
-          Name and date are what you type; PuzzlePress records no clock time.
-        </p>
-        <div className="button-row">
+    <section className="review-panel" aria-labelledby="review-heading">
+      <div className="review-head">
+        <h4 id="review-heading">
+          Editorial review <ReviewBadge state={review.state} />
+        </h4>
+        <div className="button-row" role="group" aria-label="Record your review">
           <button
             type="button"
             className="primary small-button"
+            disabled={busy || unsaved}
             onClick={() => void record('reviewed')}
           >
             Mark reviewed
@@ -191,23 +149,73 @@ export function ReviewControls({
           <button
             type="button"
             className="small-button"
+            disabled={busy || unsaved}
             onClick={() => void record('needs_changes')}
           >
-            Mark needs changes
+            Needs changes
           </button>
           <button
             type="button"
             className="small-button"
+            disabled={busy || unsaved}
             onClick={() => void record('not_reviewed')}
           >
-            Reset to not reviewed
+            Reset
           </button>
         </div>
-      </fieldset>
-      <p role="status" aria-live="polite" className="small">
+      </div>
+      {unsaved ? (
+        <p className="draft-status small">
+          This puzzle has unsaved edits. Save first: a review covers the saved content.
+        </p>
+      ) : (
+        review.state === 'stale' && (
+          <p className="small">The content changed after your last judgment; review it again.</p>
+        )
+      )}
+      <details open={Boolean(review.recorded?.note)}>
+        <summary className="small">Notes, reviewer and date</summary>
+        <p className="small muted">
+          Your judgment of this puzzle&apos;s words, title and theme as saved, not an automated
+          check; it never changes the puzzle or the PDF. Name and date are what you type;
+          PuzzlePress records no clock time.
+        </p>
+        <fieldset disabled={busy || unsaved} className="review-fields">
+          <legend className="sr-only">Notes for this review</legend>
+          <div className="editor-field">
+            <label htmlFor="review-note">Editorial notes</label>
+            <textarea
+              id="review-note"
+              rows={3}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
+          </div>
+          <div className="field-pair">
+            <div className="editor-field">
+              <label htmlFor="review-reviewer">Reviewer (optional)</label>
+              <input
+                id="review-reviewer"
+                value={reviewer}
+                onChange={(e) => setReviewer(e.target.value)}
+              />
+            </div>
+            <div className="editor-field">
+              <label htmlFor="review-date">Date reviewed (optional)</label>
+              <input
+                id="review-date"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+            </div>
+          </div>
+        </fieldset>
+      </details>
+      <p aria-live="polite" className="small review-message">
         {message}
       </p>
-    </details>
+    </section>
   );
 }
 
