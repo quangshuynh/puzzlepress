@@ -57,6 +57,7 @@ export function TemplatesTab({
   const [previews, setPreviews] = useState<Record<string, TemplatePreview | 'error'>>({});
   const [open, setOpen] = useState<CoverTemplateInfo | null>(null);
   const [round, setRound] = useState(0);
+  const [failures, setFailures] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -86,8 +87,13 @@ export function TemplatesTab({
             { source: latest.current },
           );
           if (!controller.signal.aborted) setPreviews((p) => ({ ...p, [template.id]: data }));
-        } catch {
-          if (!controller.signal.aborted) setPreviews((p) => ({ ...p, [template.id]: 'error' }));
+        } catch (err) {
+          if (controller.signal.aborted) return;
+          setPreviews((p) => ({ ...p, [template.id]: 'error' }));
+          setFailures((f) => ({
+            ...f,
+            [template.id]: err instanceof ApiError ? err.message : 'The preview did not render.',
+          }));
         }
       }
     })();
@@ -159,9 +165,11 @@ export function TemplatesTab({
               ))}
             </div>
             <p className="small muted" style={{ padding: 8 }}>
-              {preview === 'error' || (result && !result.success)
-                ? 'No preview: build the interior in Print first.'
-                : 'Rendering preview…'}
+              {preview === 'error'
+                ? `No preview: ${failures[template.id] ?? 'the preview did not render.'}`
+                : result && !result.success
+                  ? `No preview: ${result.diagnostics?.[0]?.message ?? 'build the interior in Print first.'}`
+                  : 'Rendering preview…'}
             </p>
           </div>
         )}

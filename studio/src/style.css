@@ -4354,6 +4354,7 @@ button.primary.danger {
 
 .template-gallery {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
   margin: 10px 0;
   padding: 0;
@@ -4361,6 +4362,7 @@ button.primary.danger {
 }
 .template-card {
   display: grid;
+  min-width: 0;
   gap: 6px;
   padding: 8px;
   border: 1px solid var(--line);
@@ -4378,6 +4380,8 @@ button.primary.danger {
   display: block;
   width: 100%;
   aspect-ratio: 1260 / 810;
+  overflow: hidden;
+  overflow-wrap: anywhere;
   object-fit: contain;
   background: #e6e3da;
   border: 1px solid var(--line);
