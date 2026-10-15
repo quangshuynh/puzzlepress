@@ -1,3 +1,4 @@
+import { plainOf, richFonts } from './rich-text-model';
 // Pure Cover Studio helpers. They edit authored values (offsets in PDF points,
 // normalized focal points) and map screen pixels onto them; every position,
 // measurement and verdict still comes from Python's layout of the draft.
@@ -11,11 +12,12 @@ import type {
   TextRole,
 } from './types';
 
+// Left to right as the wrap prints, the same order as the editing regions.
 export const VIEWS = [
   ['wrap', 'Full wrap'],
-  ['front', 'Front'],
-  ['spine', 'Spine'],
   ['back', 'Back'],
+  ['spine', 'Spine'],
+  ['front', 'Front'],
 ] as const;
 export type View = (typeof VIEWS)[number][0];
 
@@ -246,6 +248,10 @@ export function fontUsers(cover: CoverConfig, id: string): string[] {
     .filter(([, layer]) => layer?.font === id)
     .map(([role]) => role);
   for (const extra of cover.extra ?? []) if (extra.font === id) users.push(`extra:${extra.id}`);
+  if (richFonts(cover.back_text).includes(id)) users.push('back_text');
+  for (const element of cover.elements ?? [])
+    if (element.type === 'text' && (element.font === id || richFonts(element.rich).includes(id)))
+      users.push(`element:${element.id}`);
   return users;
 }
 
@@ -256,7 +262,10 @@ export function layerName(cover: CoverConfig, layer: string): string {
     const element = cover.elements?.find((e) => e.id === layer.slice(8));
     if (!element) return 'Element';
     if (element.name) return element.name;
-    if (element.type === 'text') return `Text box: ${element.text.split('\n')[0].slice(0, 24)}`;
+    if (element.type === 'text')
+      return `Text box: ${plainOf(element.rich ?? element.text)
+        .split('\n')[0]
+        .slice(0, 24)}`;
     const kinds = { photo: 'Photograph', rect: 'Rectangle', ellipse: 'Ellipse', line: 'Line' };
     return `${kinds[element.type]} ${element.id}`;
   }
@@ -266,4 +275,9 @@ export function layerName(cover: CoverConfig, layer: string): string {
     return extra ? `Text: ${extra.text.split('\n')[0].slice(0, 28)}` : 'Text layer';
   }
   return ROLES.find(([role]) => role === layer)?.[1] ?? layer;
+}
+
+/** The bundled face the type preset sets body text (back text, text boxes) in. */
+export function bodyFace(cover: CoverConfig): string {
+  return cover.type.style === 'editorial' ? 'serif' : 'sans';
 }

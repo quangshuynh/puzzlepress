@@ -1,3 +1,4 @@
+import { plainOf } from './rich-text-model';
 // Pure helpers for version 3 region designs: element ids, stack order, edits in
 // region coordinates (PDF points from each region's trim corner, y up) and the
 // photograph a layer crops. Python lays out, flattens and validates every
@@ -53,7 +54,10 @@ export function elementOf(cover: CoverConfig, layer: string | null): CoverElemen
 
 export function elementName(element: CoverElement) {
   if (element.name) return element.name;
-  if (element.type === 'text') return `Text: ${element.text.split('\n')[0].slice(0, 24)}`;
+  if (element.type === 'text')
+    return `Text: ${plainOf(element.rich ?? element.text)
+      .split('\n')[0]
+      .slice(0, 24)}`;
   return `${KIND_NAMES[element.type]} ${element.id}`;
 }
 

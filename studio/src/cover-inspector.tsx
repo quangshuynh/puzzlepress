@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { ColorField, EyeIcon, Segmented } from './cover-tools';
 import {
   METADATA_ROLES,
+  bodyFace,
   extraLayer,
   layerName,
   layerOf,
@@ -17,6 +18,7 @@ import type {
   CoverCheck,
   CoverConfig,
   CoverDraft,
+  CoverLayoutView,
   CoverLibrary,
   CoverReport,
   CoverResolution,
@@ -28,6 +30,7 @@ import type {
   TextRole,
 } from './types';
 import { Status } from './ui';
+import { RichTextEditor } from './rich-text';
 
 // The contextual inspector. Values shown are authored overrides or Python's
 // measurements; nothing here decides a position, size or verdict.
@@ -119,6 +122,7 @@ export function LayerInspector({
   cover,
   book,
   library,
+  layout,
   checks,
   issues,
   update,
@@ -128,6 +132,7 @@ export function LayerInspector({
   cover: CoverConfig;
   book: Source['book'];
   library?: CoverLibrary;
+  layout?: CoverLayoutView;
   checks: CoverCheck[];
   issues: Issue[];
   update: (next: CoverConfig) => void;
@@ -159,6 +164,11 @@ export function LayerInspector({
     : [];
   const layerChecks = checks.filter((check) => check.layer === layer);
   const offset = values.offset ?? { x: 0, y: 0 };
+  const box = layout?.texts.find((text) => text.layer === layer)?.box;
+  const importedFonts = (cover.fonts ?? []).map((font): [string, string] => {
+    const facts = library?.fonts.find((f) => f.path === font.path);
+    return [font.id, `${facts?.full_name ?? font.id} (imported)`];
+  });
   return (
     <div className="inspector-body" aria-label={`${name} properties`}>
       <div className="inspector-heading">
@@ -173,31 +183,33 @@ export function LayerInspector({
           <EyeIcon open={!hidden} />
         </button>
       </div>
-      {layerChecks.map((check) => (
-        <p key={check.code} className={`inspector-check ${check.severity}`}>
-          <Status tone={SEVERITY[check.severity][0]}>{SEVERITY[check.severity][1]}</Status>{' '}
-          {check.message}
+      {layerChecks.length > 0 && (
+        <p className="small">
+          <a href="#layer-validation">
+            {layerChecks.length} finding{layerChecks.length > 1 ? 's' : ''} in Validation
+          </a>
         </p>
-      ))}
-      <Group title="Text">
+      )}
+      <Group title="Content">
         {layer === 'back_text' ? (
           <div className="editor-field">
-            <label htmlFor="cover-back-text">Back-cover text</label>
-            <textarea
+            <RichTextEditor
               id="cover-back-text"
-              rows={5}
+              label="Back-cover text"
               value={cover.back_text ?? ''}
-              aria-describedby="cover-back-hint"
-              aria-invalid={matchIssues(issues, 'cover.back_text').length ? true : undefined}
-              onChange={(e) => {
-                const next = { ...cover, back_text: e.target.value || undefined };
+              baseFace={values.font ?? bodyFace(cover)}
+              fonts={importedFonts}
+              maxLength={1200}
+              invalid={matchIssues(issues, 'cover.back_text').length > 0}
+              hint="Up to 1,200 characters. It stays plain text until you format it; nothing else is added: no prices, reviews or ISBN."
+              onChange={(text) => {
+                const next: CoverConfig = { ...cover, back_text: text || undefined };
                 if (next.back_text === undefined) delete next.back_text;
+                // Formatting needs a version 2 cover (version 3 already supports it).
+                if (typeof text !== 'string' && next.version < 2) next.version = 2;
                 update(next);
               }}
             />
-            <p className="small muted field-hint" id="cover-back-hint">
-              Plain text, up to 1,200 characters. Nothing else is added: no prices, reviews or ISBN.
-            </p>
             <FieldErrors id="cover.back_text" issues={matchIssues(issues, 'cover.back_text')} />
           </div>
         ) : extra ? (
@@ -278,19 +290,6 @@ export function LayerInspector({
             issues={issues}
             onChange={(size) => set({ size })}
           />
-          <NumberField
-            id="cover-layer-line"
-            label="Line spacing"
-            unit="×"
-            min={0.8}
-            max={3}
-            step={0.05}
-            value={values.line_spacing}
-            placeholder="Preset"
-            path={`${path}.line_spacing`}
-            issues={issues}
-            onChange={(line_spacing) => set({ line_spacing })}
-          />
         </div>
         <div className="field-pair">
           <NumberField
@@ -341,6 +340,8 @@ export function LayerInspector({
             )
           }
         />
+      </Group>
+      <Group title="Paragraph">
         <Segmented
           legend="Alignment"
           value={values.align}
@@ -353,6 +354,29 @@ export function LayerInspector({
           ]}
           onChange={(align) => set({ align: values.align === align ? undefined : align })}
         />
+        <div className="field-pair">
+          <NumberField
+            id="cover-layer-line"
+            label="Line spacing"
+            unit="×"
+            min={0.8}
+            max={3}
+            step={0.05}
+            value={values.line_spacing}
+            placeholder="Preset"
+            path={`${path}.line_spacing`}
+            issues={issues}
+            onChange={(line_spacing) => set({ line_spacing })}
+          />
+        </div>
+      </Group>
+      <Group title="Layout">
+        <p className="small muted">
+          {layer === 'back_text' || layer === 'imprint' || extra
+            ? 'Placed on the back or front panel by the type preset, inside the safe area and clear of the barcode.'
+            : `Placed by the type preset (${cover.type.style}, ${cover.type.position}); change the preset in the Design tab.`}
+          {box && ` Measured by Python: ${round(box.width, 1)} × ${round(box.height, 1)} pt.`}
+        </p>
       </Group>
       <Group title="Position">
         <div className="field-pair">
@@ -393,6 +417,33 @@ export function LayerInspector({
         >
           Reset position
         </button>
+      </Group>
+      <Group title="Effects">
+        <label className="check">
+          <input type="checkbox" checked={!hidden} onChange={() => set({ visible: hidden })} />
+          <span>Show on the cover</span>
+        </label>
+        <p className="small muted">
+          Legibility shade or panel behind book text is set in the Design tab. Shadows and outlines
+          are not offered: every effect must print as solid color.
+        </p>
+      </Group>
+      <Group title="Validation">
+        {layerChecks.length === 0 && matchIssues(issues, path).length === 0 ? (
+          <p className="small muted" id="layer-validation">
+            No findings for this layer in the draft.
+          </p>
+        ) : (
+          <div id="layer-validation">
+            {layerChecks.map((check) => (
+              <p key={check.code} className={`inspector-check ${check.severity}`}>
+                <Status tone={SEVERITY[check.severity][0]}>{SEVERITY[check.severity][1]}</Status>{' '}
+                {check.message}
+              </p>
+            ))}
+            <FieldErrors id={`${path}-all`} issues={matchIssues(issues, path)} />
+          </div>
+        )}
       </Group>
       <div className="button-row">
         <button
@@ -751,27 +802,51 @@ export function Readiness({
           build.
         </p>
       )}
-      {checks.length > 0 ? (
-        <ul className="finding-list cover-checks">
-          {checks.map((check, i) => (
-            <li key={`${check.code}-${i}`}>
-              <Status tone={SEVERITY[check.severity][0]}>{SEVERITY[check.severity][1]}</Status>
-              <p>{check.message}</p>
-              {check.layer && !check.layer.startsWith('font:') && (
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => onSelect(check.layer!)}
-                >
-                  Select {check.layer.replace('_', ' ').replace('extra:', 'text ')}
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        draft?.success && <p className="small muted">No draft findings.</p>
-      )}
+      {checks.length > 0
+        ? (
+            [
+              ['Blocking', 'The cover will not build until these are fixed.', ['error']],
+              ['Advisory', 'Worth reviewing; they do not stop a build.', ['warning', 'info']],
+            ] as const
+          ).map(([title, note, severities]) => {
+            const group = checks.filter((check) =>
+              (severities as readonly string[]).includes(check.severity),
+            );
+            return (
+              <section key={title} className="check-group" aria-label={`${title} checks`}>
+                <h4>
+                  {title} ({group.length})
+                </h4>
+                {group.length === 0 ? (
+                  <p className="small muted">None.</p>
+                ) : (
+                  <>
+                    <p className="small muted">{note}</p>
+                    <ul className="finding-list cover-checks">
+                      {group.map((check, i) => (
+                        <li key={`${check.code}-${i}`}>
+                          <Status tone={SEVERITY[check.severity][0]}>
+                            {SEVERITY[check.severity][1]}
+                          </Status>
+                          <p>{check.message}</p>
+                          {check.layer && !check.layer.startsWith('font:') && (
+                            <button
+                              type="button"
+                              className="link-button"
+                              onClick={() => onSelect(check.layer!)}
+                            >
+                              Select {check.layer.replace('_', ' ').replace('extra:', 'text ')}
+                            </button>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </section>
+            );
+          })
+        : draft?.success && <p className="small muted">No draft findings.</p>}
       {layout && interior && (
         <dl className="facts compact-facts">
           <div>

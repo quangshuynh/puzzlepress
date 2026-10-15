@@ -1,3 +1,4 @@
+import type { RichDoc } from './rich-text-model';
 // Transport views only. Python owns all validation, generation and quality rules.
 export interface Issue {
   path: string;
@@ -319,7 +320,8 @@ export interface CoverConfig {
   legibility: 'shade' | 'panel' | 'none';
   background?: string;
   spine_text: 'auto' | 'none';
-  back_text?: string;
+  // Plain text, or a rich text document once formatting is used (versions 2 and 3).
+  back_text?: string | RichDoc;
   // Version 2: per-layer overrides, extra layers and imported fonts.
   text?: Partial<Record<TextRole, TextLayer>>;
   extra?: ExtraLayer[];
@@ -377,7 +379,9 @@ export interface LineElement extends ElementBase {
 export interface TextBoxElement extends ElementBase {
   type: 'text';
   box: ElementBox;
-  text: string;
+  // Plain text, or `rich` once formatting is used; never both.
+  text?: string;
+  rich?: RichDoc;
   font?: string;
   size: number;
   color: string;
@@ -1172,4 +1176,43 @@ export interface ProductionStatus {
     message?: string;
     results: RebuildStepResult[];
   };
+}
+// Cover templates. Python validates, applies and renders them; the gallery only shows results.
+export interface CoverTemplateInfo {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  photo: 'required' | 'optional' | 'none';
+  slots: number;
+  builtin: boolean;
+  palette: string[];
+  fonts: string[];
+  imported_fonts: string[];
+  provenance: string | null;
+  identity: string;
+}
+export interface TemplateGallery {
+  templates: CoverTemplateInfo[];
+  problems: { file: string; code: string; message: string }[];
+  template?: CoverTemplateInfo;
+}
+export interface TemplatePreview {
+  success: boolean;
+  template: CoverTemplateInfo;
+  stage?: string;
+  diagnostics?: BuildDiagnostic[];
+  cover?: CoverConfig;
+  missing_slots?: number[];
+  replaced?: string[];
+  kept?: string[];
+  current?: {
+    title: string;
+    subtitle: string | null;
+    author: string | null;
+    imprint: string | null;
+  };
+  checks?: CoverCheck[];
+  buildable?: boolean;
+  preview?: { pdf_sha256: string; scales: Record<string, number> };
 }
