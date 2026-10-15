@@ -49,6 +49,8 @@ class CoverText:
     bounds: Box
     color: RGB
     tracking: float = 0.0  # Points added between characters (PDF Tc).
+    # Rich text: the filled underline box, inside `bounds` (never a stroke).
+    underline: Box | None = None
 
 
 @dataclass(frozen=True)

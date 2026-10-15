@@ -31,6 +31,7 @@ from ..cover_config import (
     hex_rgb,
 )
 from ..cover_design import LineElement, PhotoElement, Region, ShapeElement, TextBoxElement
+from ..cover_richtext import BlockAlign, RichText
 from ..interior.issues import LayoutIssue
 from ..interior.model import Anchor, Box
 from ..interior.spec import KDP_COVER, inches
@@ -55,6 +56,7 @@ from .model import (
     ShadeBand,
     SpineStatus,
 )
+from .richtext import Base, layout_rich
 
 LIGHT: RGB = (1.0, 1.0, 1.0)
 DARK: RGB = (0.106, 0.118, 0.11)
@@ -527,6 +529,28 @@ def _front(
     return by_title + by_subtitle + by_author, boxes
 
 
+def _rich(
+    document: RichText,
+    style: _Style,
+    frame: Box,
+    fonts: CoverFonts,
+    region: str,
+) -> tuple[list[CoverText], float]:
+    """A rich text document set from the top of `frame`, inheriting `style`."""
+    assert style.size is not None
+    base = Base(
+        style.face,
+        style.size,
+        style.color,
+        style.pitch,
+        style.tracking,
+        style.upper,
+        BlockAlign(style.align.value),
+    )
+    keys = {font_id: fonts.key(font_id) for font_id in fonts.by_id}
+    return layout_rich(document, base, frame, frame.top, style.role, keys, region)
+
+
 def _grow(box: Box, dx: float, dy: float) -> Box:
     return Box(box.x - dx, box.y - dy, box.width + 2 * dx, box.height + 2 * dy)
 
@@ -638,8 +662,28 @@ def _back(
         _default_align(config),
     )
     assert style.size is not None
-    _check_glyphs(copy.back_text, style.face, "cover.back_text")
     measure = min(area.width, BACK_MEASURE)
+    x, _ = _anchor(area, style.align)
+    left = {
+        LayerAlign.CENTER: x - measure / 2,
+        LayerAlign.LEFT: x,
+        LayerAlign.RIGHT: x - measure,
+    }[style.align]
+    if config.back_rich is not None:
+        frame = Box(left, area.y, measure, area.height)
+        rich, height = _rich(config.back_rich, style, frame, fonts, "cover.back_text")
+        if not moved and area.top - height < floor - 1e-6:
+            raise _fail(
+                "text_overflow",
+                "The back-cover text is too long to stay clear of the barcode area.",
+                "cover.back_text",
+                actual=f"{height / 72:.2f} in",
+                required=f"at most {(area.top - floor) / 72:.2f} in",
+            )
+        box = Box(left, area.top - height, measure, height)
+        boxes.insert(0, ("back_text", _moved(box, style.offset)))
+        return _shift(rich, style.offset) + texts, boxes
+    _check_glyphs(copy.back_text, style.face, "cover.back_text")
     lines = wrap(copy.back_text, style.face, style.size, measure, style.tracking)
     if lines is None:
         raise _fail(
@@ -655,12 +699,6 @@ def _back(
             actual=f"{height / 72:.2f} in",
             required=f"at most {(area.top - floor) / 72:.2f} in",
         )
-    x, _ = _anchor(area, style.align)
-    left = {
-        LayerAlign.CENTER: x - measure / 2,
-        LayerAlign.LEFT: x,
-        LayerAlign.RIGHT: x - measure,
-    }[style.align]
     # Lines anchor on the area exactly as in version 1; the box spans the measure.
     placed = _shift(_place(block, area.top, area), style.offset)
     box = Box(left, area.top - height, measure, height)
@@ -752,6 +790,9 @@ def _text_box(
         hex_rgb(element.color),
         element.align,
     )
+    if element.rich is not None:
+        lines_rich, _ = _rich(element.rich, style, box, fonts, f"cover.{role}")
+        return lines_rich, CoverTextBox(role, box)
     text = style.text(element.text)
     _check_glyphs(text, style.face, f"cover.{role}")
     lines = wrap(text, style.face, element.size, box.width, style.tracking)
