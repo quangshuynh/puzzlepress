@@ -88,8 +88,7 @@ PRESETS: dict[StylePreset, InteriorDesign] = {
     ),
     StylePreset.HIGH_CONTRAST: InteriorDesign(
         preset=StylePreset.HIGH_CONTRAST.value,
-        title_layout=TitleLayout.COLOR_BLOCK.value,
-        title_tint=85,
+        title_layout=TitleLayout.FRAMED.value,
         title_size=36.0,
         puzzle_title_size=24.0,
         grid_frame=2.0,
@@ -99,7 +98,7 @@ PRESETS: dict[StylePreset, InteriorDesign] = {
         mark_width=1.5,
         muted_gray=0.62,
         divider_layout=DividerLayout.BAND.value,
-        divider_tint=85,
+        divider_tint=70,
     ),
 }
 

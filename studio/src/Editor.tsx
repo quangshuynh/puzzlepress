@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Inspector, Quality } from './Puzzles';
 import type { Definition } from './types';
 import { Empty, Status } from './ui';
@@ -6,6 +6,15 @@ import { ContentEditor } from './ContentEditor';
 import { DraftToolbar, type Draft } from './draft';
 
 import { Field, move, type Content } from './editor-fields';
+import {
+  REVIEW_LABELS,
+  ReviewBadge,
+  ReviewControls,
+  ReviewProgress,
+  puzzleSignature,
+  useReviews,
+} from './review';
+import type { ReviewState } from './types';
 
 const STARTER: Content = {
   banks: [{ id: 'words', entries: [{ id: 'word-1', display: '' }] }],
@@ -46,6 +55,11 @@ export function Editor({ d }: { d: Draft }) {
   const [query, setQuery] = useState('');
   const [theme, setTheme] = useState('');
   const [level, setLevel] = useState('');
+  const [reviewFilter, setReviewFilter] = useState<ReviewState | ''>('');
+  const reviews = useReviews(d.key, saved.revision);
+  const reviewStates = new Map(
+    (reviews.data?.report.puzzles ?? []).map((review) => [review.puzzle, review]),
+  );
   if (epoch !== d.epoch) {
     // Saved, reloaded or reverted drafts start again at the first definition.
     setEpoch(d.epoch);
@@ -92,6 +106,10 @@ export function Editor({ d }: { d: Draft }) {
               issues.map((i) => i.path),
               preview,
             )}
+            reviews={reviewStates}
+            reviewFilter={reviewFilter}
+            setReviewFilter={setReviewFilter}
+            progress={<ReviewProgress data={reviews.data} />}
             onAdd={() => {
               let n = 1;
               while (ws.puzzles.some((p) => p.id === `puzzle-${n}`)) n++;
@@ -155,6 +173,16 @@ export function Editor({ d }: { d: Draft }) {
                   </div>
                 </div>
                 <PuzzleFindings id={puzzle.id} preview={preview} dirty={dirty} />
+                <ReviewControls
+                  projectKey={d.key}
+                  review={reviewStates.get(puzzle.id)}
+                  data={reviews.data}
+                  onSaved={reviews.setData}
+                  unsaved={
+                    saved.source !== undefined &&
+                    puzzleSignature(draft, puzzle.id) !== puzzleSignature(saved.source, puzzle.id)
+                  }
+                />
                 <Field
                   label="Puzzle title"
                   path={`${path}.title`}
@@ -337,7 +365,15 @@ function PuzzleNavigator({
   setLevel,
   flagged,
   onAdd,
+  reviews,
+  reviewFilter,
+  setReviewFilter,
+  progress,
 }: {
+  reviews: Map<string, { state: ReviewState }>;
+  reviewFilter: ReviewState | '';
+  setReviewFilter: (value: ReviewState | '') => void;
+  progress: ReactNode;
   puzzles: Definition[];
   selected: number;
   onSelect: (index: number) => void;
@@ -359,6 +395,7 @@ function PuzzleNavigator({
       ({ puzzle }) =>
         (!theme || puzzle.theme === theme) &&
         (!level || puzzle.difficulty === level) &&
+        (!reviewFilter || (reviews.get(puzzle.id)?.state ?? 'not_reviewed') === reviewFilter) &&
         (!needle ||
           puzzle.title.toLowerCase().includes(needle) ||
           puzzle.id.toLowerCase().includes(needle) ||
@@ -422,6 +459,42 @@ function PuzzleNavigator({
           </div>
         </div>
       </div>
+      <div className="field-pair">
+        <div>
+          <label className="sr-only" htmlFor="puzzle-review-filter">
+            Filter by review state
+          </label>
+          <select
+            id="puzzle-review-filter"
+            value={reviewFilter}
+            onChange={(e) => setReviewFilter(e.target.value as ReviewState | '')}
+          >
+            <option value="">All review states</option>
+            {(Object.keys(REVIEW_LABELS) as ReviewState[]).map((state) => (
+              <option key={state} value={state}>
+                {REVIEW_LABELS[state]}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button
+          type="button"
+          className="small-button"
+          onClick={() => {
+            const order = puzzles.map((p, index) => ({ p, index }));
+            const next =
+              order.find(
+                ({ p, index }) =>
+                  index > selected && (reviews.get(p.id)?.state ?? 'not_reviewed') !== 'reviewed',
+              ) ??
+              order.find(({ p }) => (reviews.get(p.id)?.state ?? 'not_reviewed') !== 'reviewed');
+            if (next) onSelect(next.index);
+          }}
+        >
+          Next unreviewed
+        </button>
+      </div>
+      {progress}
       <p className="small muted navigator-count" aria-live="polite">
         {shown.length === puzzles.length
           ? `All ${puzzles.length} puzzles`
@@ -443,6 +516,9 @@ function PuzzleNavigator({
                   {puzzle.theme || 'No theme'} · {puzzle.difficulty}
                 </small>
               </span>
+              {reviews.has(puzzle.id) && (
+                <ReviewBadge state={reviews.get(puzzle.id)!.state} compact />
+              )}
               {(flagged.has(index) || flagged.has(puzzle.id)) && (
                 <span className="status review">
                   <span aria-hidden="true" className="status-mark" />
