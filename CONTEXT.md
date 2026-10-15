@@ -2,34 +2,45 @@
 
 ## Completed scope
 
-Interval 12 (first production book) on branch `feat/automotive-production-book`
-from main `5f41bf6` (Interval 11 merged via PR #5); pushed, not merged; no PR, tag,
-release or deployment. No Interval 13 work. Changes:
+Studio UX and Cover Editor refinement (between Interval 12 and 13) on branch
+`feat/studio-ux-refinement` from main `d7e9695` (Interval 12 merged via PR #6);
+pushed, not merged; no PR, tag, release or deployment. No Interval 13 work.
 
-- The automotive production book (60 puzzles, 7 themes, 3 levels, 95-page
-  interior, AI-drafted content not yet reviewed, no cover, publishing blocked on
-  the author's decisions) now lives in the private book repository
-  `quangshuynh/puzzlepress-books` (branch `feat/automotive-first-edition`,
-  `books/automotive`, byte-identical; its production record, content audit and a
-  review release of the interior are there). The engine keeps no real book: tests,
-  CI and browser checks use `tests/production_book.py`, a SYNTHETIC 60-puzzle book
-  with the same production shape; docs/production-scale.md covers book repositories,
-  scaling and performance. The old 3-item source is `tests/fixtures/legacy-automotive`.
-- Studio: `--books` may be any library; the default frontend is this checkout's
-  `studio/dist` from any working directory; external libraries are tested.
-- Puzzle cap 20 -> 100 (`content.MAX_PUZZLES`) within a batch work budget
-  (`MAX_BATCH_ATTEMPTS` 20,000,000 summed profile attempts = former worst case;
-  `work_budget` validation issue).
-- `planning/production.py` and `puzzlepress plan production`: read-only plan versus
-  book.yaml comparison (comparison_version 1, deviation codes, exit 0 when none).
-- Inspection: exact image-count shortcut and fact reuse for byte-identical PDFs
-  (`InteriorBuild.facts`); interior build 5.09 -> 3.59 s, preflight 8.72 -> 3.59 s
-  on the real book; PDF bytes unchanged.
-- Production CI job (synthetic book).
+- Cover version 2 (`cover_config`, `cover_validation`, `cover/layout`): per-layer
+  overrides for title, subtitle, author, back text and imprint (visible, display
+  text, font, size, color, align left/center/right, line and letter spacing, case,
+  offset in points), up to 8 extra front/back text layers, up to 8 imported fonts
+  with author-recorded license/source. Version 1 accepted unchanged; v2 without
+  overrides lays out identically. Hiding text never changes `book`; `cover.json`
+  records `display`.
+- Imported fonts (`cover/font_assets`): static TrueType outlines in .ttf/.otf,
+  validated from memory (sfnt directory, OS/2 fsType, checksums via ReportLab);
+  refused: CFF, variable, collections, WOFF, restricted/bitmap-only/no-subsetting,
+  damaged. Content-addressed import into `cover-assets/fonts`, digest-pinned,
+  registered under `PuzzlePressFont-<sha>`; never system fonts. `cover import`
+  takes fonts too.
+- Cover preflight ruleset 2: `cover_fonts` (structural), `cover_font_license`
+  (warning). Publishing ruleset 3: displayed text must match the details
+  (`cover_text_matches`), hidden title/author is the `cover_text_omitted` warning;
+  rights review covers extra cover text and fonts only when used.
+- Studio API: draft cover previews render layouts that fail validation (moved text)
+  and say `buildable: false`; text lines carry `layer`/`face`; `library` gives
+  per-photo DPI and per-font missing characters; new thumbnail, font list/import
+  (`font/ttf|otf`) and specimen endpoints.
+- Studio UI: app bar instead of the sidebar; grouped navigation Create (Plan,
+  Puzzles, Book, Cover) / Review (Print proof, Solutions, Quality) / Publish, URLs
+  unchanged; compact sticky draft bar; Cover Studio workspace (tools, canvas with
+  selectable/draggable text, guides, safe-area warnings, keyboard nudging, undo,
+  zoom; inspector with layer properties and print quality; photo library with
+  compare; fonts with specimens); Puzzles navigator (search, theme/difficulty
+  filters, previous/next, findings beside fields); Book page-sequence strip and
+  built-versus-planned pages; Publishing checklist by stage; Planning compact
+  toolbar and evidence badges; touch targets 44 px on coarse pointers.
 
 Engine 0.1.0; identity, pipeline, composition, plan, print profile, renderer,
-cover, publishing, package and planning versions unchanged. Existing interiors are
-byte-identical (composition-demo `4e0748fb`, cover-demo `d7254094`).
+cover renderer (1), cover profile (1), publishing schema, package and planning
+versions unchanged. Existing covers are byte-identical with unchanged identities
+(cover-demo and publishing-demo `cover.pdf` `5dcaf42d…`, compared against main).
 
 ## Architecture and launch
 
@@ -52,7 +63,7 @@ byte-identical (composition-demo `4e0748fb`, cover-demo `d7254094`).
   the post-build check and preflight. `interior.build` stays the only writer
   (adds `write_preflight_report`, `interior_identity`, `toolchain`).
 - Cover: `cover_config.py`/`cover_validation.py` (schema) and `cover/` (`assets`,
-  `crop`, `geometry`, `fonts`, `layout`, `model`, `validation`, `render`,
+  `crop`, `geometry`, `fonts`, `font_assets`, `layout`, `model`, `validation`, `render`,
   `inspection`, `build` = only writer, `preflight`); `cover_cli.py`.
 - Publishing: `publishing_config.py`/`publishing_validation.py` (schema) and
   `publishing/` (`model`, `rules` = catalogue and the one home of KDP metadata
@@ -66,7 +77,9 @@ byte-identical (composition-demo `4e0748fb`, cover-demo `d7254094`).
   `Planning.tsx`, `planning-draft.ts`, `planning-fields.tsx`, `planning-visuals.tsx`.
 - Studio: `printing.py` (status/build/page adapter, profile choice), `preview.py`
   (PDFium raster, one process-wide lock), `covering.py` (cover adapter); `Print.tsx`,
-  `Cover.tsx` plus `service.py`, `editing.py`, `draft.tsx` etc.
+  `Cover.tsx` (with `cover-model.ts`, `cover-canvas.tsx`, `cover-tools.tsx`,
+  `cover-inspector.tsx`), `publishing-checklist.tsx` plus `service.py`,
+  `editing.py`, `draft.tsx` etc.
 - Build `cd studio; npm ci; npm run build`; launch from root
   `.\.venv\Scripts\puzzlepress-studio.exe` (http://127.0.0.1:8000/books).
 
@@ -136,7 +149,7 @@ byte-identical (composition-demo `4e0748fb`, cover-demo `d7254094`).
 
 ## Cover (docs/cover.md)
 
-- Config: optional `cover` (version 1) in book.yaml, requires composition,
+- Config: optional `cover` (version 1 or 2; see docs/cover.md) in book.yaml, requires composition,
   excluded from build identity. layout full_wrap|front_photo; image {path
   `cover-assets/<name>.jpg|png`, sha256}; crop {x, y 0..1, zoom 1..4, 4 dp};
   type {style editorial|bold|minimal, position top|middle|bottom, align
@@ -164,18 +177,22 @@ byte-identical (composition-demo `4e0748fb`, cover-demo `d7254094`).
 - Output beside the interior: cover.pdf (1 page, MediaBox=BleedBox=wrap,
   TrimBox=trim, DeviceRGB, no strokes/marks/annotations/metadata), cover.json,
   cover-preflight.json. Byte-identical across process, cwd, PYTHONHASHSEED.
-- Cover preflight ruleset `puzzlepress-kdp-cover` v1, 25 rules (10 structural,
-  15 KDP; warnings: provenance, 40 MB, RGB vs CMYK). States no_config, missing,
+- Cover preflight ruleset `puzzlepress-kdp-cover` v2, 27 rules (11 structural,
+  16 KDP; warnings: provenance, 40 MB, RGB vs CMYK, font license). States no_config, missing,
   current, stale, invalid. Never writes except cover-preflight.json.
 - CLI `cover inspect|import|build|preflight` (`--output`, `--json`, `--no-write`);
   exit 0/1/2 as book commands; preflight 0 only when valid and ready.
-- Studio Cover tab: shared draft; debounced POST /draft/cover renders the real PDF
-  in memory (stale interior labeled, damaged refused); PDFium raster views
-  (wrap/front/spine/back); Python-geometry overlays; drag, sliders, keyboard crop
-  (arrows, Shift, +/-, 0; key-code fallback); readiness column; build saved
-  revision only. API: GET /cover, POST /draft/cover, GET /cover/preview,
-  GET/POST /cover/assets (raw image/jpeg|png upload, route-scoped), POST
-  /cover/build. Print: paper choice, keeps the built profile.
+- Studio Cover: shared draft; debounced POST /draft/cover renders the real PDF
+  in memory (stale interior labeled, damaged refused; invalid moved text previews
+  but is not buildable); tools | canvas | inspector at 1200 px+, canvas + tabbed
+  panel at 800-1199, stacked below; PDFium raster views (wrap/front/spine/back),
+  zoom fit-400%, Python-geometry overlays, layer selection, drag with centre
+  snapping and safe-area outline, arrow nudges (1/10 pt), Escape, Undo; the photo
+  drags/keys only once selected; print-quality panel; build saved revision only.
+  API: GET /cover, POST /draft/cover, GET /cover/preview, GET/POST
+  /cover/assets, GET /cover/assets/thumbnail, GET/POST /cover/fonts (raw
+  font/ttf|otf), GET /cover/fonts/specimen, POST /cover/build. Print: paper
+  choice, keeps the built profile.
 - Fixtures: `books/cover-demo` (20 puzzles, 35 pages, synthetic stand-in photo from
   tests/cover_demo_photo.py): cover valid and KDP ready (interior is not; see
   verification), spine text omitted. Real long interiors: a 95-page white-paper
@@ -333,31 +350,48 @@ small external-editor race remains. Drafts memory-only; no autosave/undo/merge.
 
 ## Actual local verification (Windows, Python 3.13.15, Node 24.18.0)
 
-Interval 12, 2026-10-09:
+Studio UX refinement, 2026-10-15:
 
-- Baseline on main `5f41bf6`: 1307 passed, 5 skipped (symlink permission).
-- Python: **1345 passed, 5 skipped** (symlink permission), 1 Starlette httpx
-  warning; new: generator scale (20/60/100, budget, partial failure, memory,
-  cross-process bytes), production comparison, inspection reuse, real-book end to
-  end, audit sync. Ruff lint and format, strict mypy (95 files), pip check,
-  `git diff --check`.
-- Frontend: tsc, ESLint, Prettier (clean with `--end-of-line auto`; CRLF checkout
-  only), 66 Vitest, build (JS 414 kB, CSS 44 kB). Playwright 20/20 with axe,
-  including the new production acceptance (open 0.5 s, generate 60 ~1.0 s,
-  composition 1.0-1.6 s, build + preflight 4.1 s, first readiness 4.6 s).
-  Refreshed captures: library, planning*; new production-*.png.
-- Real book: batch clean with strict quality; 95 pages; preflight valid and KDP
-  ready (warning kdp_full_font_embedding); PDF `00da6391...` identical across
-  processes, directories and hash seeds; pages inspected visually. AGENTS.md
-  commands with expected exits; interiors unchanged (composition-demo `4e0748fb`,
-  cover-demo `d7254094`). The production CI job was rehearsed locally (Git Bash).
-- Fixture SHA-256 (LF): automotive book.yaml 606b30cf and planning.yaml 6bba933e
-  (now in puzzlepress-books, Git blobs c58b2538 and 571f9cf6), legacy fixture 209f3fd6, composition-demo b15651cd, cover-demo b906bbda,
-  garden-demo ffd7f7eb, publishing-demo f0a2d580.
-- KDP help read 2026-10-09: content guidelines (AI-generated vs AI-assisted, as
-  modeled) and print options (8.5 x 11 within the custom range; no table row).
+- Python: **1416 passed, 5 skipped** (symlink permission), 1 Starlette httpx
+  warning; new: cover v2 schema and layers (34), imported fonts (28: permissions,
+  CFF, variable, collection, WOFF, checksums, import, digest, PDF subset
+  embedding, preflight), publishing display checks (3), Studio cover API (9).
+  Ruff lint and format, strict mypy (96 files), pip check, `git diff --check`.
+- Frontend: tsc, ESLint, Prettier, 71 Vitest, build. Playwright **22/22** with
+  axe (cover: keyboard crop with falling DPI, text drag at fit and 200% checked
+  against Python's re-laid box, nudge, undo, hidden title with book.title kept,
+  font import/use/build/preflight, restricted font refused, four widths). All
+  captures in docs/images/studio regenerated; the cover, editor, book, print,
+  publishing and planning captures were reviewed by eye. No horizontal overflow
+  at 1440, 1024, 768 or 390 px.
+- Compatibility: cover-demo and publishing-demo `cover.pdf` (`5dcaf42d…`) and cover
+  identities equal main's; Studio's draft render of cover-demo has the same PDF
+  digest and identity as before. Interiors unchanged (composition-demo
+  `4e0748fb`). AGENTS.md commands give their documented exits (publish validate
+  and inspect 1: publishing-demo leaves AI disclosure and confirmations open).
+- External book: a copy of puzzlepress-books `books/automotive` (working tree at
+  `2eb9551` plus the author's uncommitted cover edits) loaded in Studio, built
+  (interior `00da6391…` unchanged) and its cover preflighted: structurally valid,
+  not KDP ready only for photo resolution (67 DPI of 300, `image_too_small`). With
+  a hidden title, an imported OFL font on the subtitle and letter spacing, the
+  cover built with that font embedded as a subset, byte-identical across hash
+  seeds, `book.title` unchanged and publishing warning `cover_text_omitted`. The
+  repository's status and book.yaml SHA-256 were identical before and after.
+- KDP help read 2026-10-10: "Fix Paperback and Hardcover Formatting Issues"
+  (files must match book details; fonts fully embedded; fonts may not allow
+  commercial use).
 
 ## Limits and decisions for review
+
+Studio UX refinement: variable, CFF and WOFF fonts are deferred; no kerning or
+ligatures; spine text keeps its preset face; offsets are relative to the
+layout's position, so a preset or text change moves the start point; extra
+layers are plain text only. Cover undo covers the current session only and is
+cleared by save, reload or revert. Panel widths are fixed per breakpoint (no
+drag-resize). Only Chromium is exercised; axe is not screen-reader
+certification. The author's automotive photo reaches 67 DPI here (another photo
+in its library reaches 185), so its cover is not KDP ready until a larger
+photograph is supplied.
 
 Author decisions for the automotive book (puzzlepress-books, docs/): review the
 AI-drafted words, titles and matter text (its content audit) and the

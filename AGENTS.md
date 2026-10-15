@@ -34,6 +34,12 @@ and local Web Studio share the same core. Read `CONTEXT.md` for current scope.
   overwrites, and crops are configuration. Studio previews and the final PDF use
   the same Python crop, layout and renderer; the browser never lays out a cover.
   Rendered covers carry only pixels, never source EXIF/GPS/XMP metadata.
+- Cover text layers change only the cover: hiding or restyling text never edits
+  book metadata, and displayed text must still match the book details. Offsets
+  are authored points that Python lays out; the browser never draws cover type.
+  Imported fonts are validated in Python from memory (static TrueType outlines,
+  embedding and subsetting permitted), digest-pinned, never system fonts; their
+  license is what the author records, never inferred.
 - Publishing metadata is authored source with its own identity, outside build
   identity. Never declare AI use, rights or other attestations for the author or
   invent an ISBN; undecided values block. A confirmation stores the Python-computed
