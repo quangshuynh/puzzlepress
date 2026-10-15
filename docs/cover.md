@@ -3,8 +3,11 @@
 PuzzlePress builds a deterministic full-wrap paperback cover (back, spine and
 front in one PDF) from your own photograph, a small semantic configuration and
 the physical facts of the built interior. Version 2 adds per-layer text
-controls, extra text layers and imported fonts. It is not an image editor and has
-no AI generation, stock search, effects or free-form graphics.
+controls, extra text layers and imported fonts. Version 3 designs the back, spine
+and front as separate regions with a stack of photographs, rectangles, ellipses,
+lines and text boxes ([production design](production-design-polish.md)). It is not
+an image editor and has no AI generation, stock search, effects, transparency or
+free-form paths.
 
 ```text
 interior.pdf + interior.json ──> verified interior facts (page count, trim, paper)
@@ -39,7 +42,7 @@ atomic save as everything else; there is no second store. It requires a
 
 ```yaml
 cover:
-  version: 1                 # required; other versions are rejected
+  version: 1                 # required: 1, 2 or 3; other versions are rejected
   layout: full_wrap          # full_wrap | front_photo
   image:
     path: cover-assets/harbour-dusk-34b4d3b99667.jpg
@@ -113,6 +116,20 @@ in version 1. Hiding the title or author is allowed; publishing reports it as th
 `cover_text_omitted` warning, because KDP's formatting help requires cover
 information to match the book details but does not state that the title must
 appear (read 2026-10-10, "Fix Paperback and Hardcover Formatting Issues").
+
+### Version 3: regions and elements
+
+`version: 3` replaces `layout`, `image`, `crop` and `background` with `regions`
+(a color and optional gradient for back, spine and front) and `elements` (up to
+24, at most 4 photographs), positioned in points from each region's bottom-left
+trim corner. `type`, `legibility`, `spine_text`, `back_text`, `fonts`, `text` and
+`extra` keep their version 2 meaning (version 1 and 2 reject `regions` and
+`elements` with `requires_version_3`), and book text is drawn above every element.
+Translucent shapes are flattened by Python against one solid color or one
+photograph, or reported (`opacity_not_flattenable`). Nothing converts a cover
+implicitly; Studio's **Convert to regions** produces a version 3 cover that
+renders the same bytes. The full schema, coordinate system, spine and barcode
+rules are in [production design](production-design-polish.md#cover-regions-cover-version-3).
 
 ### Imported fonts
 
@@ -328,9 +345,10 @@ which. Modification times are never used.
 them and the pinned photo, renders the expected cover in memory and compares. It
 never writes anything except `cover-preflight.json` (`--no-write` opts out). Rule
 scopes, severities, outcomes and the rule that unevaluated error rules block are
-those of [interior preflight](preflight.md). Ruleset `puzzlepress-kdp-cover` v2
-(v2 adds `cover_fonts` and `cover_font_license`); report version 1; KDP rules
-checked 2026-10-07 (font wording read 2026-10-10).
+those of [interior preflight](preflight.md). Ruleset `puzzlepress-kdp-cover` v3
+(v2 added `cover_fonts` and `cover_font_license`; v3 adds the design warnings
+`kdp_spine_design` and `kdp_barcode_design`, not applicable before version 3);
+report version 1; KDP rules checked 2026-10-07 (font wording read 2026-10-10).
 
 | Code | Scope | Checks |
 | --- | --- | --- |
@@ -361,6 +379,8 @@ checked 2026-10-07 (font wording read 2026-10-10).
 | `kdp_cover_file_size_recommended` | KDP warning | KDP recommends 40 MB or less |
 | `kdp_cover_color_space` | KDP warning (ambiguous) | RGB images while KDP recommends CMYK |
 | `cover_font_license` | KDP warning (ambiguous) | An imported font without a recorded license or source |
+| `kdp_spine_design` | KDP warning | Spine background differs from a neighbor at the fold, or a spine element is within the fold variance |
+| `kdp_barcode_design` | KDP warning | A design element lies in the barcode keep-clear area |
 
 **Classification.** Expected build failures (stages `config`, `interior`, `asset`,
 `geometry`, `layout`, `layout_validation`, `pdf_verification`, `output`) write
@@ -423,22 +443,25 @@ exposes a mismatched pair.
 
 The **Cover** tab ([studio](studio.md#cover-studio)) edits the cover section in the
 shared draft and previews a real PDF rendered by Python from the unsaved draft: a
-tools panel (photo library, text layers, fonts, design), the canvas with
-selectable, draggable text, and an inspector for the selected layer or the
-photograph's print quality. Draft previews also render layouts that fail
+tools panel (layers, photos, text, shapes, fonts, the asset library and
+design), a region picker (full wrap, back, spine, front), the canvas with
+selectable, draggable text and elements, and an inspector for the selected layer,
+region or the photograph's print quality. Draft previews also render layouts that fail
 validation (text moved out of its safe area) so they can be corrected; the
 response marks them not buildable and builds still refuse them.
 
 ## Limitations
 
-One trim (8.5 x 11 in), black-ink white or cream paper, two layouts, three type
-presets plus per-layer overrides, Latin-1 text with the bundled faces, RGB output
+One trim (8.5 x 11 in), black-ink white or cream paper, two layouts or three
+regions with up to 24 elements (no grouping, two-stop gradients, rotation for
+rectangles and ellipses only), three type presets plus per-layer overrides, Latin-1 text with the bundled faces, RGB output
 without color management, no CMYK, no barcode or ISBN, no hardcover, ebook or
 Kindle covers. Imported fonts: static TrueType outlines only (no CFF/OpenType-PS,
 variable fonts, collections or WOFF); no kerning or ligatures (ReportLab draws
 glyph advances); spine text keeps its preset face. Offsets are relative to the
 layout's own position, so changing the preset or text length moves the starting
-point. Unreferenced imported photos and fonts are not cleaned up. Spine text needs 80+ pages
+point. Unused photos and fonts are removed only through the asset library's
+trash, never automatically. Spine text needs 80+ pages
 and a spine wide enough for 7 pt type.
 The cover demo's photograph is a synthetic stand-in. KDP metadata and the publishing package are described in
 [publishing](publishing.md).

@@ -439,6 +439,9 @@ descriptions (no KDP HTML subset). No category taxonomy, keyword research,
 ISBN purchase or assignment, barcode, pricing, royalties or marketing. No KDP
 login, browser automation, upload or submission, and no ebook or hardcover.
 Confirmations bind to content, not to a person or time, and keep no history.
+The production overview, editorial reviews and proof records that sit beside
+readiness are described in [production design](production-design-polish.md#publishing-readiness-and-human-proofing);
+none of them changes readiness verdicts or the package.
 Heuristic detectors can miss or
 over-report; warnings exist for that reason. KDP may apply checks PuzzlePress does
 not model; its Print Previewer and reviewers decide.

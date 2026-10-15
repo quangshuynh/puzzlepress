@@ -38,13 +38,14 @@ are grouped in workflow order; every earlier URL is unchanged:
 | Create | Plan | `/books/{key}/planning` |
 | Create | Puzzles (the authoring editor, formerly Edit) | `/books/{key}/edit` |
 | Create | Book | `/books/{key}/book` |
+| Create | Interior | `/books/{key}/interior` |
 | Create | Cover | `/books/{key}/cover` |
 | Review | Print proof | `/books/{key}/print` |
 | Review | Solutions (saved puzzles, grids and solutions) | `/books/{key}/puzzles`, `/books/{key}/puzzles/{id}` |
 | Review | Quality | `/books/{key}/quality` |
 | Publish | Publishing | `/books/{key}/publishing` |
 
-Puzzles, Book, Cover and Publishing share one draft of `book.yaml`; Plan has its
+Puzzles, Book, Interior, Cover and Publishing share one draft of `book.yaml`; Plan has its
 own draft of `planning.yaml`. Switching sections keeps both drafts, the project
 header shows **Unsaved draft** while either has edits, and leaving the project asks
 first. Each draft section has the same compact bar, sticky below the app bar:
@@ -90,6 +91,14 @@ is no autosave. Conflicts and failures keep the draft (see below).
    The editor adopts the server's reloaded state, including normalization. Saving
    requires schema/filesystem validity, not a clean quality report or successful
    generation. Publishers may save valid content that still needs review.
+
+**Editorial review.** Above the selected puzzle's fields, **Mark reviewed**,
+**Needs changes** and **Reset** record your judgment of its saved content in
+`reviews.yaml` (never `book.yaml`); notes, reviewer and date sit behind a
+disclosure and are only what you type. A puzzle with unsaved edits cannot be
+marked reviewed. The navigator shows each puzzle's review state, filters by it
+and offers **Next unreviewed**; editing reviewed content shows the review as
+stale. Identities and states: [production design](production-design-polish.md#editorial-review).
 
 **Revert draft** returns to the snapshot originally opened or last saved, after
 confirmation. It does not fetch external edits. Leaving the project with edits
@@ -138,13 +147,32 @@ Validation errors attach to their composer fields. Failed and stale saves keep t
 draft, exactly as in Edit. Drag-and-drop is not used: buttons work for pointer and
 keyboard and avoid accidental moves.
 
+## Interior design
+
+Choose **Interior** to style the printed interior ([production
+design](production-design-polish.md#interior-styles)). It edits the optional
+`interior` section and the theme dividers in the shared draft. **Add an interior
+style** starts from the classic preset; presets (Classic, Editorial, Modern, High
+contrast) are radio buttons, and every override shows **Preset** until you set
+it. Sections: title page (layout, tint, size, alignment, rule, photograph), puzzle
+pages, solution pages and theme dividers (each theme's title, text, optional quote
+and attribution, and photograph). Turning dividers on says that the page count
+changes and the cover must be rebuilt. **Sample pages** are PDFium rasters of the
+first page of each kind that Python rendered from the draft (`POST
+/draft/interior`); no full-book render runs per edit. **Remove the style
+section** returns to the original interior.
+
 ## Print proof
 
 Choose **Print** to build the saved source's interior, run preflight and proof the
 real PDF page by page: thumbnails, single pages, facing spreads, zoom, geometry
 overlays and findings linked to their pages. Builds use the saved revision only;
 unsaved drafts disable **Build interior**. Stale and mismatched interiors are
-labeled. Details, caching and endpoints: [preflight](preflight.md#studio-print-proof).
+labeled. A stale interior shows Python's reasons and the **Rebuild outdated
+artifacts** panel: each artifact's state, the planned steps (conditional ones say
+"only if needed"), and **Rebuild N steps** for the saved revision; results appear
+only as the server reports them. Details, caching and endpoints:
+[preflight](preflight.md#studio-print-proof).
 
 ## Cover Studio
 
@@ -211,6 +239,25 @@ for the draft, and says so; an interior whose files do not agree is refused.
 Decoded photos (two), draft PDFs (160 MB), thumbnails and specimens are cached in
 memory.
 
+**Regions and design elements** (cover version 3, [production
+design](production-design-polish.md#cover-regions-cover-version-3)). A version 1 or
+2 cover offers **Convert to regions**: a dialog shows Python's preview of the
+converted cover and its identity check, and nothing changes until you confirm.
+Then the region picker (Full wrap, Back, Spine, Front) chooses where new elements
+go and opens the region's background (color and gradient). **Shapes** adds
+rectangles, ellipses, lines and text boxes centred in the region; **Layers** lists
+the stack top first with visibility, lock and forward/backward buttons; the
+inspector edits position and size in points, fill, stroke, opacity, rotation,
+text, and duplicates or deletes. Locked elements neither drag nor nudge.
+**Design** offers named presets. Python reports overflow, spine, fold and barcode
+issues beside the element they concern.
+
+**Assets** lists every photograph and font in the project with its size, digest
+and every use in the saved source and the draft. **Remove…** opens a confirmation
+for an unused asset and moves it to the project trash; used assets show where
+they are used instead. The trash lists removed files with **Restore** and a
+permanent delete behind a second confirmation.
+
 ## Publishing
 
 Choose **Publishing** to turn the built book into a package for manual KDP upload
@@ -245,7 +292,17 @@ same draft as Edit, Book and Cover.
    and links to the right section or field. Findings by severity and every check
    follow. The column stays in view beside the form and moves above it below
    1000px. Nothing is checked or confirmed for you.
-7. **Save changes**, then **Export package** (saved revision only; disabled while
+7. **Final steps** (above the form) is Python's production overview: the stage
+   ladder from draft source to Published (never tracked), the rebuild panel when
+   anything is outdated, and every check with its kind (PuzzlePress rule, modeled
+   KDP requirement, your judgment, outside PuzzlePress), status and whether it
+   blocks export; each item opens to what it checks, why, what to do and a link.
+   Then the ten human-proofing steps and **Proof records**: record a Print
+   Previewer or physical proof you reviewed, with your dates, observed issues and
+   decision (undecided by default). A record names the interior and cover now in
+   the build directory and goes stale when either changes. Nothing is approved for
+   you.
+8. **Save changes**, then **Export package** (saved revision only; disabled while
    the draft is dirty or anything blocks). Optionally write `publishing.zip`. The
    summary lists the files, digests, location relative to the project and the
    package identity, and the checklist is shown in full. Nothing is uploaded.
@@ -339,6 +396,9 @@ produce identical YAML bytes. No YAML dependency or schema change was added.
 - `studio/covering.py`: cover status, draft render, photo import, build and rasters.
 - `studio/publishing.py`: publishing readiness, draft metadata checks and export.
 - `studio/planning.py`: planning status, draft checks, revision-aware plan saves and approval.
+- `studio/assets.py`: the asset library, trash, restore and purge under the save lock.
+- `studio/reviewing.py`: editorial reviews and proof records (revision-checked sidecars).
+- `studio/production.py`: production overview (cached by the bytes it reads) and rebuilds.
 - `studio/server.py`: thin HTTP handlers, expected errors, static assets and launcher.
 - `studio/src/draft.tsx`: shared draft lifecycle and toolbar; `Editor.tsx`,
   `ContentEditor.tsx`, `Composer.tsx`, `editor-fields.tsx`: visual inputs and
@@ -366,6 +426,22 @@ produce identical YAML bytes. No YAML dependency or schema change was added.
 | `POST /api/projects/{key}/cover/fonts` | `?name=`; raw `font/ttf` or `font/otf` body; validates, imports and returns the font |
 | `GET /api/projects/{key}/cover/fonts/specimen` | `?font=cover-assets/fonts/<name>` or `bundled:<face>`; PNG of a specimen drawn by ReportLab and rasterized by PDFium |
 | `POST /api/projects/{key}/cover/build` | `{revision}`; builds saved source, writes `cover.pdf`, `cover.json`, `cover-preflight.json` |
+| `POST /api/projects/{key}/draft/cover/convert` | `{source}`; the version 3 form of a version 1/2 cover with its preview and identity check; writes nothing |
+| `POST /api/projects/{key}/draft/cover/presets` | `{source}`; named design presets for this cover; writes nothing |
+| `POST /api/projects/{key}/draft/interior` | `{source}`; sample pages of the draft's styled interior, page count and issues; writes nothing |
+| `GET /api/projects/{key}/draft/interior/pages/{n}` | `?size=&pdf=<sha256>`; PNG of a draft sample page |
+| `POST /api/projects/{key}/assets/list` | `{source?}`; photos and fonts with their uses in the saved source and draft, and the trash |
+| `POST /api/projects/{key}/assets/trash` | `{path, sha256, revision, source?}`; moves an unused asset to the trash (409 `asset_in_use` with `uses`, `asset_changed`, `source_changed`) |
+| `POST /api/projects/{key}/assets/restore` | `{trashed}`; restores under the original name (409 `asset_collision`) |
+| `POST /api/projects/{key}/assets/purge` | `{trashed, sha256}`; deletes a trashed file permanently |
+| `GET /api/projects/{key}/reviews` | Review states for every puzzle with current identities, the sidecar revision and the saved source revision |
+| `POST /api/projects/{key}/reviews/record` | `{source_revision, revision, puzzle, status, identity, note, reviewer, reviewed_on}`; records a judgment of the saved content (409 when either revision is stale) |
+| `POST /api/projects/{key}/reviews/policy` | `{revision, require_all}` |
+| `GET /api/projects/{key}/proofs` | Proof records with currency, and the artifacts now in the build directory |
+| `POST /api/projects/{key}/proofs/record` | `{revision, record}`; 409 `artifacts_changed` when the named artifacts are not the current ones |
+| `POST /api/projects/{key}/proofs/remove` | `{revision, id}` |
+| `GET /api/projects/{key}/production` | Overview items, stages, proofing steps, artifact assessment, review summary, proofs |
+| `POST /api/projects/{key}/rebuild` | `{revision}`; runs the planned steps for the saved revision and returns the recomputed overview with per-step results (`source_changed` if an edit lands mid-run) |
 | `GET /api/projects/{key}/publishing` | Readiness report, KDP metadata record, checklist, package identity, export state (`none`, `current`, `stale`, `damaged`), location, built cover digest |
 | `POST /api/projects/{key}/draft/publishing` | `{source}`; `{metadata, upgrade}`: findings and confirmation states with current review identities for the draft, and the version 2 form of a version 1 section; writes nothing |
 | `POST /api/projects/{key}/publishing/export` | `{revision, archive}`; exports the saved revision's package (409 `source_changed`), or returns why not and writes nothing |
@@ -389,7 +465,7 @@ HTTP 200 batch report. Closing a page does not interrupt already-running Python.
 JSON POSTs require same-origin Origin when supplied, local Host and JSON content
 type. CSP and no-store response headers remain enabled; no CORS, auth or telemetry.
 
-Routes: `/books`, `/books/{key}`, `/books/{key}/edit`, `/books/{key}/book`, `/books/{key}/print`, `/books/{key}/cover`, `/books/{key}/publishing`, `/books/{key}/planning`, `/books/{key}/puzzles`,
+Routes: `/books`, `/books/{key}`, `/books/{key}/edit`, `/books/{key}/book`, `/books/{key}/interior`, `/books/{key}/print`, `/books/{key}/cover`, `/books/{key}/publishing`, `/books/{key}/planning`, `/books/{key}/puzzles`,
 `/books/{key}/puzzles/{id}`, `/books/{key}/quality`. Deep links serve the shell.
 
 ## Design, accessibility and screenshots
@@ -447,7 +523,9 @@ server, and verify the repository fixtures' bytes remain unchanged. API writes
 also use pytest temporary projects. Browser checks cover real edit/preview/save/
 reload, deterministic preview, conflict, simulated HTTP save failure, field errors,
 keyboard operation, responsive layouts and axe, for Edit, the Book composer and the
-Print proof (real build, preflight, rasterized pages, overlays, spreads). For installed Chrome on Windows,
+Print proof (real build, preflight, rasterized pages, overlays, spreads), and in
+`e2e/polish.spec.ts` for region design, the asset trash, interior styles, rebuilds,
+editorial review and proof records. For installed Chrome on Windows,
 set `$env:STUDIO_BROWSER_CHANNEL='chrome'` before running browser tests.
 The Python Windows/Linux 3.11/3.13/3.14 CI matrix and separate Linux browser job
 remain unchanged; local results do not establish remote CI status.
@@ -480,6 +558,14 @@ Cover captures: [overview](images/studio/cover.png), [start](images/studio/cover
 [overlays](images/studio/cover-overlays.png), [spine](images/studio/cover-spine.png),
 [readiness](images/studio/cover-readiness.png), [1440](images/studio/cover-1440.png),
 [390](images/studio/cover-390.png).
+Production design captures: [convert to regions](images/studio/cover-convert.png),
+[layers](images/studio/cover-layers-stack.png), [regions 1440](images/studio/cover-regions-1440.png),
+[1024](images/studio/cover-regions-1024.png), [768](images/studio/cover-regions-768.png),
+[390](images/studio/cover-regions-390.png), [asset library](images/studio/assets-library.png),
+[asset removal](images/studio/assets-remove.png), [interior design](images/studio/interior-design-1440.png),
+[interior 390](images/studio/interior-design-390.png), [rebuild plan](images/studio/rebuild-plan.png),
+[rebuild results](images/studio/rebuild-results.png), [editorial review](images/studio/puzzles-review.png),
+[final steps](images/studio/publishing-final-steps.png).
 Print captures: [overview](images/studio/print.png), [puzzle](images/studio/print-puzzle.png),
 [spread](images/studio/print-spread.png), [overlays](images/studio/print-overlays.png),
 [findings](images/studio/print-findings.png), [status](images/studio/print-kdp-not-ready.png),

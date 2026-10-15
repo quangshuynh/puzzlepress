@@ -47,6 +47,16 @@ and local Web Studio share the same core. Read `CONTEXT.md` for current scope.
   boolean never counts. Readiness reruns interior and cover
   preflight and never trusts saved reports. Packages use the inspected bytes only,
   are verified before replacement, and nothing contacts or submits to Amazon.
+- Cover design elements and interior styles are laid out and rendered by Python
+  only; translucency is flattened by Python or reported, never emitted as PDF
+  transparency. Conversion between cover versions is explicit, never implicit.
+- Assets are removed only by moving an unreferenced file to the project trash;
+  purging is a second explicit step. Never delete a referenced asset.
+- Editorial reviews (`reviews.yaml`) and proof records (`proofs.yaml`) are authored
+  source outside every production identity. Never infer, default or date them;
+  they bind to the identities they cover and go stale when those change.
+- Rebuilds run only the assessed steps through the single writers, stop before
+  writing if the saved source changed, and never export the publishing package.
 - Book plans are authored source in `planning.yaml`, outside every production
   identity; no build reads them and planning never writes `book.yaml`. Keep
   research evidence kinds distinct; never fabricate sources, comparables, prices
