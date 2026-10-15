@@ -51,8 +51,12 @@ def describe(page: PlanPage, plan: PublicationPlan) -> str:
         return plan.pages[index - 1].number.label if index else "?"
 
     if page.kind is PageKind.BLANK:
+        if page.blank_reason == "divider_recto_start":
+            return "Blank: theme divider starts on recto"
         before = page.blank_before.value.replace("_", " ") if page.blank_before else "?"
         return f"Blank: {before} start on recto"
+    if page.divider is not None:
+        return f"Theme divider: {page.divider.title}"
     if page.puzzle is not None:
         ref = page.puzzle
         where = f"; solution p. {label(page.solution_page)}" if page.solution_page else ""
@@ -135,7 +139,7 @@ def run_build_command(args: argparse.Namespace) -> int:
         spec = print_profile(args.profile or DEFAULT_PROFILE)
         if isinstance(spec, LayoutIssue):
             raise InteriorError("print_spec", (spec,))
-        build = build_interior(loaded.project, spec)
+        build = build_interior(loaded.project, spec, loaded.source_path.parent)
         output = Path(args.output) if args.output else loaded.output_directory
         written = write_interior(build, output, loaded.source_path.parent)
     except InteriorError as error:
@@ -203,7 +207,11 @@ def run_preflight_command(args: argparse.Namespace) -> int:
         for issue in error.issues:
             print(f"Preflight failed: {_describe_issue(issue)}", file=sys.stderr)
         return 1
-    result = preflight_interior(loaded.project, read_interior_artifacts(directory))
+    result = preflight_interior(
+        loaded.project,
+        read_interior_artifacts(directory),
+        source_directory=loaded.source_path.parent,
+    )
     report = result.report
     data = report_bytes(report)
     written: Path | None = None

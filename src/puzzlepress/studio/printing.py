@@ -94,7 +94,7 @@ class PrintService:
             return self._status(key)
 
     def _status(self, key: str, built: PreflightResult | None = None) -> dict[str, object]:
-        project, revision, _, directory = self._locate(key)
+        project, revision, source, directory = self._locate(key)
         artifacts = read_interior_artifacts(directory)
         base: dict[str, object] = {
             "key": key,
@@ -117,7 +117,7 @@ class PrintService:
         )
         cached = self._reports.get(cache_key)
         if cached is None:
-            result = built or preflight_interior(project, artifacts)
+            result = built or preflight_interior(project, artifacts, source_directory=source)
             cached = self._present(result, artifacts)
             self._reports[cache_key] = cached
             while len(self._reports) > 8:
@@ -165,7 +165,7 @@ class PrintService:
                 raise StudioError(422, "unsupported_profile", "Unknown print profile.")
             spec = PROFILES[chosen or DEFAULT_PROFILE]
             try:
-                build = build_interior(project, spec)
+                build = build_interior(project, spec, source)
                 write_interior(build, directory, source)
             except InteriorError as error:
                 return {
@@ -177,7 +177,7 @@ class PrintService:
                     **self._status(key),
                 }
             artifacts = read_interior_artifacts(directory)
-            result = preflight_interior(project, artifacts, expected=build)
+            result = preflight_interior(project, artifacts, expected=build, source_directory=source)
             try:
                 write_preflight_report(
                     report_bytes(result.report), project.book.id, directory, source

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pathlib import PurePosixPath, PureWindowsPath
 from typing import cast
 
-from .composition_validation import validate_composition
+from .composition_validation import divider_issues, validate_composition
 from .content_validation import validate_word_search_content
 from .cover_validation import validate_cover
 from .errors import MAX_SEED
@@ -85,6 +85,7 @@ def validate_project(data: object) -> ValidationResult:
             "composition",
             "cover",
             "publishing",
+            "interior",
         },
     )
     version = required(root, "schema_version", "schema_version")
@@ -180,6 +181,23 @@ def validate_project(data: object) -> ValidationResult:
             root["publishing"], "composition" in root
         )
         issues.extend(publishing_issues)
+    if composition is not None and composition.dividers is not None and word_search is not None:
+        issues.extend(divider_issues(composition, word_search.puzzles))
+    interior = None
+    if "interior" in root:
+        from .interior_style_validation import validate_interior_style
+
+        interior, interior_issues = validate_interior_style(root["interior"], "composition" in root)
+        issues.extend(interior_issues)
+        if interior is not None and word_search is not None:
+            themes = {puzzle.theme for puzzle in word_search.puzzles}
+            for index, divider in enumerate(interior.dividers.photos):
+                if divider.theme not in themes:
+                    issue(
+                        f"interior.dividers.photos.{index}.theme",
+                        "unknown_theme",
+                        f"No puzzle has the theme {divider.theme!r}.",
+                    )
     if issues:
         return ValidationResult(None, tuple(issues))
     return ValidationResult(
@@ -201,6 +219,7 @@ def validate_project(data: object) -> ValidationResult:
             composition=composition,
             cover=cover,
             publishing=publishing,
+            interior=interior,
         ),
         (),
     )

@@ -8,6 +8,7 @@ the renderer draws exactly these elements and nothing else.
 from dataclasses import dataclass
 from enum import StrEnum
 
+from .design import CLASSIC, InteriorDesign
 from .issues import LayoutIssue
 from .spec import PrintSpecification
 
@@ -134,7 +135,50 @@ class LetterGrid:
         return self.frame.expanded(self.frame_width / 2)
 
 
-Element = TextLine | Rule | LetterGrid
+@dataclass(frozen=True)
+class Panel:
+    """A tinted block or a ruled frame inside the live area (DeviceGray, opaque).
+
+    `box` is the rectangle path; a stroke is centred on its edges, so the painted
+    extent (`bounds`) grows by half the stroke. Panels are background: text may sit
+    on them, grids never do.
+    """
+
+    role: str
+    box: Box
+    fill_gray: float | None  # None: no fill. 1.0 is paper white.
+    stroke_gray: float | None = None
+    stroke_width: float = 0.0
+
+    @property
+    def bounds(self) -> Box:
+        if self.stroke_gray is None:
+            return self.box
+        return self.box.expanded(self.stroke_width / 2)
+
+
+@dataclass(frozen=True)
+class ImageBlock:
+    """A grayscale photograph: the source window `pixels`, drawn at `placement`.
+
+    It is clipped to `box`, its printed area, which lies inside the live area.
+    `effective_dpi` is source pixels per printed inch (uniform on both axes).
+    """
+
+    role: str
+    box: Box
+    sha256: str
+    placement: Box
+    pixels: tuple[int, int, int, int]
+    effective_dpi: float
+    max_dpi: float
+
+    @property
+    def bounds(self) -> Box:
+        return self.box
+
+
+Element = TextLine | Rule | LetterGrid | Panel | ImageBlock
 
 
 @dataclass(frozen=True)
@@ -165,3 +209,4 @@ class InteriorLayout:
     plan_digest: str
     pages: tuple[PhysicalPage, ...]
     warnings: tuple[LayoutIssue, ...]
+    design: InteriorDesign = CLASSIC  # The resolved interior style it was laid out with.

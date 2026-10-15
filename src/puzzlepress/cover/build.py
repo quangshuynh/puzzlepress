@@ -34,6 +34,7 @@ from ..interior.build import (
     _stage,
     check_output_directory,
     interior_identity,
+    style_currency,
     toolchain,
 )
 from ..interior.issues import InteriorError, LayoutIssue
@@ -132,8 +133,11 @@ def read_interior_facts(
     if spec is None:
         raise _interior_error("interior_invalid", "The interior's print profile is unknown.")
     stale: str | None = None
+    style = style_currency(manifest, project)
     if manifest["identity"] != build_identity(project):
         stale = "The interior predates the current source. Rebuild the interior."
+    elif style is not None:
+        stale = f"{style} Rebuild the interior."
     elif json.loads(json.dumps(spec.to_dict())) != recorded:
         stale = "The interior's print profile changed. Rebuild the interior."
     elif any(manifest[k] != v for k, v in json.loads(json.dumps(toolchain())).items()):

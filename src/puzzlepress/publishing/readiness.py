@@ -302,7 +302,7 @@ def evaluate_readiness(
         for code in ARTIFACT_CODES:
             c.skip(code, "No build directory.")
         return _assemble(project, metadata, c, None, None, "unavailable", None, "unavailable")
-    interior, artifacts, interior_state = _interior(c, project, directory)
+    interior, artifacts, interior_state = _interior(c, project, directory, project_directory)
     cover, cover_state = _cover(c, project, project_directory, directory)
     _saved_reports(c, directory, interior, cover, cover_state)
     _consistency(c, project, cover, cover_state)
@@ -397,7 +397,7 @@ def _consume(
 
 
 def _interior(
-    c: Collector, project: Project, directory: Path
+    c: Collector, project: Project, directory: Path, project_directory: Path
 ) -> tuple[PreflightResult | None, InteriorArtifacts | None, str]:
     codes = ("interior_structural", "interior_kdp", "interior_warnings")
     if project.composition is None:
@@ -422,7 +422,7 @@ def _interior(
         for code in codes:
             c.skip(code, "No interior.")
         return None, artifacts, "missing"
-    result = preflight_interior(project, artifacts)
+    result = preflight_interior(project, artifacts, source_directory=project_directory)
     report = result.report
     outcomes = {r.rule.code: r.outcome for r in report.results}
     stale = any(outcomes.get(code) is PreflightOutcome.FAILED for code in INTERIOR_STALE_RULES)

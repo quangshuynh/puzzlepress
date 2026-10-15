@@ -7,9 +7,11 @@ writes, repairs, pads, regroups or re-renders anything on disk.
 
 import hashlib
 from dataclasses import dataclass
+from pathlib import Path
 
 from ..identity import build_identity
 from ..interior.build import InteriorBuild, build_interior
+from ..interior.design import resolve_design
 from ..interior.inspection import PdfFacts, read_pdf_facts
 from ..interior.issues import InteriorError, LayoutIssue
 from ..interior.model import InteriorLayout
@@ -38,12 +40,16 @@ def _spec(manifest: dict[str, object] | None) -> PrintSpecification | None:
 
 
 def preflight_interior(
-    project: Project, artifacts: InteriorArtifacts, expected: InteriorBuild | None = None
+    project: Project,
+    artifacts: InteriorArtifacts,
+    expected: InteriorBuild | None = None,
+    source_directory: Path | None = None,
 ) -> PreflightResult:
     """Inspect artifacts against the project. `expected` may reuse a fresh build.
 
     A supplied build is used only if it was produced from this project with the
-    manifest's profile; otherwise the expected interior is rebuilt.
+    manifest's profile and style; otherwise the expected interior is rebuilt
+    (reading the style's photographs from `source_directory`, the project folder).
     """
     source_identity = build_identity(project)
     manifest, manifest_problem = (
@@ -55,9 +61,10 @@ def preflight_interior(
         expected is not None
         and expected.layout.spec == spec
         and expected.plan.identity == source_identity
+        and expected.layout.design == resolve_design(project.interior)
     ):
         try:
-            expected = build_interior(project, spec)
+            expected = build_interior(project, spec, source_directory)
         except InteriorError as error:
             expected, build_error = None, error
     elif spec is None:

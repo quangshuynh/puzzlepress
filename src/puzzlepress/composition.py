@@ -46,6 +46,8 @@ class NumberingScheme(StrEnum):
 
 
 SOLUTIONS_PER_PAGE = (1, 2, 4, 6)
+MAX_DIVIDER_TEXT = 600
+MAX_DIVIDER_QUOTE = 300
 
 
 @dataclass(frozen=True)
@@ -105,6 +107,48 @@ class PageNumberPolicy:
 
 
 @dataclass(frozen=True)
+class ThemeDivider:
+    """Authored text for one theme's divider page. Nothing here is generated.
+
+    `quote` and `attribution` are the author's own, optional words; PuzzlePress
+    never supplies a quotation or a source.
+    """
+
+    theme: str
+    title: str | None = None  # None: the theme name.
+    text: str | None = None
+    quote: str | None = None
+    attribution: str | None = None
+
+    def to_dict(self) -> dict[str, object]:
+        data: dict[str, object] = {"theme": self.theme}
+        for key in ("title", "text", "quote", "attribution"):
+            value = getattr(self, key)
+            if value is not None:
+                data[key] = value
+        return data
+
+
+@dataclass(frozen=True)
+class DividerPolicy:
+    """A divider page before each theme group of puzzles (explicit plan pages).
+
+    Each theme's puzzles must be consecutive in publication order. `start: recto`
+    puts every divider on a right-hand page with an explicit blank before it when
+    needed.
+    """
+
+    start: SectionStart = SectionStart.ANY
+    themes: tuple[ThemeDivider, ...] = ()
+
+    def entry(self, theme: str) -> ThemeDivider:
+        return next((t for t in self.themes if t.theme == theme), ThemeDivider(theme))
+
+    def to_dict(self) -> dict[str, object]:
+        return {"start": self.start.value, "themes": [t.to_dict() for t in self.themes]}
+
+
+@dataclass(frozen=True)
 class Composition:
     """Solution policy is required: a book must state its solution decision."""
 
@@ -113,11 +157,16 @@ class Composition:
     puzzles_start: SectionStart = SectionStart.ANY
     back_matter: tuple[MatterItem, ...] = ()
     page_numbers: PageNumberPolicy = PageNumberPolicy()
+    # Present only when the author enables dividers, so earlier identities never change.
+    dividers: DividerPolicy | None = None
 
     def to_dict(self) -> dict[str, object]:
+        puzzles: dict[str, object] = {"start": self.puzzles_start.value}
+        if self.dividers is not None:
+            puzzles["dividers"] = self.dividers.to_dict()
         return {
             "front_matter": [item.to_dict() for item in self.front_matter],
-            "puzzles": {"start": self.puzzles_start.value},
+            "puzzles": puzzles,
             "solutions": self.solutions.to_dict(),
             "back_matter": [item.to_dict() for item in self.back_matter],
             "page_numbers": self.page_numbers.to_dict(),
