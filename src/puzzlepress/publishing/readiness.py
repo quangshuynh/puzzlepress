@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from ..cover.build import PREFLIGHT_NAME as COVER_PREFLIGHT_NAME
-from ..cover.layout import CoverCopy
+from ..cover.layout import CoverCopy, same_words
 from ..cover.preflight import CoverPreflightReport, preflight_cover
 from ..cover.preflight import report_bytes as cover_report_bytes
 from ..identity import build_identity
@@ -45,7 +45,7 @@ INTERIOR_STALE_RULES = (
 )
 ARTIFACT_CODES = tuple(
     code for code in CODES if RULES[code].scope.value in ("interior", "cover", "artifacts")
-) + ("cover_text_matches", "cover_matches_interior")
+) + ("cover_text_matches", "cover_text_omitted", "cover_matches_interior")
 
 
 @dataclass(frozen=True)
@@ -529,6 +529,52 @@ def _saved_reports(
             )
 
 
+def _displayed(
+    c: Collector,
+    manifest: dict[str, object],
+    recorded: dict[str, object],
+    details: dict[str, object],
+) -> None:
+    """What the built cover prints for each book detail against the details themselves.
+
+    Manifests written before cover display overrides have no `display` record; they
+    printed the details as they were (already compared through `copy`).
+    """
+    display = manifest.get("display")
+    if not isinstance(display, dict):
+        return
+    for key in ("title", "subtitle", "author", "imprint"):
+        shown, detail = display.get(key), details.get(key)
+        if shown is not None and shown == recorded.get(key):
+            continue  # The details as built; a later change is reported through `copy`.
+        if shown is None:
+            if key in ("title", "author") and isinstance(detail, str) and detail:
+                c.fail(
+                    "cover_text_omitted",
+                    f"The built cover does not print the {key} ({detail!r}); the book "
+                    f"details still hold it. KDP requires cover information to match the "
+                    f"book details but does not state that the {key} must appear; "
+                    "confirm this is intended.",
+                    field=f"cover.text.{key}",
+                    artifact="cover.pdf",
+                    action=f"Show the {key} in Cover, or keep it hidden deliberately.",
+                    area=Area.COVER,
+                )
+            continue
+        if not isinstance(shown, str) or not same_words(shown, str(detail or "")):
+            c.fail(
+                "cover_text_matches",
+                f"The built cover prints {key} {shown!r}; the book details say {detail!r}. "
+                "KDP requires the cover to match the book details.",
+                field=f"cover.text.{key}.text",
+                artifact="cover.pdf",
+                actual=str(shown),
+                required=str(detail),
+                action=f"Use the book's {key} on the cover (Reset to book {key}).",
+                area=Area.COVER,
+            )
+
+
 def _consistency(
     c: Collector, project: Project, cover: CoverPreflightReport | None, cover_state: str
 ) -> None:
@@ -536,6 +582,7 @@ def _consistency(
     if cover is None or manifest is None or cover_state == "missing":
         reason = "No readable cover manifest."
         c.skip("cover_text_matches", reason)
+        c.skip("cover_text_omitted", reason)
         c.skip("cover_matches_interior", reason)
         return
     recorded = manifest["copy"]
@@ -552,6 +599,7 @@ def _consistency(
                 action="Rebuild the cover in Cover.",
                 area=Area.COVER,
             )
+    _displayed(c, manifest, recorded, current)
     interior = cover.context.interior
     if interior is None:
         c.skip("cover_matches_interior", "No current interior to compare.")

@@ -61,7 +61,15 @@ test('review what blocks, declare, confirm by keyboard, save and export', async 
   await expect(panel.getByRole('button', { name: 'Export package' })).toBeDisabled();
   await noAxeViolations(page);
   await page.screenshot({ path: shot('publishing'), fullPage: true });
-  await page.locator('.publishing-findings').screenshot({ path: shot('publishing-blocking') });
+  const checklist = page.getByRole('list', { name: 'Publishing checklist' });
+  const disclosure = checklist.locator('li', { hasText: 'Rights and AI disclosure' });
+  await expect(disclosure.getByText(/blocking/)).toBeVisible();
+  await expect(disclosure.locator('details')).toHaveAttribute('open', '');
+  // The readiness column scrolls on its own; a tall viewport shows the whole checklist.
+  const size = page.viewportSize()!;
+  await page.setViewportSize({ width: size.width, height: 2400 });
+  await checklist.screenshot({ path: shot('publishing-blocking') });
+  await page.setViewportSize(size);
 
   // Field-level Python findings: a quoted keyword is reported beside the field.
   const keywords = page.getByRole('group', { name: /^Keywords/ });

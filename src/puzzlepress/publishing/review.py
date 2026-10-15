@@ -23,7 +23,8 @@ REVIEW_VERSION = 1
 # What each confirmation covers, in words, for the author (docs/publishing.md).
 COVERS = {
     "rights": "puzzle titles, themes and word lists, front and back matter text, the "
-    "solutions heading, the cover's back text and the cover photograph",
+    "solutions heading, the cover's back text, extra cover text, imported cover fonts "
+    "and the cover photograph",
     "ai_disclosure": "the AI content declaration and what it describes: the content the "
     "rights confirmation covers, plus the description",
     "metadata": "title, subtitle, author, contributors, series, edition, language, "
@@ -52,7 +53,7 @@ def _content(project: Project) -> dict[str, object]:
         puzzles.sort(key=canonical)
     composition = project.composition
     cover = project.cover
-    return {
+    content: dict[str, object] = {
         "puzzles": puzzles,
         "matter": [
             item.to_dict()
@@ -62,6 +63,15 @@ def _content(project: Project) -> dict[str, object]:
         "cover_text": cover.back_text if cover else None,
         "photograph": cover.image.sha256 if cover else None,
     }
+    # Cover version 2 content, present only when used so earlier reviews stay valid.
+    if cover is not None and cover.extra:
+        content["cover_layers"] = [layer.text for layer in cover.extra]
+    if cover is not None and cover.fonts:
+        content["cover_fonts"] = [
+            {"sha256": font.sha256, "license": font.license, "source": font.source}
+            for font in cover.fonts
+        ]
+    return content
 
 
 def reviewed_content(project: Project, name: str) -> dict[str, object]:

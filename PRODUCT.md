@@ -25,7 +25,9 @@ policy), Python draft validation, deterministic preview, verified logical
 publication-plan preview, quality review, deliberate revision-checked source
 saves, saved-source interior builds, a print proof of the real PDF with
 structural and modeled-KDP preflight, a photography-first full-wrap paperback
-cover built from the author's own photograph and the interior's real facts, and KDP
+cover built from the author's own photograph and the interior's real facts
+(per-layer text controls, imported fonts, a photo library with print-quality
+feedback), and KDP
 paperback metadata with author-declared AI disclosure and confirmations, assembled
 into a verified package for manual upload. No AI imagery or copy, KDP login, upload
 or submission, marketplace scraping or market metrics, cloud or accounts.

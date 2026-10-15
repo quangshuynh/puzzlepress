@@ -315,6 +315,61 @@ export interface CoverConfig {
   background: string;
   spine_text: 'auto' | 'none';
   back_text?: string;
+  // Version 2: per-layer overrides, extra layers and imported fonts.
+  text?: Partial<Record<TextRole, TextLayer>>;
+  extra?: ExtraLayer[];
+  fonts?: CoverFont[];
+}
+export type TextRole = 'title' | 'subtitle' | 'author' | 'back_text' | 'imprint';
+export interface TextLayer {
+  visible?: boolean;
+  text?: string;
+  font?: string;
+  size?: number;
+  color?: string;
+  align?: 'left' | 'center' | 'right';
+  line_spacing?: number;
+  letter_spacing?: number;
+  case?: 'as_written' | 'upper';
+  offset?: { x: number; y: number };
+}
+export interface ExtraLayer extends Omit<TextLayer, 'text'> {
+  id: string;
+  panel: 'front' | 'back';
+  text: string;
+}
+export interface CoverFont {
+  id: string;
+  path: string;
+  sha256: string;
+  license?: string | null;
+  source?: string | null;
+}
+export interface FontFacts {
+  path: string;
+  problem: string | null;
+  message?: string | null;
+  sha256?: string;
+  bytes?: number;
+  container?: string;
+  postscript_name?: string;
+  family?: string;
+  style?: string;
+  full_name?: string;
+  weight?: number;
+  italic?: boolean;
+  glyphs?: number;
+  embedding?: 'installable' | 'editable' | 'preview_print';
+  missing?: string[];
+  reused?: boolean;
+}
+export interface PhotoOption extends CoverAsset {
+  dpi?: { effective: number; max: number; zoom: number; minimum: number; sufficient: boolean };
+}
+export interface CoverLibrary {
+  photos: PhotoOption[];
+  fonts: FontFacts[];
+  bundled_fonts: { key: string; family: string; style: string; missing: string[] }[];
 }
 export interface CoverAsset {
   path: string;
@@ -370,9 +425,11 @@ export interface CoverLayoutView {
   geometry: CoverGeometry;
   texts: {
     role: string;
+    layer: string; // title, subtitle, author, back_text, imprint, spine or extra:<id>.
     text: string;
     panel: string;
     size: number;
+    face: string;
     rotated: boolean;
     box: PtBox;
   }[];
@@ -390,6 +447,7 @@ export interface CoverCheck {
   code: string;
   severity: 'error' | 'warning' | 'info';
   message: string;
+  layer?: string;
 }
 export interface CoverDraft {
   success: boolean;
@@ -406,6 +464,9 @@ export interface CoverDraft {
   cover_identity?: string;
   layout?: CoverLayoutView;
   checks?: CoverCheck[];
+  buildable?: boolean;
+  display?: Record<'title' | 'subtitle' | 'author' | 'imprint', string | null>;
+  library?: CoverLibrary;
   preview?: { pdf_sha256: string; scales: Record<string, number> };
 }
 export interface CoverReport {

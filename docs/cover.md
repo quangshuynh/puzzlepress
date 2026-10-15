@@ -2,8 +2,9 @@
 
 PuzzlePress builds a deterministic full-wrap paperback cover (back, spine and
 front in one PDF) from your own photograph, a small semantic configuration and
-the physical facts of the built interior. It is not an image editor and has no
-AI generation, stock search or arbitrary layers.
+the physical facts of the built interior. Version 2 adds per-layer text
+controls, extra text layers and imported fonts. It is not an image editor and has
+no AI generation, stock search, effects or free-form graphics.
 
 ```text
 interior.pdf + interior.json ──> verified interior facts (page count, trim, paper)
@@ -60,12 +61,88 @@ cover:
 | `type.align` / `tone` | `center` or `left`; `light` or `dark` text |
 | `legibility` | `shade` pulls photo pixels behind text toward black (light text) or white (dark text) with a soft ramp, baked into the image; `panel` draws an opaque band of the fill color; `none` |
 
-Cover text is not authored here: the front uses `book.title`, `subtitle` and
+Cover text comes from the book: the front uses `book.title`, `subtitle` and
 `author`; the back uses `book.imprint` and the optional `back_text`. Nothing is
-invented: no reviews, prices, ISBN, URLs or marketing text. Coordinates are never
-authored. Validation reports structured paths (`cover.crop.x [crop_out_of_bounds]`,
-`cover.image.path [asset_path]`) and never repairs. Crop values are normalized to
-four decimals and colors to lowercase.
+invented: no reviews, prices, ISBN, URLs or marketing text. Validation reports
+structured paths (`cover.crop.x [crop_out_of_bounds]`, `cover.image.path
+[asset_path]`) and never repairs. Crop values are normalized to four decimals and
+colors to lowercase.
+
+### Version 2: text layers and imported fonts
+
+`version: 2` accepts three optional fields; `version: 1` keeps its exact meaning,
+rejects them (`requires_version_2`) and lays out, renders and identifies exactly as
+before. Studio sets version 2 only when a version 2 control is first used.
+
+```yaml
+cover:
+  version: 2
+  fonts:                      # at most 8; imported with `cover import` or Studio
+  - id: harbour-display
+    path: cover-assets/fonts/harbour-display-292646cbb948.ttf
+    sha256: 292646cbb948153511e308fa80def59959746d70114bd0936ba0a7f67a33181d
+    license: SIL Open Font License 1.1   # what you record; null = unknown
+    source: https://example.org/where-you-got-it
+  text:                       # overrides by role; omit a field to keep the layout's
+    title: {visible: false}   # hidden on the cover; book.title is unchanged
+    subtitle:
+      font: harbour-display   # a bundled face or a fonts[].id
+      size: 24                # points (4-160); without it titles step down to fit
+      color: '#f5d27a'
+      align: right            # left | center | right
+      line_spacing: 1.2       # x the size, baseline to baseline (0.8-3)
+      letter_spacing: 1.5     # points between characters (-2 to 20)
+      case: upper             # upper | as_written
+      offset: {x: 0, y: -36}  # points from the layout's position; x right, y up
+    author: {text: "A. N. Author"}   # display text; must match the book details
+  extra:                      # at most 8 additional lines of your own text
+  - {id: tagline, panel: front, text: "Sixty puzzles from the coast", size: 18}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `text.<role>` | `title`, `subtitle`, `author`, `back_text`, `imprint`. `back_text` takes no `text` (edit `cover.back_text`). |
+| `visible` | `false` hides the layer on the cover only. The book details are never changed. |
+| `text` | Display text for a book-detail role, for example with a line break. KDP requires cover information to match the book details, so publishing blocks (`cover_text_matches`) unless it equals them apart from spacing, line breaks and capitals. |
+| `font` | Bundled faces: `serif-display`, `serif`, `serif-italic`, `sans`, `sans-bold`, `sans-italic`; or an imported font's `id`. |
+| `offset` | Moves the layer from where the layout places it. Text moved outside its safe area, onto the barcode corner or over other text fails layout validation (the build refuses; Studio previews it and says why). |
+| `extra[]` | `id`, `panel` (`front`/`back`), `text` (up to 300 characters) and the same overrides; laid out centred in the panel's type area, then moved by `offset`. |
+
+Defaults keep the preset: with no overrides every position is computed exactly as
+in version 1. Hiding the title or author is allowed; publishing reports it as the
+`cover_text_omitted` warning, because KDP's formatting help requires cover
+information to match the book details but does not state that the title must
+appear (read 2026-10-10, "Fix Paperback and Hardcover Formatting Issues").
+
+### Imported fonts
+
+A deliberately bounded first implementation: one static font with TrueType (glyf)
+outlines per `.ttf` or `.otf` file, at most 10 MB. Import validates the whole file
+from memory before writing (`cover import PROJECT FONT.ttf` or Studio), copies the
+original bytes to `cover-assets/fonts/<name>-<sha256 prefix>.ttf|otf`, reuses
+identical bytes and never overwrites. Refused with a code:
+
+| Code | Font |
+| --- | --- |
+| `font_unsupported_outlines` | OpenType with PostScript (CFF) outlines (`OTTO`): ReportLab cannot embed them |
+| `font_variable_unsupported` | Variable fonts (`fvar`, `gvar`, ...): deferred; import a static instance |
+| `font_collection_unsupported` | `.ttc` collections |
+| `font_unsupported` | WOFF/WOFF2, other extensions, over 10 MB |
+| `font_embedding_restricted` | OS/2 `fsType` forbids embedding (restricted license), allows bitmap embedding only, or forbids subsetting (PuzzlePress embeds subsets) |
+| `font_corrupt` | Damaged files, bad table checksums, missing required tables (including OS/2), no character map |
+| `font_missing`, `asset_digest_mismatch` | The configured file is gone or changed since it was chosen |
+
+Installable, editable and preview-and-print fonts may be embedded in a print PDF.
+`license` and `source` are what you record; PuzzlePress never infers them, and an
+unknown value is the `cover_font_license` warning. Reading the embedding flags is
+not a license review: confirm that your license allows commercial print use.
+Fonts are parsed by ReportLab in pure Python from memory under a digest-derived
+name, so no system font or search path is consulted and nothing in the font is
+executed by PuzzlePress (PDFium/FreeType interpret TrueType hinting when Studio
+rasterizes previews). Characters the font cannot draw fail with
+`unsupported_character` naming each code point; Studio lists them per font before
+you choose it. The same Python layout and renderer produce Studio's preview and
+`cover.pdf`; the browser never draws cover type.
 
 **Identity boundary.** The cover is excluded from the project build identity, so
 editing a crop never makes the interior stale. It is identified by the cover
@@ -186,6 +263,11 @@ range; otherwise the build fails with `text_overflow`. Subtitles fit three lines
 authors two, back text the area above the barcode corner. Characters a face cannot
 draw (beyond Latin-1 for Vera) fail with `unsupported_character`.
 
+Version 2 overrides replace a preset's face, size, pitch, case, color or
+alignment per layer; an explicit size sets every line at that size (up to six lines)
+instead of stepping down. Letter spacing is drawn with the PDF character spacing
+operator and included in every measurement.
+
 Fonts are bundled and pinned by SHA-256: the interior's Bitstream Vera Sans and
 three static Newsreader cuts (`Newsreader72pt-Regular`, `Newsreader16pt-Regular`,
 `Newsreader16pt-Italic`) from github.com/productiontype/Newsreader at commit
@@ -220,7 +302,8 @@ metadata, and that every line of cover text is present.
 ## Identity, manifest and staleness
 
 `pp1-cover-sha256-...` over canonical JSON of: book ID, the semantic cover config
-(photo by SHA-256, not file name), the cover text, interior physical facts (page
+(photo and imported fonts by SHA-256, not file name; a font's recorded license and
+source are provenance and excluded), the cover text, interior physical facts (page
 count, profile ID and version, trim, paper, ink), the cover profile (KDP cover
 constants and PuzzlePress insets, version 1) and the toolchain (cover renderer
 version 1, engine version, ReportLab, Pillow, font digests). No paths or times.
@@ -228,7 +311,10 @@ version 1, engine version, ReportLab, Pillow, font digests). No paths or times.
 `cover.json` (manifest version 1) records those inputs, the identity, provenance
 (interior identity, source identity, interior PDF SHA-256, the photo's project
 path), geometry, photo facts, resolution, embedded pixel size and encoding,
-spine-text status, the color model and the PDF's SHA-256 and size.
+spine-text status, what each book detail prints (`display`: the title, subtitle,
+author and imprint as shown, or null when hidden; publishing compares it with the
+book details), the color model and the PDF's SHA-256 and size. Existing covers keep
+their identity and PDF bytes; only `cover.json` gains `display` when rebuilt.
 
 A rebuilt interior with the same physical facts keeps the cover identity: the
 cover still fits, and preflight warns that its provenance names the earlier
@@ -242,8 +328,9 @@ which. Modification times are never used.
 them and the pinned photo, renders the expected cover in memory and compares. It
 never writes anything except `cover-preflight.json` (`--no-write` opts out). Rule
 scopes, severities, outcomes and the rule that unevaluated error rules block are
-those of [interior preflight](preflight.md). Ruleset `puzzlepress-kdp-cover` v1;
-report version 1; KDP rules checked 2026-10-07.
+those of [interior preflight](preflight.md). Ruleset `puzzlepress-kdp-cover` v2
+(v2 adds `cover_fonts` and `cover_font_license`); report version 1; KDP rules
+checked 2026-10-07 (font wording read 2026-10-10).
 
 | Code | Scope | Checks |
 | --- | --- | --- |
@@ -252,6 +339,7 @@ report version 1; KDP rules checked 2026-10-07.
 | `cover_manifest` | structural | Manifest names this book, identity recomputes, PDF digest and size match |
 | `interior_current` | structural | Interior present, intact and built from current source, profile and toolchain |
 | `cover_photo` | structural | Photo present, matches its pin and decodes |
+| `cover_fonts` | structural | Imported fonts present, pinned, static TrueType and embeddable (n/a without imported fonts) |
 | `cover_buildable` | structural | Current inputs lay out, validate and render |
 | `cover_current` | structural | Recorded identity equals the current one (`cover_stale`, with reasons) |
 | `cover_interior_provenance` | structural warning | Interior rebuilt after the cover with the same facts |
@@ -272,6 +360,7 @@ report version 1; KDP rules checked 2026-10-07.
 | `kdp_cover_file_size` | KDP | At most 650 MB |
 | `kdp_cover_file_size_recommended` | KDP warning | KDP recommends 40 MB or less |
 | `kdp_cover_color_space` | KDP warning (ambiguous) | RGB images while KDP recommends CMYK |
+| `cover_font_license` | KDP warning (ambiguous) | An imported font without a recorded license or source |
 
 **Classification.** Expected build failures (stages `config`, `interior`, `asset`,
 `geometry`, `layout`, `layout_validation`, `pdf_verification`, `output`) write
@@ -333,14 +422,23 @@ exposes a mismatched pair.
 ## Studio
 
 The **Cover** tab ([studio](studio.md#cover-studio)) edits the cover section in the
-shared draft and previews a real PDF rendered by Python from the unsaved draft.
+shared draft and previews a real PDF rendered by Python from the unsaved draft: a
+tools panel (photo library, text layers, fonts, design), the canvas with
+selectable, draggable text, and an inspector for the selected layer or the
+photograph's print quality. Draft previews also render layouts that fail
+validation (text moved out of its safe area) so they can be corrected; the
+response marks them not buildable and builds still refuse them.
 
 ## Limitations
 
 One trim (8.5 x 11 in), black-ink white or cream paper, two layouts, three type
-presets, Latin-1 text, RGB output without color management, no CMYK, no
-barcode or ISBN, no hardcover, ebook or Kindle covers. Spine text needs 80+ pages
+presets plus per-layer overrides, Latin-1 text with the bundled faces, RGB output
+without color management, no CMYK, no barcode or ISBN, no hardcover, ebook or
+Kindle covers. Imported fonts: static TrueType outlines only (no CFF/OpenType-PS,
+variable fonts, collections or WOFF); no kerning or ligatures (ReportLab draws
+glyph advances); spine text keeps its preset face. Offsets are relative to the
+layout's own position, so changing the preset or text length moves the starting
+point. Unreferenced imported photos and fonts are not cleaned up. Spine text needs 80+ pages
 and a spine wide enough for 7 pt type.
-The cover demo's photograph is a synthetic stand-in. Unreferenced imported
-photos are not cleaned up. KDP metadata and the publishing package are described in
+The cover demo's photograph is a synthetic stand-in. KDP metadata and the publishing package are described in
 [publishing](publishing.md).

@@ -1,4 +1,4 @@
-"""Schema-v1 optional cover section. Collects independent issues; never repairs."""
+"""Optional cover section, versions 1 and 2. Collects independent issues; never repairs."""
 
 import math
 import re
@@ -8,19 +8,36 @@ from .composition_validation import _body
 from .content_validation import _Reader
 from .cover_config import (
     ASSET_DIRECTORY,
-    COVER_VERSION,
     CROP_DECIMALS,
+    FONT_DIRECTORY,
+    LETTER_SPACING,
+    LINE_SPACING,
     MAX_BACK_TEXT,
+    MAX_EXTRA_LAYERS,
+    MAX_FONTS,
+    MAX_LAYER_TEXT,
+    MAX_OFFSET,
+    MAX_TEXT_SIZE,
     MAX_ZOOM,
+    METADATA_ROLES,
+    MIN_TEXT_SIZE,
+    SUPPORTED_VERSIONS,
     CoverConfig,
+    CoverFont,
     CoverImage,
     CoverLayoutKind,
     CoverStyle,
     CoverType,
     Crop,
+    ExtraLayer,
+    LayerAlign,
+    LayerPanel,
     Legibility,
+    LetterCase,
     SpineText,
     TextAlign,
+    TextLayer,
+    TextRole,
     TextTone,
     TitlePosition,
 )
@@ -31,6 +48,10 @@ ASSET_PATH = re.compile(rf"{ASSET_DIRECTORY}/[a-z0-9]+(?:-[a-z0-9]+)*\.(?:jpg|pn
 MAX_ASSET_PATH = 160
 SHA256 = re.compile(r"[0-9a-f]{64}")
 HEX_COLOR = re.compile(r"#[0-9a-fA-F]{6}")
+FONT_PATH = re.compile(rf"{FONT_DIRECTORY}/[a-z0-9]+(?:-[a-z0-9]+)*\.(?:ttf|otf)")
+LAYER_ID = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+# Bundled cover faces (cover.fonts.CoverFace values); imported font ids must differ.
+BUNDLED_FACES = ("sans", "sans-bold", "sans-italic", "serif-display", "serif", "serif-italic")
 Choice = TypeVar(
     "Choice",
     CoverLayoutKind,
@@ -40,8 +61,25 @@ Choice = TypeVar(
     TextTone,
     Legibility,
     SpineText,
+    LayerAlign,
+    LayerPanel,
+    LetterCase,
 )
+V2_FIELDS = {"text", "extra", "fonts"}
+LAYER_FIELDS = {
+    "visible",
+    "text",
+    "font",
+    "size",
+    "color",
+    "align",
+    "line_spacing",
+    "letter_spacing",
+    "case",
+    "offset",
+}
 FIELDS = {
+    *V2_FIELDS,
     "version",
     "layout",
     "image",
@@ -70,13 +108,21 @@ def validate_cover(
             "A cover requires a book composition: its spine is sized by the built interior.",
         )
     version = data.get("version")
-    if type(version) is not int or version != COVER_VERSION:
+    if type(version) is not int or version not in SUPPORTED_VERSIONS:
+        supported = ", ".join(str(v) for v in SUPPORTED_VERSIONS)
         reader.issue(
             f"{path}.version",
             "unsupported_version",
-            f"Cover version {version!r} is not supported. Supported versions: {COVER_VERSION}.",
+            f"Cover version {version!r} is not supported. Supported versions: {supported}.",
         )
         return None, tuple(reader.issues)
+    if version == 1:
+        for key in sorted(V2_FIELDS & set(data)):
+            reader.issue(
+                f"{path}.{key}",
+                "requires_version_2",
+                f"Cover version 1 has no {key!r}; set version: 2 to use text layers and fonts.",
+            )
     image = _image(reader, data.get("image"), f"{path}.image", "image" in data)
     crop = _crop(reader, data.get("crop", {}), f"{path}.crop")
     kind = _choice(reader, data.get("layout", "full_wrap"), f"{path}.layout", CoverLayoutKind)
@@ -94,6 +140,10 @@ def validate_cover(
             reader.issue(
                 f"{path}.back_text", "text", f"Back-cover text is limited to {MAX_BACK_TEXT}."
             )
+    fonts = _fonts(reader, data.get("fonts", []), f"{path}.fonts")
+    font_ids = {font.id for font in fonts}
+    text = _text_layers(reader, data.get("text", {}), f"{path}.text", font_ids)
+    extra = _extra_layers(reader, data.get("extra", []), f"{path}.extra", font_ids)
     if reader.issues or image is None:
         return None, tuple(reader.issues)
     return (
@@ -106,6 +156,10 @@ def validate_cover(
             background=background.lower(),
             spine_text=spine,
             back_text=back_text,
+            version=version,
+            text=text,
+            extra=extra,
+            fonts=fonts,
         ),
         (),
     )
@@ -171,3 +225,195 @@ def _type(reader: _Reader, raw: object, path: str) -> CoverType:
         _choice(reader, data.get("align", "center"), f"{path}.align", TextAlign),
         _choice(reader, data.get("tone", "light"), f"{path}.tone", TextTone),
     )
+
+
+def _bounded(
+    reader: _Reader, raw: object, path: str, low: float, high: float, decimals: int = 2
+) -> float | None:
+    if not isinstance(raw, int | float) or isinstance(raw, bool) or not math.isfinite(raw):
+        reader.issue(path, "number", "Expected a number.")
+        return None
+    value = round(float(raw), decimals)
+    if not low <= value <= high:
+        reader.issue(path, "range", f"Expected a value from {low:g} to {high:g}.")
+        return None
+    return value
+
+
+def _layer_text(reader: _Reader, raw: object, path: str) -> str | None:
+    if (
+        not isinstance(raw, str)
+        or not raw.strip()
+        or len(raw) > MAX_LAYER_TEXT
+        or any(0xD800 <= ord(c) <= 0xDFFF for c in raw)
+        or any((ord(c) < 32 and c != "\n") or ord(c) == 127 for c in raw)
+    ):
+        reader.issue(
+            path,
+            "text",
+            f"Expected 1..{MAX_LAYER_TEXT} characters of plain text; line breaks are allowed.",
+        )
+        return None
+    return raw.strip()
+
+
+def _layer(
+    reader: _Reader,
+    raw: object,
+    path: str,
+    font_ids: set[str],
+    fields: set[str] = LAYER_FIELDS,
+) -> TextLayer:
+    data = reader.mapping(raw, path, fields)
+    visible = data.get("visible", True)
+    if not isinstance(visible, bool):
+        reader.issue(f"{path}.visible", "type", "Expected true or false.")
+        visible = True
+    text = _layer_text(reader, data["text"], f"{path}.text") if "text" in data else None
+    font: str | None = None
+    if "font" in data:
+        value = data["font"]
+        if not isinstance(value, str) or (value not in BUNDLED_FACES and value not in font_ids):
+            reader.issue(
+                f"{path}.font",
+                "unknown_font",
+                f"Use a bundled face ({', '.join(BUNDLED_FACES)}) or the id of a font in "
+                "cover.fonts.",
+            )
+        else:
+            font = value
+    size = (
+        _bounded(reader, data["size"], f"{path}.size", MIN_TEXT_SIZE, MAX_TEXT_SIZE)
+        if "size" in data
+        else None
+    )
+    color: str | None = None
+    if "color" in data:
+        value = data["color"]
+        if not isinstance(value, str) or not HEX_COLOR.fullmatch(value):
+            reader.issue(f"{path}.color", "color", "Use a #RRGGBB sRGB color.")
+        else:
+            color = value.lower()
+    align = _choice(reader, data["align"], f"{path}.align", LayerAlign) if "align" in data else None
+    case = _choice(reader, data["case"], f"{path}.case", LetterCase) if "case" in data else None
+    line = (
+        _bounded(reader, data["line_spacing"], f"{path}.line_spacing", *LINE_SPACING)
+        if "line_spacing" in data
+        else None
+    )
+    letter = (
+        _bounded(reader, data["letter_spacing"], f"{path}.letter_spacing", *LETTER_SPACING)
+        if "letter_spacing" in data
+        else None
+    )
+    offset = (0.0, 0.0)
+    if "offset" in data:
+        point = reader.mapping(data["offset"], f"{path}.offset", {"x", "y"})
+        x = _bounded(reader, point.get("x", 0), f"{path}.offset.x", -MAX_OFFSET, MAX_OFFSET)
+        y = _bounded(reader, point.get("y", 0), f"{path}.offset.y", -MAX_OFFSET, MAX_OFFSET)
+        offset = (x or 0.0, y or 0.0)
+    return TextLayer(visible, text, font, size, color, align, line, letter, case, offset)
+
+
+def _text_layers(
+    reader: _Reader, raw: object, path: str, font_ids: set[str]
+) -> tuple[tuple[TextRole, TextLayer], ...]:
+    data = reader.mapping(raw, path, {role.value for role in TextRole})
+    layers: list[tuple[TextRole, TextLayer]] = []
+    for role in TextRole:  # Book order, independent of the authored key order.
+        if role.value not in data:
+            continue
+        layer_path = f"{path}.{role.value}"
+        fields = LAYER_FIELDS if role in METADATA_ROLES else LAYER_FIELDS - {"text"}
+        layer = _layer(reader, data[role.value], layer_path, font_ids, fields)
+        if not layer.is_default:
+            layers.append((role, layer))
+    return tuple(layers)
+
+
+def _extra_layers(
+    reader: _Reader, raw: object, path: str, font_ids: set[str]
+) -> tuple[ExtraLayer, ...]:
+    layers: list[ExtraLayer] = []
+    seen: set[str] = set()
+    for index, entry in enumerate(reader.sequence(raw, path, MAX_EXTRA_LAYERS, 0)):
+        item = f"{path}.{index}"
+        data = reader.mapping(entry, item, LAYER_FIELDS | {"id", "panel"})
+        layer_id = data.get("id")
+        if not isinstance(layer_id, str) or len(layer_id) > 40 or not LAYER_ID.fullmatch(layer_id):
+            reader.issue(f"{item}.id", "id", "Use 1..40 lowercase letters, digits and hyphens.")
+            layer_id = ""
+        elif layer_id in seen:
+            reader.issue(f"{item}.id", "duplicate", f"Layer id {layer_id!r} is used twice.")
+        seen.add(layer_id)
+        panel = _choice(reader, data.get("panel"), f"{item}.panel", LayerPanel)
+        if "text" not in data:
+            reader.issue(f"{item}.text", "required", "An extra layer needs its text.")
+        overrides = {k: v for k, v in data.items() if k not in ("id", "panel")}
+        layer = _layer(reader, overrides, item, font_ids)
+        layers.append(ExtraLayer(layer_id, panel, layer.text or "", layer))
+    return tuple(layers)
+
+
+def _provenance_text(reader: _Reader, raw: object, path: str) -> str | None:
+    if raw is None:
+        return None
+    if (
+        not isinstance(raw, str)
+        or not raw.strip()
+        or len(raw) > 300
+        or any(ord(c) < 32 or ord(c) == 127 for c in raw)
+    ):
+        reader.issue(path, "text", "Expected 1..300 characters on one line, or null (unknown).")
+        return None
+    return raw.strip()
+
+
+def _fonts(reader: _Reader, raw: object, path: str) -> tuple[CoverFont, ...]:
+    fonts: list[CoverFont] = []
+    seen: set[str] = set()
+    for index, entry in enumerate(reader.sequence(raw, path, MAX_FONTS, 0)):
+        item = f"{path}.{index}"
+        data = reader.mapping(entry, item, {"id", "path", "sha256", "license", "source"})
+        font_id = data.get("id")
+        if (
+            not isinstance(font_id, str)
+            or len(font_id) > 40
+            or not LAYER_ID.fullmatch(font_id)
+            or font_id in BUNDLED_FACES
+        ):
+            reader.issue(
+                f"{item}.id",
+                "id",
+                "Use 1..40 lowercase letters, digits and hyphens, not a bundled face name.",
+            )
+            continue
+        if font_id in seen:
+            reader.issue(f"{item}.id", "duplicate", f"Font id {font_id!r} is used twice.")
+        seen.add(font_id)
+        asset = data.get("path")
+        digest = data.get("sha256")
+        if (
+            not isinstance(asset, str)
+            or len(asset) > MAX_ASSET_PATH
+            or not FONT_PATH.fullmatch(asset)
+        ):
+            reader.issue(
+                f"{item}.path",
+                "asset_path",
+                f"Use {FONT_DIRECTORY}/<lowercase-name>.ttf or .otf inside the project.",
+            )
+            continue
+        if not isinstance(digest, str) or not SHA256.fullmatch(digest):
+            reader.issue(f"{item}.sha256", "digest", "Expected the font's 64-character SHA-256.")
+            continue
+        fonts.append(
+            CoverFont(
+                font_id,
+                asset,
+                digest,
+                _provenance_text(reader, data.get("license"), f"{item}.license"),
+                _provenance_text(reader, data.get("source"), f"{item}.source"),
+            )
+        )
+    return tuple(fonts)

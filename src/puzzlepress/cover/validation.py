@@ -26,6 +26,9 @@ def panel_of(text: CoverText) -> str:
     for panel, roles in PANEL_ROLES.items():
         if text.role in roles:
             return panel
+    for panel in ("front", "back"):  # The author's extra layers: <panel>_extra:<id>.
+        if text.role.startswith(f"{panel}_extra:"):
+            return panel
     return "unknown"
 
 

@@ -1,4 +1,5 @@
 {
+  "buildable": true,
   "checks": [
     {
       "code": "spine_text_omitted",
@@ -7,9 +8,15 @@
     }
   ],
   "cover_identity": "pp1-cover-sha256-01167bf7db435f269eb2150cf64075b311bf15addd212e575296623c896b7660",
+  "display": {
+    "author": "PuzzlePress Examples",
+    "imprint": "PuzzlePress Demonstration",
+    "subtitle": "Twenty puzzles from the coast",
+    "title": "Harbour Light Word Searches"
+  },
   "interior": {
     "ink": "black",
-    "interior_identity": "pp1-interior-sha256-c2d3869cd741df1540e2b19d2374620a6a7cabfa4c7a64fe6bcc7a7229dff438",
+    "interior_identity": "pp1-interior-sha256-90ef5cf23cc84e6af7b590bd518daa2ac47d824f65a07875db397ff8c80e90e0",
     "page_count": 35,
     "paper": "white",
     "profile_id": "paperback-8.5x11",
@@ -162,6 +169,8 @@
           "x": 732.88,
           "y": 703.0
         },
+        "face": "serif-display",
+        "layer": "title",
         "panel": "front",
         "role": "title",
         "rotated": false,
@@ -175,6 +184,8 @@
           "x": 723.565,
           "y": 639.76
         },
+        "face": "serif-display",
+        "layer": "title",
         "panel": "front",
         "role": "title",
         "rotated": false,
@@ -188,6 +199,8 @@
           "x": 820.13,
           "y": 591.86
         },
+        "face": "serif-italic",
+        "layer": "subtitle",
         "panel": "front",
         "role": "subtitle",
         "rotated": false,
@@ -201,6 +214,8 @@
           "x": 857.297,
           "y": 45.0
         },
+        "face": "serif",
+        "layer": "author",
         "panel": "front",
         "role": "author",
         "rotated": false,
@@ -214,6 +229,8 @@
           "x": 126.212,
           "y": 752.5
         },
+        "face": "serif",
+        "layer": "back_text",
         "panel": "back",
         "role": "back_text",
         "rotated": false,
@@ -227,6 +244,8 @@
           "x": 140.831,
           "y": 734.75
         },
+        "face": "serif",
+        "layer": "back_text",
         "panel": "back",
         "role": "back_text",
         "rotated": false,
@@ -240,6 +259,8 @@
           "x": 253.041,
           "y": 717.0
         },
+        "face": "serif",
+        "layer": "back_text",
         "panel": "back",
         "role": "back_text",
         "rotated": false,
@@ -253,11 +274,80 @@
           "x": 45.0,
           "y": 45.0
         },
+        "face": "serif-italic",
+        "layer": "imprint",
         "panel": "back",
         "role": "imprint",
         "rotated": false,
         "size": 10.5,
         "text": "PuzzlePress Demonstration"
+      }
+    ]
+  },
+  "library": {
+    "bundled_fonts": [
+      {
+        "family": "Newsreader Display",
+        "key": "serif-display",
+        "missing": [],
+        "style": "Regular"
+      },
+      {
+        "family": "Newsreader",
+        "key": "serif",
+        "missing": [],
+        "style": "Regular"
+      },
+      {
+        "family": "Newsreader",
+        "key": "serif-italic",
+        "missing": [],
+        "style": "Italic"
+      },
+      {
+        "family": "Vera Sans",
+        "key": "sans",
+        "missing": [],
+        "style": "Regular"
+      },
+      {
+        "family": "Vera Sans",
+        "key": "sans-bold",
+        "missing": [],
+        "style": "Bold"
+      },
+      {
+        "family": "Vera Sans",
+        "key": "sans-italic",
+        "missing": [],
+        "style": "Oblique"
+      }
+    ],
+    "fonts": [],
+    "photos": [
+      {
+        "bytes": 1223516,
+        "color": "srgb_assumed",
+        "dpi": {
+          "effective": 320.0,
+          "max": 320.0,
+          "minimum": 300.0,
+          "sufficient": true,
+          "zoom": 1.0
+        },
+        "format": "jpeg",
+        "orientation": 1,
+        "path": "cover-assets/harbour-dusk-34b4d3b99667.jpg",
+        "pixels": [
+          5600,
+          3600
+        ],
+        "problem": null,
+        "sha256": "34b4d3b99667a8361dbed0eb299622ba9c3231a6cde69a55888faca7347ac786",
+        "stored_pixels": [
+          5600,
+          3600
+        ]
       }
     ]
   },

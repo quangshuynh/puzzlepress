@@ -15,7 +15,9 @@ from .model import Basis, Rule, Scope, Severity, Source
 RULESET_ID = "puzzlepress-kdp-publishing"
 # 2: confirmations bind to the reviewed content (publishing.review); the assumed
 # 50-character keyword warning (`keywords_length`, no KDP source) is removed.
-RULESET_VERSION = 2
+# 3: the cover's displayed text (cover version 2 layers) must match the book
+# details (`cover_text_matches`); a hidden title or author is a warning.
+RULESET_VERSION = 3
 KDP_RULES_CHECKED = "2026-10-08"
 
 
@@ -388,6 +390,14 @@ _RULES: tuple[Rule, ...] = (
         Severity.ERROR,
         "Cover text matches book details",
         Basis.KDP_REQUIREMENT,
+        FORMATTING,
+    ),
+    Rule(
+        "cover_text_omitted",
+        Scope.CONSISTENCY,
+        Severity.WARNING,
+        "Cover shows the title and author",
+        Basis.KDP_AMBIGUOUS,
         FORMATTING,
     ),
     Rule(

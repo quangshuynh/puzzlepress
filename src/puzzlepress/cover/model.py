@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from ..cover_config import CoverConfig
 from ..interior.model import Anchor, Box
 from .crop import CropWindow
-from .fonts import CoverFace
 from .geometry import CoverGeometry
 
 RGB = tuple[float, float, float]
@@ -35,13 +34,14 @@ class CoverText:
 
     role: str
     text: str
-    face: CoverFace
+    face: str  # A bundled CoverFace value or an imported font's registered name.
     size: float
     origin: tuple[float, float]
     anchor: Anchor
     rotated: bool
     bounds: Box
     color: RGB
+    tracking: float = 0.0  # Points added between characters (PDF Tc).
 
 
 @dataclass(frozen=True)
@@ -142,3 +142,4 @@ class CoverLayout:
     texts: tuple[CoverText, ...]
     spine: SpineStatus
     resolution: ImageResolution
+    fonts: tuple[str, ...] = ()  # PostScript names of imported fonts the text uses.

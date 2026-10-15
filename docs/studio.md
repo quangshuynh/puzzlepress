@@ -27,18 +27,50 @@ and `--port 8000`. Paths are relative to the launch directory. A checkout is
 required: the Python wheel does not bundle the frontend. For frontend development,
 run `npm run dev` in `studio/` alongside the Python server; Vite proxies API calls.
 
+## Navigation and drafts
+
+A compact app bar (logo, **Books**) sits above every page. A project's sections
+are grouped in workflow order; every earlier URL is unchanged:
+
+| Group | Section | Route |
+| --- | --- | --- |
+|  | Overview (also the book title) | `/books/{key}` |
+| Create | Plan | `/books/{key}/planning` |
+| Create | Puzzles (the authoring editor, formerly Edit) | `/books/{key}/edit` |
+| Create | Book | `/books/{key}/book` |
+| Create | Cover | `/books/{key}/cover` |
+| Review | Print proof | `/books/{key}/print` |
+| Review | Solutions (saved puzzles, grids and solutions) | `/books/{key}/puzzles`, `/books/{key}/puzzles/{id}` |
+| Review | Quality | `/books/{key}/quality` |
+| Publish | Publishing | `/books/{key}/publishing` |
+
+Puzzles, Book, Cover and Publishing share one draft of `book.yaml`; Plan has its
+own draft of `planning.yaml`. Switching sections keeps both drafts, the project
+header shows **Unsaved draft** while either has edits, and leaving the project asks
+first. Each draft section has the same compact bar, sticky below the app bar:
+saved state, the latest status message, a jump link, **Validate draft**, the
+section's preview action, **Revert draft** and **Save changes**, with the reminder
+that saving writes normalized YAML (comments and formatting are not kept). There
+is no autosave. Conflicts and failures keep the draft (see below).
+
 ## Authoring workflow
 
-1. Open a valid project and choose **Edit**. The initial draft is a copy of the
-   normalized persisted source. Overview, Puzzles and Quality show saved source;
-   the Edit tab retains its draft when you visit those tabs.
-2. Edit a puzzle title, ID or theme. Select its bank and difficulty profile. Add
+1. Open a valid project and choose **Puzzles**. The initial draft is a copy of the
+   normalized persisted source. Overview, Solutions and Quality show saved source;
+   Puzzles retains its draft when you visit those sections.
+2. Find a puzzle in the navigator: search titles, IDs and themes, filter by theme
+   or difficulty, or step with **Previous** and **Next**. Only the selected
+   puzzle's fields are rendered, so a 60- or 100-puzzle book stays fast. Puzzles
+   with validation issues or preview findings carry a marker, and the selected
+   puzzle's findings from the last preview appear above its fields.
+   Edit a puzzle title, ID or theme. Select its bank and difficulty profile. Add
    or remove target references and reorder them with the Up/Down controls.
 3. In **Word banks**, choose any existing bank and edit entry IDs/display text,
    add entries or deliberately remove them. Bank changes affect all referencing
    puzzles. Renaming/removing entry IDs does not silently repair references;
    validation identifies references that need attention.
-4. Add, remove or reorder puzzle definitions. New IDs are the first unused
+4. Add, remove or reorder puzzle definitions (**Move up**, **Move down** and
+   **Remove puzzle** act on the selected puzzle). New IDs are the first unused
    `puzzle-N`; entries use `word-N`. No randomness or clock data is introduced.
    The project seed is shared. Changing a puzzle ID changes its derived seed;
    reordering puzzles preserves their individual seeds and grids.
@@ -75,7 +107,7 @@ banks/profiles or add additional banks/profiles to existing content.
 ## Book composer
 
 Choose **Book** in a project. The composer edits the same in-memory draft as
-**Edit**: one revision, one unsaved state, one validation and one save. Changes
+**Puzzles**: one revision, one unsaved state, one validation and one save. Changes
 made in either tab are visible in the other. Composition rules are in
 [book composition](book-composition.md).
 
@@ -97,6 +129,10 @@ made in either tab are visible in the other. Composition rules are in
    printed), content, cross-references and explicit blanks with their reason, plus
    statistics, verification, completeness and a separate quality-finding count.
    It is not a print preview. After a save or reload the plan refreshes.
+   Above the statistics, a strip draws every logical page in spreads (page 1 alone
+   on the right), coloured by section with blanks hatched, and a line compares the
+   plan's page count with the saved book's built interior (current, stale or not
+   built). Jump links lead to each outline section.
 
 Validation errors attach to their composer fields. Failed and stale saves keep the
 draft, exactly as in Edit. Drag-and-drop is not used: buttons work for pointer and
@@ -113,37 +149,67 @@ labeled. Details, caching and endpoints: [preflight](preflight.md#studio-print-p
 ## Cover Studio
 
 Choose **Cover** to design the paperback cover around your own photograph
-([cover](cover.md)). The Cover tab edits the project's `cover` section in the same
-draft as Edit and Book: one revision, one validation, one save.
+([cover](cover.md)). It edits the project's `cover` section in the same draft as
+Puzzles and Book: one revision, one validation, one save.
 
-1. Build the interior in **Print** first: the wrap is sized from its real page
-   count, trim and paper (Print offers white or cream paper). Without one, the
-   preview explains that the interior is missing.
-2. A book without a cover starts by choosing a photo already in `cover-assets` or
-   importing a JPEG or PNG. Import copies the original bytes into the project
-   immediately, never overwriting; choosing it only changes the draft.
-3. Edit the layout (full wrap or front photo), crop (focal point and zoom),
-   type preset, title position, alignment, tone, legibility treatment, fill
-   color, spine-text policy and back text. Title, subtitle, author and imprint
-   come from the book details (Edit and Book tabs).
-4. Each change renders the draft's real cover PDF in Python (debounced) and shows
-   a PDFium raster of it. Views: full wrap, front, spine and back crop the same
-   raster. Overlays drawn from Python geometry: trim and folds, bleed, KDP safe
-   areas, PuzzlePress type area, barcode corner, text bounds. None are in the PDF.
-5. Crop by dragging the photo, with the sliders, or with the keyboard on the
-   focused preview: arrows move the focal point (Shift for larger steps), `+`/`-`
-   zoom, `0` resets. All map to normalized values; Python clamps and reports the
-   applied focal point.
-6. The readiness column shows interior pages and paper, the calculated spine width
-   and wrap size, spine-text eligibility, effective DPI with its source pixels and
-   printed size, a stale-interior warning, and the built cover's separate
-   structural and KDP verdicts, stale reasons and findings.
-7. **Save changes**, then **Build cover** (saved revision only; disabled while the
-   draft is dirty). Switch between **Draft preview** and **Built cover.pdf**.
+The workspace has three regions on wide screens (1200 px and up): **tools** on
+the left, the **canvas** in the centre and the **inspector** on the right, each
+scrolling on its own so the preview stays in view. From 800 to 1199 px the canvas
+sits beside one tabbed panel (Tools, Properties, Checks); below 800 px the canvas
+fits the screen width above that panel.
 
-A draft previews against the last built interior even when that interior is out
-of date for the draft, and says so; an interior whose files do not agree is
-refused. Decoded photos (two) and draft PDFs (160 MB) are cached in memory.
+1. Build the interior in **Print proof** first: the wrap is sized from its real page
+   count, trim and paper. Without one, the canvas explains that it is missing.
+2. **Photo** tab: a thumbnail library of `cover-assets` with file name, pixels and
+   the effective DPI each photo reaches at the current zoom and layout, with a
+   warning below 300. **Compare** previews another photo without applying it
+   (**Use this photo** or **Keep current**). **Import…** copies the original bytes;
+   identical bytes are reused, nothing is overwritten or upscaled.
+3. **Text** tab: title, subtitle, author, back-cover text, imprint and your extra
+   front or back text layers, each with a show/hide toggle. Hiding or restyling a
+   layer changes only the cover; the book details stay as they are.
+4. **Fonts** tab: import a `.ttf` or `.otf` (`font/ttf` or `font/otf` upload).
+   Python validates it before anything is written: refused fonts say why
+   (PostScript outlines, variable, restricted embedding, damaged). Each font shows a
+   specimen drawn by the cover renderer, its embedding permission and any
+   characters this cover uses that it lacks. **Add to cover** makes it selectable
+   and asks for its license and source (unknown values warn).
+5. **Design** tab: layout (full wrap or front photo), type preset, title position,
+   default alignment, tone, legibility treatment, fill color and spine text.
+6. **Canvas**: the PDFium raster of the draft's real cover PDF, rendered by Python
+   after each change (debounced). Views: full wrap, front, spine, back; zoom fit to
+   400% (the canvas scrolls when larger); **Overlays** from Python geometry (trim
+   and folds, bleed, KDP safe areas, type area, barcode corner, text bounds), never
+   in the PDF; **Undo** (Ctrl+Z) steps back through this session's cover edits;
+   **Draft** or **Built PDF**. Click a text layer to select it; drag it (centre
+   guides snap within 6 px; the outline turns red outside the safe area); arrow
+   keys move it 1 pt (Shift 10 pt) when the canvas has focus; Escape cancels a drag
+   or clears the selection. The photograph moves only after you select it (click
+   the cover, or the DPI note below the canvas): then drag it, use the arrow keys,
+   `+`/`-` to zoom and `0` to reset. Every move becomes an authored value (an
+   offset in points, or the normalized focal point) and Python lays the cover out
+   again; the browser never positions cover type.
+7. **Inspector → Properties**: for a text layer, visibility, text on the cover
+   (with line breaks; **Use the book's title** resets it), font (bundled faces and
+   fonts added to the cover), size (blank: the preset decides), line and letter
+   spacing, letter case, color (blank: the text tone), alignment, the offset in
+   points with **Reset position**, and **Reset to layout defaults**. For the
+   photograph, the crop sliders and **Print quality**: effective DPI against the
+   300 DPI minimum, used source pixels, printed size and the best DPI at zoom 1,
+   with why zooming lowers it.
+8. **Inspector → Checks**: Python's draft checks (text outside its safe area,
+   display text that differs from the book details, hidden title or author, font
+   license, resolution, page count, spine text), each linking to its layer; the
+   interior, spine width and wrap size; then the built cover's separate structural
+   and KDP verdicts, findings and **Build cover** (saved revision only; disabled
+   while the draft is dirty or not buildable).
+
+A draft whose text was moved out of its safe area still previews, so you can see
+and fix it; the response says it is not buildable, and builds refuse it. A draft
+previews against the last built interior even when that interior is out of date
+for the draft, and says so; an interior whose files do not agree is refused.
+Decoded photos (two), draft PDFs (160 MB), thumbnails and specimens are cached in
+memory.
 
 ## Publishing
 
@@ -170,9 +236,15 @@ same draft as Edit, Book and Cover.
    identity Python reported; editing covered content unticks it, and nothing is
    reconfirmed for you. A version 1 section shows **Upgrade publishing section**
    and its old answers never count. Native checkboxes; Space toggles.
-6. The readiness column (saved source) lists what is done and what is left with
-   links to Print or Cover, the readiness statement, grouped findings with their
-   KDP sources, and every check. It moves above the form below 1000px.
+6. The readiness column (saved source) lists what is done and what is left by
+   stage, the readiness statement, and a **Checklist** of Python's rules grouped
+   where you act: Book content, Interior, Cover, Metadata, Rights and AI
+   disclosure, ISBN and classification, Final confirmations. Each group says
+   whether it is complete, has items to review or is blocking (unchecked rules
+   block), opens when something blocks, shows the findings with their KDP sources
+   and links to the right section or field. Findings by severity and every check
+   follow. The column stays in view beside the form and moves above it below
+   1000px. Nothing is checked or confirmed for you.
 7. **Save changes**, then **Export package** (saved revision only; disabled while
    the draft is dirty or anything blocks). Optionally write `publishing.zip`. The
    summary lists the files, digests, location relative to the project and the
@@ -285,10 +357,14 @@ produce identical YAML bytes. No YAML dependency or schema change was added.
 | `POST /api/projects/{key}/interior/build` | `{revision}`; builds saved source, writes interior and `preflight.json`, returns state or `{build: {success: false, stage, diagnostics}}` |
 | `GET /api/projects/{key}/interior/pages/{n}` | `?size=thumb\|page\|detail&pdf=<sha256>`; PNG raster of page `n` of that exact PDF |
 | `GET /api/projects/{key}/cover` | Saved cover state (`no_config`, `missing`, `current`, `stale`, `invalid`), cover preflight report, layout geometry |
-| `POST /api/projects/{key}/draft/cover` | `{source}`; renders the draft's cover in memory; layout geometry, interior facts, checks, preview digest |
+| `POST /api/projects/{key}/draft/cover` | `{source}`; renders the draft's cover in memory; layout geometry with each text line's layer and face, interior facts, checks (with their layer), `buildable`, `display` text, the photo and font `library` (per-photo DPI, per-font missing characters) and the preview digest |
 | `GET /api/projects/{key}/cover/preview` | `?size=preview\|detail&pdf=<sha256>`; PNG of a draft PDF or `cover.pdf` (409 when gone) |
 | `GET /api/projects/{key}/cover/assets` | Photos in `cover-assets` with pixels, orientation and problems |
-| `POST /api/projects/{key}/cover/assets` | `?name=`; raw `image/jpeg` or `image/png` body (the only non-JSON POST); imports and returns the asset |
+| `POST /api/projects/{key}/cover/assets` | `?name=`; raw `image/jpeg` or `image/png` body (one of two non-JSON POSTs, with font uploads); imports and returns the asset |
+| `GET /api/projects/{key}/cover/assets/thumbnail` | `?path=cover-assets/<name>`; upright sRGB JPEG preview (360 px) of a listed photo |
+| `GET /api/projects/{key}/cover/fonts` | Fonts in `cover-assets/fonts` with names, glyph count and embedding permission, or why each is unusable |
+| `POST /api/projects/{key}/cover/fonts` | `?name=`; raw `font/ttf` or `font/otf` body; validates, imports and returns the font |
+| `GET /api/projects/{key}/cover/fonts/specimen` | `?font=cover-assets/fonts/<name>` or `bundled:<face>`; PNG of a specimen drawn by ReportLab and rasterized by PDFium |
 | `POST /api/projects/{key}/cover/build` | `{revision}`; builds saved source, writes `cover.pdf`, `cover.json`, `cover-preflight.json` |
 | `GET /api/projects/{key}/publishing` | Readiness report, KDP metadata record, checklist, package identity, export state (`none`, `current`, `stale`, `damaged`), location, built cover digest |
 | `POST /api/projects/{key}/draft/publishing` | `{source}`; `{metadata, upgrade}`: findings and confirmation states with current review identities for the draft, and the version 2 form of a version 1 section; writes nothing |
@@ -319,8 +395,10 @@ Routes: `/books`, `/books/{key}`, `/books/{key}/edit`, `/books/{key}/book`, `/bo
 ## Design, accessibility and screenshots
 
 The established paper/green design, supplied logo, locally bundled Newsreader and
-Public Sans remain. Desktop editing sits alongside preview; narrower views stack
-and include a preview jump. Labels, fieldsets, explicit buttons, focus outlines,
+Public Sans remain ([design](../DESIGN.md)). Controls are 34-36 px on desktop and
+44 px on touch screens. Desktop editing sits alongside preview; narrower views
+stack and include a preview jump. Tab lists use arrow keys; the cover canvas
+announces the selected layer and its keys, and moves are announced politely. Labels, fieldsets, explicit buttons, focus outlines,
 keyboard reorder controls, native discard/delete confirmations and polite status
 messages support keyboard operation. Solutions also use underlines and a textual
 one-based coordinate register; the API remains zero-based. Large grids scroll
@@ -395,6 +473,9 @@ Planning captures: [overview](images/studio/planning.png),
 [approved](images/studio/planning-approved.png), [stale approval](images/studio/planning-stale.png),
 [390](images/studio/planning-390.png).
 Cover captures: [overview](images/studio/cover.png), [start](images/studio/cover-start.png),
+[text layers](images/studio/cover-layers.png), [fonts](images/studio/cover-fonts.png),
+[print quality](images/studio/cover-print-quality.png),
+[1024](images/studio/cover-1024.png), [768](images/studio/cover-768.png),
 [front crop](images/studio/cover-crop.png), [full wrap](images/studio/cover-wrap.png),
 [overlays](images/studio/cover-overlays.png), [spine](images/studio/cover-spine.png),
 [readiness](images/studio/cover-readiness.png), [1440](images/studio/cover-1440.png),

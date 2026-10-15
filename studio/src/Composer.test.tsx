@@ -184,10 +184,11 @@ test('composition draft is shared with the authoring desk and survives tabs', as
   const user = userEvent.setup();
   await status('Publication plan ready. Source has not changed.');
   await user.click(screen.getByRole('button', { name: 'Move In the Rock Pool up' }));
-  await user.click(screen.getByRole('link', { name: 'Edit' }));
+  const projectNav = screen.getByRole('navigation', { name: 'Project' });
+  await user.click(within(projectNav).getByRole('link', { name: /^Puzzles/ }));
   expect(screen.getByRole('button', { name: /^1\. In the Rock Pool/ })).toBeVisible();
   expect(screen.getByText('Unsaved changes')).toBeVisible();
-  await user.click(screen.getByRole('link', { name: 'Book' }));
+  await user.click(within(projectNav).getByRole('link', { name: 'Book' }));
   const order = screen.getByRole('list', { name: 'Puzzle publication order' });
   expect(within(order).getAllByRole('listitem')[0]).toHaveTextContent('In the Rock Pool');
 });

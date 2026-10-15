@@ -1,7 +1,8 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { request } from './api';
 import { DraftToolbar, type Draft } from './draft';
 import { Field, FieldErrors, SelectField, matchIssues, move, type Source } from './editor-fields';
-import type { Composition, Issue, MatterItem, PlanPage, PlanResult } from './types';
+import type { Composition, InteriorStatus, Issue, MatterItem, PlanPage, PlanResult } from './types';
 import { Empty, Issues, Status } from './ui';
 
 // Presentation of authored composition and the Python plan. Page assignment,
@@ -335,7 +336,99 @@ function describe(page: PlanPage, label: (index: number | null) => string): Reac
   );
 }
 
-function PlanView({ result }: { result: PlanResult }) {
+// Every logical page in spreads (page 1 alone on the right), by section, with
+// blanks marked: Python's plan drawn as a strip, never a print preview.
+function PageSequence({ pages }: { pages: PlanPage[] }) {
+  const spreads: (PlanPage | null)[][] = [[null, pages[0] ?? null]];
+  for (let i = 1; i < pages.length; i += 2) spreads.push([pages[i], pages[i + 1] ?? null]);
+  const sections = [...new Set(pages.map((p) => p.section))];
+  const summary = sections
+    .map((section) => {
+      const own = pages.filter((p) => p.section === section);
+      return `${SECTION_NAMES[section]} ${own.length} (pages ${own[0].index}–${own.at(-1)!.index})`;
+    })
+    .join('; ');
+  const blanks = pages.filter((p) => p.blank).length;
+  return (
+    <figure className="page-sequence">
+      <div
+        className="sequence-strip"
+        role="img"
+        aria-label={`Page sequence: ${summary}; ${blanks} intentional ${blanks === 1 ? 'blank' : 'blanks'}.`}
+      >
+        {spreads.map((spread, i) => (
+          <span className="sequence-spread" key={i}>
+            {spread.map((page, j) =>
+              page ? (
+                <span
+                  key={j}
+                  className={`sequence-page ${page.section}${page.blank ? ' blank' : ''}`}
+                  title={`Page ${page.index} · ${SECTION_NAMES[page.section]}${page.blank ? ' · blank' : ''}`}
+                />
+              ) : (
+                <span key={j} className="sequence-page none" />
+              ),
+            )}
+          </span>
+        ))}
+      </div>
+      <figcaption className="sequence-legend">
+        {sections.map((section) => {
+          const own = pages.filter((p) => p.section === section);
+          return (
+            <span key={section}>
+              <span className={`sequence-key ${section}`} aria-hidden="true" />
+              {SECTION_NAMES[section]} <strong>{own.length}</strong>
+            </span>
+          );
+        })}
+        <span>
+          <span className="sequence-key blank" aria-hidden="true" />
+          Blank <strong>{blanks}</strong>
+        </span>
+      </figcaption>
+    </figure>
+  );
+}
+
+// The saved book's built interior, for comparing actual pages with this plan.
+function BuiltPages({ projectKey, planned }: { projectKey: string; planned: number }) {
+  const [status, setStatus] = useState<InteriorStatus | null>();
+  useEffect(() => {
+    const controller = new AbortController();
+    request<InteriorStatus>(
+      `/api/projects/${encodeURIComponent(projectKey)}/interior`,
+      controller.signal,
+    )
+      .then((data) => !controller.signal.aborted && setStatus(data))
+      .catch(() => !controller.signal.aborted && setStatus(null));
+    return () => controller.abort();
+  }, [projectKey]);
+  if (status === undefined) return <p className="small muted">Reading the built interior…</p>;
+  const pages = status?.preview?.page_count;
+  if (!status || status.state === 'missing' || pages === undefined)
+    return (
+      <p className="small muted">
+        No built interior yet: build it in{' '}
+        <a href={`/books/${encodeURIComponent(projectKey)}/print`}>Print proof</a> to compare actual
+        pages with this plan.
+      </p>
+    );
+  return (
+    <p className="small built-pages">
+      <Status tone={status.state === 'current' && pages === planned ? 'pass' : 'review'}>
+        Built interior: {pages} pages
+      </Status>{' '}
+      {status.state === 'current'
+        ? pages === planned
+          ? 'matches this plan page for page.'
+          : `; this plan has ${planned}.`
+        : `(${status.state}; rebuild in Print proof to match this plan of ${planned} pages).`}
+    </p>
+  );
+}
+
+function PlanView({ result, projectKey }: { result: PlanResult; projectKey: string }) {
   const { plan, verification, generation } = result;
   const s = plan.statistics;
   const label = (index: number | null) => (index ? plan.pages[index - 1]?.number.label : '?');
@@ -356,6 +449,8 @@ function PlanView({ result }: { result: PlanResult }) {
       </div>
       {plan.diagnostics.length > 0 && <Issues issues={plan.diagnostics} />}
       {!verification.valid && <Issues issues={verification.issues} />}
+      <PageSequence pages={plan.pages} />
+      <BuiltPages projectKey={projectKey} planned={s.logical_pages} />
       <dl className="plan-stats">
         <div>
           <dt>Logical pages</dt>
@@ -504,6 +599,19 @@ export function Composer({ d }: { d: Draft }) {
           <form aria-label="Book composition" onSubmit={(event) => event.preventDefault()}>
             <fieldset className="authoring-fields" disabled={d.busy}>
               <legend className="sr-only">Book composition draft</legend>
+              <nav className="outline-jump" aria-label="Composition sections">
+                {[
+                  ['front', 'Front matter'],
+                  ['puzzles', 'Puzzles'],
+                  ['solutions', 'Solutions'],
+                  ['back', 'Back matter'],
+                  ['numbers', 'Page numbers'],
+                ].map(([id, name]) => (
+                  <a key={id} href={`#${id}-heading`}>
+                    {name}
+                  </a>
+                ))}
+              </nav>
               <OutlineSection
                 id="front"
                 title="Front matter"
@@ -707,7 +815,7 @@ export function Composer({ d }: { d: Draft }) {
               </h3>
             </div>
             {d.plan ? (
-              <PlanView result={d.plan} />
+              <PlanView result={d.plan} projectKey={d.key} />
             ) : (
               <div className="preview-empty">
                 <h2>The book, in reading order.</h2>

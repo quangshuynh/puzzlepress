@@ -145,13 +145,13 @@ test('draft survives project tabs, blocks leaving and warns on browser unload', 
     target: { value: 'Keep draft' },
   });
   await user.click(screen.getByRole('link', { name: 'Overview' }));
-  await user.click(screen.getByRole('link', { name: 'Edit' }));
+  await user.click(screen.getByRole('link', { name: /^Puzzles/ }));
   expect(screen.getByLabelText('Puzzle title')).toHaveValue('Keep draft');
   const event = new Event('beforeunload', { cancelable: true });
   window.dispatchEvent(event);
   expect(event.defaultPrevented).toBe(true);
   const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
-  await user.click(screen.getByRole('link', { name: 'Book library' }));
+  await user.click(screen.getByRole('link', { name: 'Books' }));
   expect(confirm).toHaveBeenCalled();
   expect(location.pathname).toBe('/books/garden-demo/edit');
 });
@@ -186,10 +186,36 @@ test('pending operations disable changes and unmounted preview responses are ign
   await user.click(screen.getByRole('button', { name: 'Preview draft' }));
   expect(title).toBeDisabled();
   expect(screen.getByRole('button', { name: 'Save changes' })).toBeDisabled();
-  await user.click(screen.getByRole('link', { name: 'Book library' }));
+  await user.click(screen.getByRole('link', { name: 'Books' }));
   finish(new Response(JSON.stringify(generated)));
   await waitFor(() => expect(location.pathname).toBe('/books'));
   expect(
     screen.queryByText('Draft preview ready. Source has not changed.'),
   ).not.toBeInTheDocument();
+});
+
+test('the puzzle navigator searches, filters and steps without rendering every editor', async () => {
+  setup();
+  const user = userEvent.setup();
+  await screen.findByLabelText('Puzzle title');
+  const list = screen.getByRole('list', { name: 'Puzzle definitions' });
+  expect(list.querySelectorAll('li')).toHaveLength(2);
+  // Only the selected puzzle's fields exist.
+  expect(screen.getAllByLabelText('Puzzle title')).toHaveLength(1);
+  await user.type(screen.getByLabelText('Search puzzles'), 'herb');
+  expect(screen.getByText('Showing 1 of 2')).toBeVisible();
+  await user.click(screen.getByRole('button', { name: /The Herb Garden/ }));
+  expect(screen.getByLabelText('Puzzle title')).toHaveValue('The Herb Garden');
+  await user.clear(screen.getByLabelText('Search puzzles'));
+  await user.selectOptions(screen.getByLabelText('Filter by theme'), 'Flowers');
+  expect(screen.getByText('Showing 1 of 2')).toBeVisible();
+  await user.selectOptions(screen.getByLabelText('Filter by theme'), '');
+  await user.selectOptions(screen.getByLabelText('Filter by difficulty'), 'varied');
+  expect(screen.getByRole('button', { name: /The Herb Garden/ })).toBeVisible();
+  await user.selectOptions(screen.getByLabelText('Filter by difficulty'), '');
+  await user.click(screen.getByRole('button', { name: '← Previous' }));
+  expect(screen.getByLabelText('Puzzle title')).toHaveValue('In the Flower Bed');
+  expect(screen.getByRole('button', { name: '← Previous' })).toBeDisabled();
+  await user.click(screen.getByRole('button', { name: 'Next →' }));
+  expect(screen.getByRole('heading', { name: 'Puzzle 2 of 2' })).toBeVisible();
 });

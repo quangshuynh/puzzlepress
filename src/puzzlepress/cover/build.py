@@ -40,11 +40,12 @@ from ..models import Project
 from ..preflight.context import parse_manifest, read_interior_artifacts
 from . import geometry as geometry_module
 from .assets import Photo, decode_photo, read_asset
+from .font_assets import NO_FONTS, CoverFonts, load_cover_fonts
 from .fonts import font_manifest
 from .geometry import cover_geometry, trim_name
 from .inspection import inspect_cover_pdf
 from .issues import CoverError, cover_error
-from .layout import CoverCopy, layout_cover
+from .layout import CoverCopy, cover_display, layout_cover
 from .model import CoverLayout
 from .render import JPEG_QUALITY, prepare_photo, render_cover_pdf
 from .validation import validate_cover_layout
@@ -187,9 +188,15 @@ def cover_toolchain() -> dict[str, object]:
 
 
 def semantic_config(config: CoverConfig) -> dict[str, object]:
-    """Authored cover choices; the photo is identified by content, not by file name."""
+    """Authored cover choices; photo and fonts are identified by content, not file name.
+
+    A font's recorded license and source are provenance, not output: they are left
+    out so recording them never makes a cover stale.
+    """
     data = config.to_dict()
     data["image"] = {"sha256": config.image.sha256}
+    if config.fonts:
+        data["fonts"] = [{"id": font.id, "sha256": font.sha256} for font in config.fonts]
     return data
 
 
@@ -228,15 +235,35 @@ class CoverBuild:
     pdf: bytes
     manifest: dict[str, object]
     image_size: tuple[int, int]
+    layout_issues: tuple[LayoutIssue, ...] = ()  # Only from allow_layout_issues previews.
 
 
 def render_cover(
-    project: Project, interior: InteriorFacts, photo: Photo, asset_path: str | None = None
+    project: Project,
+    interior: InteriorFacts,
+    photo: Photo,
+    asset_path: str | None = None,
+    fonts: CoverFonts = NO_FONTS,
+    allow_layout_issues: bool = False,
 ) -> CoverBuild:
-    """Pure: lay out, validate, render and inspect. Raises CoverError."""
+    """Pure: lay out, validate, render and inspect. Raises CoverError.
+
+    `fonts` are the configuration's imported fonts, already loaded. With
+    `allow_layout_issues` (Studio draft previews only) a layout that fails
+    validation, such as text moved out of its safe area, still renders and its
+    issues are returned in `CoverBuild.layout_issues`; builds never pass it.
+    """
     config = project.cover
     if config is None:
         raise cover_error("config", "cover_missing", "This project has no cover section.")
+    missing = [font.id for font in config.fonts if font.id not in fonts.by_id]
+    if missing:
+        raise cover_error(
+            "asset",
+            "font_missing",
+            f"Imported fonts are not loaded: {', '.join(missing)}.",
+            "cover.fonts",
+        )
     if photo.info.sha256 != config.image.sha256:
         raise cover_error(
             "asset", "asset_digest_mismatch", "The photo is not the configured one.", "cover.image"
@@ -245,9 +272,9 @@ def render_cover(
         interior.page_count, interior.trim_width, interior.trim_height, interior.paper
     )
     copy = CoverCopy.from_project(project)
-    layout = layout_cover(project.book.id, copy, config, geometry, photo.info)
+    layout = layout_cover(project.book.id, copy, config, geometry, photo.info, fonts)
     issues = validate_cover_layout(layout, interior.trim_width, interior.trim_height)
-    if issues:
+    if issues and not allow_layout_issues:
         raise CoverError("layout_validation", issues)
     jpeg, size = prepare_photo(photo, layout.photo)
     pdf = render_cover_pdf(layout, jpeg, size)
@@ -274,6 +301,8 @@ def render_cover(
             "encoding": f"baseline JPEG, quality {JPEG_QUALITY}, 4:4:4, no metadata",
         },
         "spine_text": layout.spine.to_dict(),
+        # What the front and back print for each book detail (None: hidden or absent).
+        "display": cover_display(config, copy),
         "color": COLOR_MODEL,
         "pdf": {
             "file": PDF_NAME,
@@ -281,7 +310,7 @@ def render_cover(
             "bytes": len(pdf),
         },
     }
-    return CoverBuild(layout, pdf, manifest, size)
+    return CoverBuild(layout, pdf, manifest, size, issues)
 
 
 def build_cover(project: Project, project_directory: Path, output: Path) -> CoverBuild:
@@ -294,7 +323,8 @@ def build_cover(project: Project, project_directory: Path, output: Path) -> Cove
         raise CoverError("output", error.issues) from error
     interior = read_interior_facts(directory, project)
     photo = decode_photo(read_asset(project_directory, project.cover.image))
-    return render_cover(project, interior, photo)
+    fonts = load_cover_fonts(project_directory, project.cover)
+    return render_cover(project, interior, photo, fonts=fonts)
 
 
 @dataclass(frozen=True)

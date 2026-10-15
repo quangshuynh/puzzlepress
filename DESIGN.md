@@ -17,13 +17,13 @@ colors:
 typography:
   display:
     fontFamily: "Newsreader Variable, Georgia, serif"
-    fontSize: "clamp(34px, 3.4vw, 48px)"
+    fontSize: "clamp(30px, 2.6vw, 40px)"
     fontWeight: 450
     lineHeight: 1.14
     letterSpacing: "-0.025em"
   headline:
     fontFamily: "Newsreader Variable, Georgia, serif"
-    fontSize: "29px"
+    fontSize: "22px"
     fontWeight: 450
     lineHeight: 1.2
   body:
@@ -43,7 +43,7 @@ components:
     backgroundColor: "{colors.primary}"
     textColor: "{colors.paper}"
     rounded: "{rounded.control}"
-    padding: "10px 18px"
+    padding: "7px 14px"
   button-primary-hover:
     backgroundColor: "{colors.primary-hover}"
     textColor: "{colors.paper}"
@@ -51,7 +51,7 @@ components:
     backgroundColor: "{colors.paper}"
     textColor: "{colors.primary}"
     rounded: "{rounded.control}"
-    padding: "10px 18px"
+    padding: "7px 14px"
 ---
 
 # Design System: PuzzlePress Studio
@@ -87,9 +87,15 @@ reserved for identities, seeds and developer payloads. Paragraphs stop at 75ch.
 
 ## Layout
 
-Desktop uses a 222px library rail, 66px context header, and 48px main gutters.
-The rail narrows to 185px below 1150px and becomes a compact top header at 850px.
-At 600px, main gutters become 20px and inspector columns stack. Large grids scroll
+A 48px app bar (logo, Books, a local-only note) stays at the top; main content uses
+28px gutters (20px below 1150px, 16px below 600px) up to 1720px. A project opens
+with a one-line header (22px serif title linking to Overview, subtitle, ID,
+language and an Unsaved draft mark) and one grouped navigation rule: Overview, then
+small-caps group labels Create (Plan, Puzzles, Book, Cover) → Review (Print proof,
+Solutions, Quality) → Publish (Publishing). Below 600px the group labels become
+screen-reader text and the links wrap. Draft sections share a compact bar sticky
+under the app bar. Side columns (puzzle navigator, plan, readiness, previews) stay
+in view and scroll on their own instead of lengthening the page. Large grids scroll
 within their own region, retaining 15px or larger letters at tested widths.
 
 **The Source and Analysis Rule.** Present authored configuration before generation;
@@ -107,10 +113,20 @@ Small status marks differ in shape as well as color. The supplied logo is preser
 
 ## Components
 
-- Buttons: 44px minimum height, explicit verbs, dark-green primary action,
-  bordered secondary action. Focus is a 3px brown outline with a 4px offset.
+- Buttons: 36px (34px in toolbars, 30px for small row actions) on desktop and 44px
+  on touch screens, explicit verbs, dark-green primary action, bordered secondary
+  action. Segmented controls join buttons and fill the chosen one green. Tab lists
+  are a ruled row with a green underline and arrow-key movement. Focus is a 3px
+  brown outline with a 4px offset.
 - Search: visible label, paper surface, thin border, distinct focus outline.
-- Navigation: ordinary links, current-page semantics, a bottom rule for project tabs.
+- Navigation: ordinary links, current-page semantics, a bottom rule for project
+  sections, grouped by stage with quiet labels and arrows showing the order.
+- Draft bar: section name, a round mark for saved and an amber diamond for unsaved,
+  the latest status, then Validate, the section's preview, Revert and Save last.
+  The canonical-YAML reminder stays visible in small text.
+- Puzzle navigator: search, theme and difficulty filters, a scrolling ruled list
+  (ordinal, title, theme and level, a review mark) and one puzzle's fields at a
+  time with Previous/Next.
 - Lists: ruled project and definition rows, real counts, no decorative statistics.
 - Inspector: semantic letter table, highlighted solution cells with underlines and
   heavier weight, plus a textual coordinate register.
@@ -119,32 +135,45 @@ Small status marks differ in shape as well as color. The supplied logo is preser
   heading; items are ruled rows with compact Up/Down/Remove buttons. The plan is a
   semantic table grouped by section, with side and number as text, uncounted
   numbers in parentheses and blanks on canvas with their reason. It is a logical
-  list, never a simulated page spread or print preview.
+  list, never a simulated page spread or print preview. A strip of small blocks
+  (one per logical page, in spreads, coloured by section, blanks hatched) sums up
+  the sequence; it is a diagram of the plan, not of printed pages.
 - Print proof: the rasterized PDF page is the dominant artifact on a neutral
   canvas, flanked by page thumbnails and a ruled findings column. Structural and
   KDP verdicts are separate text statuses, never one badge. Findings state what,
   where, measured and required values, and what they block. Overlays are thin
   dashed SVG lines over the raster, labeled and off by default; the binding edge
   is marked. Passed checks are secondary disclosures.
-- Cover studio: the rendered wrap is the dominant artifact on the neutral canvas,
-  a raster of the real cover PDF, never an HTML reconstruction. Ruled controls sit
-  to its left; readiness (interior facts, spine width, effective DPI, verdicts)
-  sits right from 1600px and below the preview narrower. View toggles crop the
-  same raster; overlays are thin labeled lines from Python geometry, off by
-  default. Crop works by drag, slider and keyboard. Type presets are few and
-  named; there are no free layers, effects or arbitrary positions.
+- Cover studio: an editing workspace with three bordered regions of fixed height:
+  tools (Photo, Text, Fonts, Design tabs), the canvas, and an inspector (Properties,
+  Checks). The rendered wrap dominates the neutral canvas, a raster of the real
+  cover PDF, never an HTML reconstruction. Python's measured text boxes are drawn
+  as thin outlines: dashed on hover, solid blue when selected, red when a check
+  blocks or a dragged layer leaves its safe area; pink centre guides appear while
+  dragging. Text type is never drawn by the browser: every move is an offset Python
+  lays out again. The photograph is selected before it can be dragged. Photos are a
+  ruled thumbnail list with pixels and a green or red DPI note; fonts show a
+  specimen drawn by the cover renderer. Print quality is a large serif DPI figure
+  beside its minimum, with the pixels and inches behind it. Below 1200px the tools,
+  properties and checks share one tabbed panel beside the canvas, and below 800px
+  under it. Overlays are thin labeled lines from Python geometry, off by default.
+  Presets stay few and named; overrides are per text layer; there are no effects,
+  shapes or free graphics.
 - Publishing: a production handoff. A ruled summary (the front panel cropped from
   the real cover raster, book facts, separate text verdicts) above a metadata form
   beside a readiness column. Readiness is an ordered list of what is done and what
-  is left, each line saying why and linking where to act, then grouped findings
-  with their official sources. Python findings sit beside their fields as text.
+  is left, each line saying why and linking where to act, then a ruled checklist
+  by stage (Book content, Interior, Cover, Metadata, Rights and AI disclosure, ISBN
+  and classification, Final confirmations), open where something blocks, with
+  official sources. Python findings sit beside their fields as text.
   Nothing is preselected for the author; export is one deliberate action and its
   summary never implies submission. No success banners or statistics.
 - Planning: a research notebook and book blueprint. A ruled section list (with
   counts to fix or review) beside one section's fields and a readiness column with
   each gate as a text verdict, the approval and feasibility items saying how each
   is known. Research notes say what kind of statement they are; nothing implies a
-  verified market. Charts are semantic tables of Python's numbers in one green,
+  verified market; verified sources carry a solid green label and every other
+  kind a dashed amber "not verified" label. Charts are semantic tables of Python's numbers in one green,
   values as text, level progression as numbered cells. Approval is one deliberate
   action on the saved plan; nothing is preselected or approved for the author.
 - States: text and recovery actions for errors, meaningful empty states, polite
@@ -161,7 +190,9 @@ Small status marks differ in shape as well as color. The supplied logo is preser
 ### Don't:
 - Don't fabricate publishing or financial status, or cover content beyond what the
   author wrote.
-- Don't present Cover Studio as an image editor or imply AI generation.
+- Don't present Cover Studio as an image editor or imply AI generation, and don't
+  draw cover type in the browser.
+- Don't let a hidden or restyled cover layer change book metadata.
 - Don't introduce gradients, glass effects, decorative charts or nested cards.
 - Don't imply that no quality findings means publication readiness.
 - Don't present future workflows as working navigation.

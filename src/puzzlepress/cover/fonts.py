@@ -4,6 +4,9 @@ Sans faces are the interior's Bitstream Vera Sans (same pinned files). Serif
 faces are Newsreader static cuts (SIL OFL 1.1, fonts/OFL.txt), copied from
 github.com/productiontype/Newsreader at commit cfcb4f7. Each file's SHA-256 is
 checked before ReportLab registers it; system fonts are never consulted.
+
+Faces are named by key: a bundled `CoverFace` value, or the registered name of
+an imported font (`font_assets.load_font`). Every function here takes a key.
 """
 
 import hashlib
@@ -19,6 +22,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from ..interior import fonts as interior_fonts
 from ..interior.issues import LayoutIssue
 from ..interior.model import Face
+from .font_assets import registered
 from .issues import CoverError
 
 
@@ -96,13 +100,22 @@ def _serif() -> dict[CoverFace, TTFont]:
     return faces
 
 
-def _ttf(face: CoverFace) -> TTFont:
+_SERIF_FACES = {font.face for font in SERIF_FILES}
+
+
+def is_bundled(face: str) -> bool:
+    return face in _VERA or face in _SERIF_FACES
+
+
+def _ttf(face: str) -> TTFont:
     if face in _VERA:
-        return interior_fonts._registered()[_VERA[face]]
-    return _serif()[face]
+        return interior_fonts._registered()[_VERA[CoverFace(face)]]
+    if face in _SERIF_FACES:
+        return _serif()[CoverFace(face)]
+    return registered(face)
 
 
-def font_name(face: CoverFace) -> str:
+def font_name(face: str) -> str:
     return _ttf(face).fontName
 
 
@@ -112,18 +125,20 @@ class Metrics:
     descent: float  # Positive, per point of size.
 
 
-def metrics(face: CoverFace) -> Metrics:
+def metrics(face: str) -> Metrics:
     if face in _VERA:
         return Metrics(interior_fonts.ASCENT, interior_fonts.DESCENT)
-    font = _serif()[face].face
+    font = _ttf(face).face
     return Metrics(font.ascent / 1000, -font.descent / 1000)
 
 
-def text_width(text: str, face: CoverFace, size: float) -> float:
-    return float(pdfmetrics.stringWidth(text, font_name(face), size))
+def text_width(text: str, face: str, size: float, tracking: float = 0.0) -> float:
+    """Advance width; `tracking` points are added between characters, not after the last."""
+    width = float(pdfmetrics.stringWidth(text, font_name(face), size))
+    return width + tracking * max(0, len(text) - 1) if tracking else width
 
 
-def missing_characters(text: str, face: CoverFace) -> tuple[str, ...]:
+def missing_characters(text: str, face: str) -> tuple[str, ...]:
     mapping = _ttf(face).face.charToGlyph
     missing: list[str] = []
     for char in text:

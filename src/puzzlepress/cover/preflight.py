@@ -41,6 +41,7 @@ from .build import (
     read_interior_facts,
     render_cover,
 )
+from .font_assets import NO_FONTS, CoverFonts, load_cover_fonts
 from .inspection import STROKE_OPERATORS, CoverPdfFacts, cover_contract_issues, read_cover_facts
 from .issues import CoverError
 from .model import CoverLayout
@@ -48,12 +49,13 @@ from .validation import validate_cover_layout
 
 REPORT_VERSION = 1
 RULESET_ID = "puzzlepress-kdp-cover"
-RULESET_VERSION = 1
+RULESET_VERSION = 2
 KDP_RULES_CHECKED = "2026-10-07"
 COVER_HELP = "KDP help: Create a Paperback Cover"
 BARCODE_HELP = "KDP help: Low-Content Book Barcode Details"
 SUBMISSION = "KDP help: Paperback Submission Guidelines"
 CONTRACT = "PuzzlePress cover contract (docs/cover.md)"
+FORMATTING_HELP = "KDP help: Fix Paperback and Hardcover Formatting Issues"
 MANIFEST_FIELDS: dict[str, type] = {
     "manifest_version": int,
     "book_id": str,
@@ -125,6 +127,8 @@ class CoverContext:
     interior: InteriorFacts | None
     interior_error: CoverError | None
     photo_error: CoverError | None
+    font_error: CoverError | None
+    fonts: CoverFonts
     expected: CoverBuild | None
     expected_error: CoverError | None
     facts: CoverPdfFacts | None
@@ -305,6 +309,62 @@ def _photo(r: PreflightRule, ctx: CoverContext) -> Check:
 
 
 @rule(
+    "cover_fonts",
+    Scope.STRUCTURAL,
+    Category.FONT,
+    "Imported fonts available",
+    "Every imported font is in cover-assets/fonts, matches its pinned SHA-256, is a "
+    "static TrueType-outline font and permits embedding and subsetting.",
+    CONTRACT,
+)
+def _fonts(r: PreflightRule, ctx: CoverContext) -> Check:
+    cover = ctx.project.cover
+    if cover is None:
+        return _skip("No cover section.")
+    if not cover.fonts:
+        return _na("The cover uses bundled fonts only.")
+    if ctx.font_error is not None:
+        return _issues(r, ctx.font_error.issues)
+    names = ", ".join(
+        f"{font_id} ({loaded.info.full_name}, {loaded.info.embedding.replace('_', ' ')})"
+        for font_id, loaded in ctx.fonts.by_id.items()
+    )
+    return Check(note=f"Loaded: {names}.")
+
+
+@rule(
+    "cover_font_license",
+    Scope.KDP,
+    Category.FONT,
+    "Imported font license recorded",
+    "Each imported font records its license and source. KDP asks for fully embedded "
+    "fonts and notes that some fonts do not allow commercial use; PuzzlePress reads "
+    "the font's embedding flags but cannot confirm your license.",
+    FORMATTING_HELP,
+    Basis.KDP_AMBIGUOUS,
+    Severity.WARNING,
+)
+def _font_license(r: PreflightRule, ctx: CoverContext) -> Check:
+    cover = ctx.project.cover
+    if cover is None:
+        return _skip("No cover section.")
+    if not cover.fonts:
+        return _na("The cover uses bundled fonts (SIL OFL 1.1 and the Bitstream Vera license).")
+    findings = [
+        _finding(
+            r,
+            f"Font {font.id!r} has no recorded "
+            f"{' or '.join(k for k in ('license', 'source') if getattr(font, k) is None)}. "
+            "Record where it came from and the license that permits commercial print use.",
+            region=f"cover.fonts.{font.id}",
+        )
+        for font in cover.fonts
+        if font.license is None or font.source is None
+    ]
+    return Check(tuple(findings), note="Every imported font records its license and source.")
+
+
+@rule(
     "cover_buildable",
     Scope.STRUCTURAL,
     Category.INTEGRITY,
@@ -313,8 +373,13 @@ def _photo(r: PreflightRule, ctx: CoverContext) -> Check:
     CONTRACT,
 )
 def _buildable(r: PreflightRule, ctx: CoverContext) -> Check:
-    if ctx.project.cover is None or ctx.interior is None or ctx.photo_error is not None:
-        return _skip("The interior or photograph is unavailable.")
+    if (
+        ctx.project.cover is None
+        or ctx.interior is None
+        or ctx.photo_error is not None
+        or ctx.font_error is not None
+    ):
+        return _skip("The interior, photograph or an imported font is unavailable.")
     if ctx.expected_error is not None:
         return _issues(r, ctx.expected_error.issues)
     return Check(note="Current inputs render a verified cover.")
@@ -871,23 +936,33 @@ def preflight_cover(
         parse_cover_manifest(artifacts.manifest) if artifacts.manifest is not None else (None, None)
     )
     interior: InteriorFacts | None = None
-    interior_error = photo_error = expected_error = None
+    interior_error = photo_error = font_error = expected_error = None
+    fonts = NO_FONTS
     try:
         interior = read_interior_facts(directory, project)
     except CoverError as error:
         interior_error = error
     if project.cover is not None:
         try:
+            fonts = load_cover_fonts(project_directory, project.cover)
+        except CoverError as error:
+            font_error = error
+        try:
             photo = decode_photo(read_asset(project_directory, project.cover.image))
         except CoverError as error:
             photo_error = error
         else:
-            if interior is not None and expected is None:
+            if interior is not None and expected is None and font_error is None:
                 try:
-                    expected = render_cover(project, interior, photo)
+                    expected = render_cover(project, interior, photo, fonts=fonts)
                 except CoverError as error:
                     expected_error = error
-    if interior is None or photo_error is not None or project.cover is None:
+    if (
+        interior is None
+        or photo_error is not None
+        or font_error is not None
+        or project.cover is None
+    ):
         expected = None
     facts_or_issue = read_cover_facts(artifacts.pdf) if artifacts.pdf is not None else None
     ctx = CoverContext(
@@ -898,6 +973,8 @@ def preflight_cover(
         interior,
         interior_error,
         photo_error,
+        font_error,
+        fonts,
         expected,
         expected_error,
         None if isinstance(facts_or_issue, LayoutIssue) else facts_or_issue,

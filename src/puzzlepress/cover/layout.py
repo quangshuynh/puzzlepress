@@ -4,20 +4,30 @@ Pure apart from font metrics. It decides the photo window, every text position,
 spine eligibility and the legibility treatment. It never moves text outside its
 safe area, squeezes type below its preset minimum or invents copy: front text is
 the book's title, subtitle and author; back text is only what the cover authors.
+
+Version 2 overrides (font, size, color, alignment, spacing, visibility, display
+text, offsets and extra layers) are applied here and nowhere else; with none,
+every position is computed exactly as in version 1.
 """
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from ..cover_config import (
     CoverConfig,
     CoverLayoutKind,
     CoverStyle,
+    LayerAlign,
+    LayerPanel,
     Legibility,
+    LetterCase,
     SpineText,
     TextAlign,
+    TextLayer,
+    TextRole,
     TextTone,
     TitlePosition,
+    hex_rgb,
 )
 from ..interior.issues import LayoutIssue
 from ..interior.model import Anchor, Box
@@ -25,7 +35,8 @@ from ..interior.spec import KDP_COVER, inches
 from ..models import Project
 from .assets import PhotoInfo
 from .crop import crop_window, image_placement
-from .fonts import CoverFace, metrics, missing_characters, text_width
+from .font_assets import NO_FONTS, CoverFonts
+from .fonts import CoverFace, is_bundled, metrics, missing_characters, text_width
 from .geometry import CoverGeometry
 from .issues import CoverError
 from .model import (
@@ -44,6 +55,7 @@ DARK: RGB = (0.106, 0.118, 0.11)
 TITLE_LINES = 3
 SUBTITLE_LINES = 3
 AUTHOR_LINES = 2
+EXPLICIT_LINES = 6  # Line limit for a layer set at an author-chosen size.
 TITLE_STEP = 2.0
 BACK_MEASURE = inches(5.5)
 FRONT_GAP = inches(0.25)  # Minimum space between the title block and the author.
@@ -135,6 +147,32 @@ class CoverCopy:
         }
 
 
+def same_words(first: str, second: str) -> bool:
+    """Equal apart from line breaks, spacing and letter case (presets set capitals)."""
+    return " ".join(first.split()).casefold() == " ".join(second.split()).casefold()
+
+
+def cover_display(config: CoverConfig, copy: CoverCopy) -> dict[str, str | None]:
+    """The words each book-metadata role prints on the cover, before letter case.
+
+    None means the layer is hidden or has no text. Book metadata is never changed:
+    a display override only replaces what the cover prints.
+    """
+    values = {
+        TextRole.TITLE: copy.title,
+        TextRole.SUBTITLE: copy.subtitle,
+        TextRole.AUTHOR: copy.author,
+        TextRole.IMPRINT: copy.imprint,
+    }
+    display: dict[str, str | None] = {}
+    for role, value in values.items():
+        layer = config.layer(role)
+        display[role.value] = (
+            None if not layer.visible else layer.text if layer.text is not None else value
+        )
+    return display
+
+
 def _fail(
     code: str, message: str, region: str, actual: str | None = None, required: str | None = None
 ) -> CoverError:
@@ -143,7 +181,7 @@ def _fail(
     )
 
 
-def _check_glyphs(text: str, face: CoverFace, region: str) -> None:
+def _check_glyphs(text: str, face: str, region: str) -> None:
     missing = missing_characters(text, face)
     if missing:
         listed = ", ".join(f"U+{ord(c):04X}" for c in missing)
@@ -152,21 +190,23 @@ def _check_glyphs(text: str, face: CoverFace, region: str) -> None:
             f"The cover font cannot draw: {listed}.",
             region,
             actual=listed,
-            required="Latin-1 text",
+            required="Latin-1 text" if is_bundled(face) else "characters the chosen font contains",
         )
 
 
-def wrap(text: str, face: CoverFace, size: float, measure: float) -> list[str] | None:
+def wrap(
+    text: str, face: str, size: float, measure: float, tracking: float = 0.0
+) -> list[str] | None:
     """Greedy wrap keeping authored line breaks; None if a word is wider than the measure."""
     lines: list[str] = []
     for paragraph in text.split("\n"):
         words = [word for word in paragraph.split(" ") if word]
         current = ""
         for word in words:
-            if text_width(word, face, size) > measure:
+            if text_width(word, face, size, tracking) > measure:
                 return None
             candidate = f"{current} {word}" if current else word
-            if current and text_width(candidate, face, size) > measure:
+            if current and text_width(candidate, face, size, tracking) > measure:
                 lines.append(current)
                 current = word
             else:
@@ -176,70 +216,152 @@ def wrap(text: str, face: CoverFace, size: float, measure: float) -> list[str] |
 
 
 @dataclass(frozen=True)
-class _Line:
+class _Style:
+    """How one layer is set: the preset's choices with the author's overrides applied."""
+
     role: str
+    face: str
+    size: float | None  # None: the preset decides (titles step down to fit).
+    pitch: float
+    upper: bool
+    color: RGB
+    tracking: float
+    align: LayerAlign
+    offset: tuple[float, float]
+
+    def text(self, value: str) -> str:
+        return value.upper() if self.upper else value
+
+
+def _face(layer: TextLayer, default: str, fonts: CoverFonts) -> str:
+    if layer.font is None:
+        return default
+    return layer.font if is_bundled(layer.font) else fonts.key(layer.font)
+
+
+def _style(
+    role: str,
+    layer: TextLayer,
+    fonts: CoverFonts,
+    face: str,
+    size: float | None,
+    pitch: float,
+    upper: bool,
+    color: RGB,
+    align: LayerAlign,
+) -> _Style:
+    return _Style(
+        role,
+        _face(layer, face, fonts),
+        layer.size if layer.size is not None else size,
+        layer.line_spacing if layer.line_spacing is not None else pitch,
+        upper if layer.case is None else layer.case is LetterCase.UPPER,
+        hex_rgb(layer.color) if layer.color is not None else color,
+        layer.letter_spacing or 0.0,
+        layer.align if layer.align is not None else align,
+        layer.offset,
+    )
+
+
+def _default_align(config: CoverConfig) -> LayerAlign:
+    return LayerAlign.CENTER if config.type.align is TextAlign.CENTER else LayerAlign.LEFT
+
+
+@dataclass(frozen=True)
+class _Line:
     text: str
-    face: CoverFace
+    style: _Style
     size: float
     gap_before: float  # Space between this line box and the previous one.
 
 
-def _group(
-    role: str, lines: list[str], face: CoverFace, size: float, pitch: float, gap: float
-) -> list[_Line]:
-    m = metrics(face)
-    within = max(0.0, (pitch - m.ascent - m.descent) * size)
+def _group(lines: list[str], style: _Style, size: float, gap: float) -> list[_Line]:
+    m = metrics(style.face)
+    within = max(0.0, (style.pitch - m.ascent - m.descent) * size)
     return [
-        _Line(role, text, face, size, gap if index == 0 else within)
-        for index, text in enumerate(lines)
+        _Line(text, style, size, gap if index == 0 else within) for index, text in enumerate(lines)
     ]
 
 
 def _height(lines: list[_Line]) -> float:
     total = 0.0
     for index, line in enumerate(lines):
-        m = metrics(line.face)
+        m = metrics(line.style.face)
         total += (m.ascent + m.descent) * line.size + (line.gap_before if index else 0.0)
     return total
 
 
-def _place(lines: list[_Line], top: float, x: float, anchor: Anchor, color: RGB) -> list[CoverText]:
+def _anchor(area: Box, align: LayerAlign) -> tuple[float, Anchor]:
+    if align is LayerAlign.CENTER:
+        return area.x + area.width / 2, Anchor.MIDDLE
+    if align is LayerAlign.RIGHT:
+        return area.right, Anchor.END
+    return area.x, Anchor.START
+
+
+def _place(lines: list[_Line], top: float, area: Box) -> list[CoverText]:
     placed: list[CoverText] = []
     cursor = top
     for index, line in enumerate(lines):
-        m = metrics(line.face)
+        m = metrics(line.style.face)
         if index:
             cursor -= line.gap_before
         baseline = cursor - m.ascent * line.size
         cursor = baseline - m.descent * line.size
         if line.text:
-            placed.append(
-                _text(line.role, line.text, line.face, line.size, x, baseline, anchor, color)
-            )
+            x, anchor = _anchor(area, line.style.align)
+            placed.append(_text(line.style, line.text, line.size, x, baseline, anchor))
     return placed
 
 
 def _text(
-    role: str,
-    text: str,
-    face: CoverFace,
-    size: float,
-    x: float,
-    baseline: float,
-    anchor: Anchor,
-    color: RGB,
+    style: _Style, text: str, size: float, x: float, baseline: float, anchor: Anchor
 ) -> CoverText:
-    width = text_width(text, face, size)
-    m = metrics(face)
+    width = text_width(text, style.face, size, style.tracking)
+    m = metrics(style.face)
     left = {Anchor.START: x, Anchor.MIDDLE: x - width / 2, Anchor.END: x - width}[anchor]
     bounds = Box(left, baseline - m.descent * size, width, (m.ascent + m.descent) * size)
-    return CoverText(role, text, face, size, (x, baseline), anchor, False, bounds, color)
+    return CoverText(
+        style.role,
+        text,
+        style.face,
+        size,
+        (x, baseline),
+        anchor,
+        False,
+        bounds,
+        style.color,
+        style.tracking,
+    )
+
+
+def _moved(box: Box, offset: tuple[float, float]) -> Box:
+    if offset == (0.0, 0.0):
+        return box
+    return Box(box.x + offset[0], box.y + offset[1], box.width, box.height)
+
+
+def _shift(texts: list[CoverText], offset: tuple[float, float]) -> list[CoverText]:
+    if offset == (0.0, 0.0):
+        return texts
+    dx, dy = offset
+    return [
+        replace(t, origin=(t.origin[0] + dx, t.origin[1] + dy), bounds=_moved(t.bounds, offset))
+        for t in texts
+    ]
+
+
+def _union(texts: list[CoverText], area: Box) -> Box:
+    """A layer's vertical extent across the full width of its area."""
+    low = min(t.bounds.y for t in texts)
+    high = max(t.bounds.top for t in texts)
+    return Box(area.x, low, area.width, high - low)
 
 
 def _spine_text(
     role: str,
     text: str,
-    face: CoverFace,
+    face: str,
     size: float,
     x: float,
     y: float,
@@ -254,53 +376,117 @@ def _spine_text(
     return CoverText(role, text, face, size, (x, y), anchor, True, bounds, color)
 
 
-def _front(
-    copy: CoverCopy, preset: Preset, config: CoverConfig, area: Box, color: RGB
-) -> tuple[list[CoverText], Box, Box | None]:
-    """Front texts, the title block's bounds and the author block's bounds."""
-    title = copy.title.upper() if preset.upper else copy.title
-    _check_glyphs(title, preset.title_face, "cover.title")
-    title_lines: list[str] | None = None
-    size = preset.title_max
-    while size >= preset.title_min - 1e-9:
-        title_lines = wrap(title, preset.title_face, size, area.width)
-        if title_lines is not None and len(title_lines) <= TITLE_LINES:
-            break
-        title_lines = None
-        size -= TITLE_STEP
-    if title_lines is None:
+def _set(
+    text: str, style: _Style, measure: float, region: str, max_lines: int
+) -> tuple[list[str], float]:
+    """Wrap a layer at its explicit size; overflow is an expected failure."""
+    assert style.size is not None
+    _check_glyphs(text, style.face, region)
+    lines = wrap(text, style.face, style.size, measure, style.tracking)
+    if lines is None or len(lines) > max_lines:
         raise _fail(
             "text_overflow",
-            f"The title does not fit {TITLE_LINES} lines of the front cover at "
-            f"{preset.title_min:g} pt or larger.",
-            "cover.title",
-            required=f"{TITLE_LINES} lines",
+            f"{region.removeprefix('cover.').replace('_', ' ').capitalize()} does not fit "
+            f"{max_lines} lines of its panel at {style.size:g} pt.",
+            region,
+            required=f"{max_lines} lines",
         )
-    block = _group("title", title_lines, preset.title_face, size, preset.title_pitch, 0.0)
-    if copy.subtitle:
-        _check_glyphs(copy.subtitle, preset.subtitle_face, "cover.subtitle")
-        lines = wrap(copy.subtitle, preset.subtitle_face, preset.subtitle_size, area.width)
-        if lines is None or len(lines) > SUBTITLE_LINES:
-            raise _fail(
-                "text_overflow",
-                f"The subtitle does not fit {SUBTITLE_LINES} lines of the front cover.",
-                "cover.subtitle",
-            )
-        block += _group(
-            "subtitle", lines, preset.subtitle_face, preset.subtitle_size, 1.3, 0.45 * size
-        )
+    return lines, style.size
+
+
+@dataclass(frozen=True)
+class _Group:
+    """Text printed over the photograph, for shading or panels: role, x range, bounds."""
+
+    role: str
+    x0: float
+    x1: float
+    box: Box
+
+
+def _front(
+    copy: CoverCopy,
+    preset: Preset,
+    config: CoverConfig,
+    area: Box,
+    color: RGB,
+    fonts: CoverFonts,
+) -> tuple[list[CoverText], list[tuple[str, Box]]]:
+    """Front texts and the boxes their legibility treatment covers."""
+    align = _default_align(config)
+    title_layer = config.layer(TextRole.TITLE)
+    sub_layer = config.layer(TextRole.SUBTITLE)
+    author_layer = config.layer(TextRole.AUTHOR)
+    title = _style(
+        "title",
+        title_layer,
+        fonts,
+        preset.title_face,
+        None,
+        preset.title_pitch,
+        preset.upper,
+        color,
+        align,
+    )
+    block: list[_Line] = []
+    size = preset.title_max
+    if title_layer.visible:
+        text = title.text(title_layer.text if title_layer.text is not None else copy.title)
+        if title.size is not None:
+            lines, size = _set(text, title, area.width, "cover.title", EXPLICIT_LINES)
+        else:
+            _check_glyphs(text, title.face, "cover.title")
+            title_lines: list[str] | None = None
+            while size >= preset.title_min - 1e-9:
+                title_lines = wrap(text, title.face, size, area.width, title.tracking)
+                if title_lines is not None and len(title_lines) <= TITLE_LINES:
+                    break
+                title_lines = None
+                size -= TITLE_STEP
+            if title_lines is None:
+                raise _fail(
+                    "text_overflow",
+                    f"The title does not fit {TITLE_LINES} lines of the front cover at "
+                    f"{preset.title_min:g} pt or larger.",
+                    "cover.title",
+                    required=f"{TITLE_LINES} lines",
+                )
+            lines = title_lines
+        block = _group(lines, title, size, 0.0)
+    subtitle_text = sub_layer.text if sub_layer.text is not None else copy.subtitle
+    subtitle = _style(
+        "subtitle",
+        sub_layer,
+        fonts,
+        preset.subtitle_face,
+        preset.subtitle_size,
+        1.3,
+        False,
+        color,
+        align,
+    )
+    if subtitle_text and sub_layer.visible:
+        limit = SUBTITLE_LINES if sub_layer.size is None else EXPLICIT_LINES
+        lines, sub_size = _set(subtitle_text, subtitle, area.width, "cover.subtitle", limit)
+        block += _group(lines, subtitle, sub_size, 0.45 * size if block else 0.0)
     author: list[_Line] = []
-    if copy.author:
-        name = copy.author.upper() if preset.upper else copy.author
-        _check_glyphs(name, preset.author_face, "cover.author")
-        lines = wrap(name, preset.author_face, preset.author_size, area.width)
-        if lines is None or len(lines) > AUTHOR_LINES:
-            raise _fail(
-                "text_overflow", "The author line does not fit the front cover.", "cover.author"
-            )
-        author = _group("author", lines, preset.author_face, preset.author_size, 1.3, 0.0)
-    center = config.type.align is TextAlign.CENTER
-    x, anchor = (area.x + area.width / 2, Anchor.MIDDLE) if center else (area.x, Anchor.START)
+    author_style = _style(
+        "author",
+        author_layer,
+        fonts,
+        preset.author_face,
+        preset.author_size,
+        1.3,
+        preset.upper,
+        color,
+        align,
+    )
+    author_text = author_layer.text if author_layer.text is not None else copy.author
+    if author_text and author_layer.visible:
+        limit = AUTHOR_LINES if author_layer.size is None else EXPLICIT_LINES
+        name = author_style.text(author_text)
+        lines, author_size = _set(name, author_style, area.width, "cover.author", limit)
+        author = _group(lines, author_style, author_size, 0.0)
     height, author_height = _height(block), _height(author)
     position = config.type.position
     if position is TitlePosition.BOTTOM:
@@ -311,14 +497,28 @@ def _front(
         top, author_top = area.top, area.y + author_height
     title_box = Box(area.x, top - height, area.width, height)
     author_box = Box(area.x, author_top - author_height, area.width, author_height)
-    if author and title_box.overlaps(_grow(author_box, 0, FRONT_GAP), 0):
+    moved = any(layer.offset != (0.0, 0.0) for layer in (title_layer, sub_layer, author_layer))
+    if author and block and not moved and title_box.overlaps(_grow(author_box, 0, FRONT_GAP), 0):
         raise _fail(
             "text_overflow",
             "The title block and author do not both fit the front cover.",
             "cover.front",
         )
-    texts = _place(block, top, x, anchor, color) + _place(author, author_top, x, anchor, color)
-    return texts, title_box, author_box if author else None
+    placed = _place(block, top, area)
+    by_title = _shift([t for t in placed if t.role == "title"], title.offset)
+    by_subtitle = _shift([t for t in placed if t.role == "subtitle"], subtitle.offset)
+    by_author = _shift(_place(author, author_top, area), author_style.offset)
+    boxes: list[tuple[str, Box]] = []
+    if block:
+        if not by_title or not by_subtitle or title.offset == subtitle.offset:
+            shared = title.offset if by_title else subtitle.offset
+            boxes.append(("front_title", _moved(title_box, shared)))
+        else:
+            boxes.append(("front_title", _union(by_title, area)))
+            boxes.append(("front_subtitle", _union(by_subtitle, area)))
+    if author:
+        boxes.append(("front_author", _moved(author_box, author_style.offset)))
+    return by_title + by_subtitle + by_author, boxes
 
 
 def _grow(box: Box, dx: float, dy: float) -> Box:
@@ -375,44 +575,73 @@ def _spine(
 
 
 def _back(
-    copy: CoverCopy, preset: Preset, config: CoverConfig, geometry: CoverGeometry, color: RGB
-) -> tuple[list[CoverText], Box | None, Box | None]:
+    copy: CoverCopy,
+    preset: Preset,
+    config: CoverConfig,
+    geometry: CoverGeometry,
+    color: RGB,
+    fonts: CoverFonts,
+) -> tuple[list[CoverText], list[tuple[str, Box]]]:
+    """Back texts and the boxes their legibility treatment covers (back text, imprint)."""
     area = geometry.back_design
     texts: list[CoverText] = []
-    imprint_box: Box | None = None
+    boxes: list[tuple[str, Box]] = []
     floor = geometry.barcode_keep_clear.top + BACK_GAP
-    if copy.imprint:
-        _check_glyphs(copy.imprint, preset.imprint_face, "cover.imprint")
-        m = metrics(preset.imprint_face)
-        line = _text(
+    imprint_layer = config.layer(TextRole.IMPRINT)
+    back_layer = config.layer(TextRole.BACK_TEXT)
+    moved = imprint_layer.offset != (0.0, 0.0) or back_layer.offset != (0.0, 0.0)
+    imprint = imprint_layer.text if imprint_layer.text is not None else copy.imprint
+    if imprint and imprint_layer.visible:
+        style = _style(
             "imprint",
-            copy.imprint,
+            imprint_layer,
+            fonts,
             preset.imprint_face,
             preset.imprint_size,
-            area.x,
-            area.y + m.descent * preset.imprint_size,
-            Anchor.START,
+            1.3,
+            False,
             color,
+            LayerAlign.LEFT,
         )
-        if line.bounds.right > geometry.barcode_keep_clear.x - BACK_GAP:
+        assert style.size is not None
+        _check_glyphs(imprint, style.face, "cover.imprint")
+        if "\n" in imprint:
+            raise _fail("text_overflow", "The imprint is one line.", "cover.imprint")
+        m = metrics(style.face)
+        x, anchor = _anchor(area, style.align)
+        line = _text(style, imprint, style.size, x, area.y + m.descent * style.size, anchor)
+        if not moved and line.bounds.right > geometry.barcode_keep_clear.x - BACK_GAP:
             raise _fail(
                 "text_overflow", "The imprint is too long for the back cover.", "cover.imprint"
             )
-        texts.append(line)
-        imprint_box = line.bounds
         floor = max(floor, line.bounds.top + BACK_GAP)
-    if not copy.back_text:
-        return texts, None, imprint_box
-    _check_glyphs(copy.back_text, preset.body_face, "cover.back_text")
+        (line,) = _shift([line], style.offset)
+        texts.append(line)
+        boxes.append(("imprint", line.bounds))
+    if not copy.back_text or not back_layer.visible:
+        return texts, boxes
+    style = _style(
+        "back_text",
+        back_layer,
+        fonts,
+        preset.body_face,
+        preset.body_size,
+        preset.body_pitch,
+        False,
+        color,
+        _default_align(config),
+    )
+    assert style.size is not None
+    _check_glyphs(copy.back_text, style.face, "cover.back_text")
     measure = min(area.width, BACK_MEASURE)
-    lines = wrap(copy.back_text, preset.body_face, preset.body_size, measure)
+    lines = wrap(copy.back_text, style.face, style.size, measure, style.tracking)
     if lines is None:
         raise _fail(
             "text_overflow", "A word in the back-cover text is too wide.", "cover.back_text"
         )
-    block = _group("back_text", lines, preset.body_face, preset.body_size, preset.body_pitch, 0.0)
+    block = _group(lines, style, style.size, 0.0)
     height = _height(block)
-    if area.top - height < floor - 1e-6:
+    if not moved and area.top - height < floor - 1e-6:
         raise _fail(
             "text_overflow",
             "The back-cover text is too long to stay clear of the barcode area.",
@@ -420,11 +649,54 @@ def _back(
             actual=f"{height / 72:.2f} in",
             required=f"at most {(area.top - floor) / 72:.2f} in",
         )
-    center = config.type.align is TextAlign.CENTER
-    x, anchor = (area.x + area.width / 2, Anchor.MIDDLE) if center else (area.x, Anchor.START)
-    left = x - measure / 2 if center else x
-    texts = _place(block, area.top, x, anchor, color) + texts
-    return texts, Box(left, area.top - height, measure, height), imprint_box
+    x, _ = _anchor(area, style.align)
+    left = {
+        LayerAlign.CENTER: x - measure / 2,
+        LayerAlign.LEFT: x,
+        LayerAlign.RIGHT: x - measure,
+    }[style.align]
+    # Lines anchor on the area exactly as in version 1; the box spans the measure.
+    placed = _shift(_place(block, area.top, area), style.offset)
+    box = Box(left, area.top - height, measure, height)
+    boxes.insert(0, ("back_text", _moved(box, style.offset)))
+    return placed + texts, boxes
+
+
+def _extra(
+    config: CoverConfig,
+    preset: Preset,
+    geometry: CoverGeometry,
+    color: RGB,
+    fonts: CoverFonts,
+) -> tuple[list[CoverText], list[tuple[str, str, Box]]]:
+    """The author's additional layers, centered in their panel's type area, then moved."""
+    texts: list[CoverText] = []
+    boxes: list[tuple[str, str, Box]] = []
+    for extra in config.extra:
+        front = extra.panel is LayerPanel.FRONT
+        area = geometry.front_design if front else geometry.back_design
+        role = f"{extra.panel.value}_extra:{extra.id}"
+        style = _style(
+            role,
+            extra.layer,
+            fonts,
+            preset.body_face,
+            preset.body_size,
+            preset.body_pitch,
+            False,
+            color,
+            LayerAlign.CENTER,
+        )
+        if not extra.layer.visible:
+            continue
+        lines, size = _set(style.text(extra.text), style, area.width, f"cover.{role}", 8)
+        block = _group(lines, style, size, 0.0)
+        height = _height(block)
+        top = area.y + (area.height + height) / 2
+        placed = _shift(_place(block, top, area), style.offset)
+        texts += placed
+        boxes.append((extra.panel.value, role, _union(placed, area)))
+    return texts, boxes
 
 
 def _band(
@@ -450,6 +722,7 @@ def layout_cover(
     config: CoverConfig,
     geometry: CoverGeometry,
     photo: PhotoInfo,
+    fonts: CoverFonts = NO_FONTS,
 ) -> CoverLayout:
     """Raises CoverError(stage 'layout') when authored text cannot be set safely."""
     preset = PRESETS[config.type.style]
@@ -462,37 +735,34 @@ def layout_cover(
         else Box(geometry.front.x, media.y, media.right - geometry.front.x, media.height)
     )
     window = crop_window(photo.width, photo.height, region, config.crop)
-    front, title_box, author_box = _front(copy, preset, config, geometry.front_design, color)
+    front, front_boxes = _front(copy, preset, config, geometry.front_design, color, fonts)
     spine, spine_status = _spine(copy, preset, config, geometry, color)
-    back, back_box, imprint_box = _back(copy, preset, config, geometry, color)
+    back, back_boxes = _back(copy, preset, config, geometry, color, fonts)
+    extra, extra_boxes = _extra(config, preset, geometry, color, fonts)
 
     fill = config.rgb()
     panels: list[Fill] = []
     bands: list[ShadeBand] = []
     tone = config.type.tone
     # (x range, text bounds) for every text group printed over the photograph.
-    over_photo: list[tuple[str, float, float, Box]] = [
-        ("front_title", geometry.front.x, media.right, title_box)
-    ]
-    if author_box is not None:
-        over_photo.append(("front_author", geometry.front.x, media.right, author_box))
+    over_photo = [_Group(role, geometry.front.x, media.right, box) for role, box in front_boxes]
     if full:
-        if back_box is not None:
-            over_photo.append(("back_text", media.x, geometry.back.right, back_box))
-        if imprint_box is not None:
-            over_photo.append(("imprint", media.x, geometry.barcode_keep_clear.x, imprint_box))
+        for role, box in back_boxes:
+            right = geometry.barcode_keep_clear.x if role == "imprint" else geometry.back.right
+            over_photo.append(_Group(role, media.x, right, box))
+    for panel, role, box in extra_boxes:
+        if panel == "front":
+            over_photo.append(_Group(role, geometry.front.x, media.right, box))
+        elif full:
+            over_photo.append(_Group(role, media.x, geometry.back.right, box))
     if config.legibility is Legibility.PANEL:
-        panels = [
-            _panel(f"panel_{role}", x0, x1, box, media, fill) for role, x0, x1, box in over_photo
-        ]
+        panels = [_panel(f"panel_{g.role}", g.x0, g.x1, g.box, media, fill) for g in over_photo]
         if full and spine:
             panels.append(Fill("panel_spine", geometry.spine, fill))
     elif config.legibility is Legibility.SHADE:
         # Across a full wrap, bands span the whole photo so no band edge lands mid-image.
         span = (region.x, region.right)
-        bands = [
-            _band(*(span if full else (x0, x1)), box, media, tone) for _, x0, x1, box in over_photo
-        ]
+        bands = [_band(*(span if full else (g.x0, g.x1)), g.box, media, tone) for g in over_photo]
         if full and spine:
             bands.append(
                 ShadeBand(
@@ -522,6 +792,9 @@ def layout_cover(
         window.max_dpi,
         KDP_COVER.min_image_dpi,
     )
+    texts = tuple(front + spine + back + extra)
+    used = {t.face for t in texts}
+    custom = tuple(sorted(f.info.postscript_name for f in fonts.by_id.values() if f.key in used))
     return CoverLayout(
         book_id=book_id,
         config=config,
@@ -529,7 +802,8 @@ def layout_cover(
         background=Fill("background", media, fill),
         photo=photo_element,
         panels=tuple(panels),
-        texts=tuple(front + spine + back),
+        texts=texts,
         spine=spine_status,
         resolution=resolution,
+        fonts=custom,
     )

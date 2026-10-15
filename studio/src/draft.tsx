@@ -188,14 +188,20 @@ export function DraftToolbar({
   return (
     <>
       <div className="editor-toolbar">
-        <div>
+        <div className="toolbar-title">
           <h2>{title}</h2>
           <p className={d.dirty ? 'draft-status' : 'muted'}>
+            <span aria-hidden="true" className="status-mark" />
             {d.dirty ? 'Unsaved changes' : 'Saved source'}
+          </p>
+          <p role="status" aria-live="polite" className="toolbar-message">
+            {d.message}
           </p>
         </div>
         <div className="editor-actions">
-          <a href={jump.href}>{jump.label}</a>
+          <a className="jump-link" href={jump.href}>
+            {jump.label}
+          </a>
           <button type="button" disabled={d.busy} onClick={() => void d.run('validate')}>
             Validate draft
           </button>
@@ -208,25 +214,23 @@ export function DraftToolbar({
               {previewLabel}
             </button>
           )}
+          <button type="button" disabled={d.busy || !d.dirty} onClick={d.revert}>
+            Revert draft
+          </button>
           <button
             type="button"
             className="primary"
             disabled={d.busy || !d.dirty}
             onClick={() => void d.run('save')}
+            aria-describedby="yaml-note"
           >
             Save changes
           </button>
-          <button type="button" disabled={d.busy || !d.dirty} onClick={d.revert}>
-            Revert draft
-          </button>
         </div>
+        <p className="small muted yaml-note" id="yaml-note">
+          Save writes normalized YAML. Comments, quoting and original formatting are not preserved.
+        </p>
       </div>
-      <p className="small muted">
-        Save writes normalized YAML. Comments, quoting and original formatting are not preserved.
-      </p>
-      <p role="status" aria-live="polite">
-        {d.message}
-      </p>
       {d.error && (
         <div role="alert" className="notice error">
           <h3>

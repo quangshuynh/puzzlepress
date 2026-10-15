@@ -146,11 +146,12 @@ def cover_contract_issues(
         fail("pdf_annotations", "The cover contains annotations.")
     if page.transparency:
         fail("pdf_transparency", "The cover uses transparency.")
+    allowed = BUNDLED_FAMILIES + layout.fonts
     for font in page.fonts:
         if not font.embedded:
             fail("font_not_embedded", f"Font {font.name} is not embedded.")
-        if not _family(font.name).startswith(BUNDLED_FAMILIES):
-            fail("font_not_bundled", f"Font {font.name} is not a bundled cover font.")
+        if not _family(font.name).startswith(allowed):
+            fail("font_not_bundled", f"Font {font.name} is not a bundled or imported cover font.")
     if image_size is not None:
         if len(facts.images) != 1:
             fail("pdf_image", f"The cover has {len(facts.images)} images; it must have one.")
@@ -166,8 +167,15 @@ def cover_contract_issues(
     if base.descriptive_metadata or facts.xmp_metadata:
         fail("pdf_metadata", "The cover carries descriptive or XMP metadata.")
     text = " ".join(page.text.split())
+    compact = "".join(text.split())
     for line in layout.texts:
-        if " ".join(line.text.split()) not in text:
+        # Extraction may split letter-spaced text into spaced characters.
+        found = (
+            "".join(line.text.split()) in compact
+            if line.tracking
+            else " ".join(line.text.split()) in text
+        )
+        if not found:
             fail("pdf_text_missing", f"Cover text {line.role!r} is missing from the PDF.")
     return tuple(issues)
 
