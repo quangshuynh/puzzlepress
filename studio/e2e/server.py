@@ -82,4 +82,19 @@ with tempfile.TemporaryDirectory(prefix="puzzlepress-browser-") as directory:
         ),
         encoding="utf-8",
     )
+    # Production design and publishing polish: a cover-demo copy with its own builds.
+    shutil.copytree(ROOT / "books/cover-demo", books / "design-demo")
+    source = books / "design-demo" / "book.yaml"
+    source.write_text(
+        source.read_text(encoding="utf-8").replace(
+            "../../build/cover-demo", "../../build/design-demo"
+        ),
+        encoding="utf-8",
+    )
+    # An unused photograph for the asset library (SYNTHETIC test pixels).
+    from cover_helpers import photo_bytes  # noqa: E402
+
+    from puzzlepress.cover.assets import import_photo  # noqa: E402
+
+    import_photo(books / "design-demo", photo_bytes(900, 600), "spare-photo.jpg")
     uvicorn.run(create_app(books, ROOT / "studio/dist"), host="127.0.0.1", port=8015)
