@@ -250,6 +250,8 @@ def issue_checks(issues: tuple[LayoutIssue, ...]) -> list[dict[str, str]]:
         layer = layers.get(region, "")
         if "_extra:" in region:
             layer = "extra:" + region.split(":", 1)[1]
+        elif "_element:" in region:
+            layer = "element:" + region.split(":", 1)[1]
         checks.append(
             {
                 "code": issue.code,
