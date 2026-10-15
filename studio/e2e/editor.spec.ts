@@ -120,6 +120,9 @@ test('real draft edit, validation, deterministic preview, quality, save, reload 
 test('editor is keyboard operable and responsive at all requested widths', async ({ page }) => {
   await page.goto('/books/garden-demo/edit');
   await expect(page.getByLabel('Puzzle title', { exact: true })).toBeVisible();
+  // Select the second puzzle from the navigator, then move it, all by keyboard.
+  await page.getByRole('button', { name: /^2. The Herb Garden/ }).focus();
+  await page.keyboard.press('Enter');
   await page.getByRole('button', { name: 'Move puzzle 2 up' }).focus();
   await page.keyboard.press('Enter');
   await expect(page.getByLabel('Puzzle title', { exact: true })).toHaveValue('The Herb Garden');

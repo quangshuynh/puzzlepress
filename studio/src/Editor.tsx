@@ -422,7 +422,7 @@ function PuzzleNavigator({
           </div>
         </div>
       </div>
-      <p className="small muted navigator-count" role="status" aria-live="polite">
+      <p className="small muted navigator-count" aria-live="polite">
         {shown.length === puzzles.length
           ? `All ${puzzles.length} puzzles`
           : `Showing ${shown.length} of ${puzzles.length}`}

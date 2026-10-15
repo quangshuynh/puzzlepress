@@ -188,7 +188,7 @@ export function PhotoLibrary({
       {assets === undefined && !library ? (
         <p className="small muted">Reading cover-assets…</p>
       ) : photos.length === 0 ? (
-        <p className="small muted">No photographs yet. Import one of your own.</p>
+        <p className="small muted">No photographs in this project yet.</p>
       ) : (
         <ul className="photo-grid" aria-label="Photographs in this project">
           {photos.map((photo) => {

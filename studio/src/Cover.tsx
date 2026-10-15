@@ -328,7 +328,7 @@ export function Cover({ d }: { d: Draft }) {
     />
   );
   const sideTabs = [
-    ['properties', selected && selected !== 'photo' ? 'Text' : 'Photo'],
+    ['properties', 'Properties'],
     ['checks', blocking ? `Checks (${blocking})` : 'Checks'],
   ] as const;
 
@@ -425,7 +425,11 @@ export function Cover({ d }: { d: Draft }) {
             >
               Undo
             </button>
-            <div role="group" aria-label="Preview source" className="segmented-inline stage-source">
+            <div
+              role="group"
+              aria-label="Draft or built cover"
+              className="segmented-inline stage-source"
+            >
               <button type="button" aria-pressed={!showBuilt} onClick={() => setSource('draft')}>
                 Draft
               </button>
