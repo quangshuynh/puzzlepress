@@ -326,8 +326,8 @@ test('view boxes, drag mapping and layer edits use Python geometry and points', 
   expect(spine.x + spine.width).toBeGreaterThan(g.regions.spine.x + g.regions.spine.width);
   // Dragging the photo right and down moves the focal point left and up.
   const moved = dragFocal(layout, 40, 30, 0.5);
-  expect(moved.x).toBeLessThanOrEqual(layout.photo.center[0]);
-  expect(moved.y).toBeLessThan(layout.photo.center[1]);
+  expect(moved.x).toBeLessThanOrEqual(layout.photo!.center[0]);
+  expect(moved.y).toBeLessThan(layout.photo!.center[1]);
   expect(dragFocal(layout, -1e6, -1e6, 1)).toEqual({ x: 1, y: 1 });
   // Screen pixels map to points at every zoom; y flips from screen-down to PDF-up.
   for (const scale of [0.4, 1, 2.5, 4]) {

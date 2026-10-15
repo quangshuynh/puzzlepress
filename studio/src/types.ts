@@ -33,7 +33,10 @@ export interface MatterItem {
 }
 export interface Composition {
   front_matter: MatterItem[];
-  puzzles: { start: string };
+  puzzles: {
+    start: string;
+    dividers?: { start: 'any' | 'recto'; themes: ThemeDivider[] };
+  };
   solutions: { placement: string; title?: string; per_page?: number; start?: string };
   back_matter: MatterItem[];
   page_numbers: {
@@ -72,6 +75,7 @@ export interface Project {
     composition?: Composition;
     cover?: CoverConfig;
     publishing?: PublishingConfig;
+    interior?: InteriorStyle;
   };
 }
 export interface Cell {
@@ -302,9 +306,10 @@ export interface InteriorStatus {
 // Cover Studio. Geometry, crop windows, resolution and verdicts come from Python.
 export interface CoverConfig {
   version: number;
-  layout: 'full_wrap' | 'front_photo';
-  image: { path: string; sha256: string };
-  crop: { x: number; y: number; zoom: number };
+  // Versions 1 and 2 only; version 3 places photographs as elements.
+  layout?: 'full_wrap' | 'front_photo';
+  image?: { path: string; sha256: string };
+  crop?: Crop;
   type: {
     style: 'editorial' | 'bold' | 'minimal';
     position: 'top' | 'middle' | 'bottom';
@@ -312,14 +317,76 @@ export interface CoverConfig {
     tone: 'light' | 'dark';
   };
   legibility: 'shade' | 'panel' | 'none';
-  background: string;
+  background?: string;
   spine_text: 'auto' | 'none';
   back_text?: string;
   // Version 2: per-layer overrides, extra layers and imported fonts.
   text?: Partial<Record<TextRole, TextLayer>>;
   extra?: ExtraLayer[];
   fonts?: CoverFont[];
+  // Version 3: independent region backgrounds and the element stack, bottom to top.
+  regions?: Record<PanelRegion, RegionStyle>;
+  elements?: CoverElement[];
 }
+export interface Crop {
+  x: number;
+  y: number;
+  zoom: number;
+}
+export type PanelRegion = 'back' | 'spine' | 'front';
+export type ElementRegion = PanelRegion | 'wrap';
+export interface RegionStyle {
+  color: string;
+  gradient?: { to: string; direction: 'vertical' | 'horizontal' };
+}
+export interface ElementBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+interface ElementBase {
+  id: string;
+  region: ElementRegion;
+  visible?: boolean;
+  locked?: boolean;
+  name?: string;
+}
+export interface PhotoElement extends ElementBase {
+  type: 'photo';
+  image: { path: string; sha256: string };
+  crop: Crop;
+  box?: ElementBox;
+}
+export interface ShapeElement extends ElementBase {
+  type: 'rect' | 'ellipse';
+  box?: ElementBox;
+  fill: string | null;
+  stroke: string | null;
+  stroke_width?: number;
+  opacity?: number;
+  rotation?: number;
+}
+export interface LineElement extends ElementBase {
+  type: 'line';
+  from: { x: number; y: number };
+  to: { x: number; y: number };
+  color: string;
+  width: number;
+}
+export interface TextBoxElement extends ElementBase {
+  type: 'text';
+  box: ElementBox;
+  text: string;
+  font?: string;
+  size: number;
+  color: string;
+  align: 'left' | 'center' | 'right';
+  line_spacing: number;
+  letter_spacing?: number;
+  case?: 'as_written' | 'upper';
+}
+export type CoverElement = PhotoElement | ShapeElement | LineElement | TextBoxElement;
 export type TextRole = 'title' | 'subtitle' | 'author' | 'back_text' | 'imprint';
 export interface TextLayer {
   visible?: boolean;
@@ -434,14 +501,46 @@ export interface CoverLayoutView {
     box: PtBox;
   }[];
   panels: { role: string; box: PtBox }[];
-  photo: {
-    region: PtBox;
-    window: { left: number; top: number; right: number; bottom: number };
-    center: [number, number];
-    pixels: [number, number, number, number];
-  };
-  resolution: CoverResolution;
+  // The first photograph (versions 1 and 2 have exactly one); null without photos.
+  photo: CoverPhotoView | null;
+  photos?: CoverPhotoView[];
+  elements?: {
+    role: string;
+    layer: string; // element:<id>
+    kind: 'photo' | 'rect' | 'ellipse' | 'line' | 'text';
+    box: PtBox;
+    bounds: PtBox;
+    rotation: number;
+    baked?: boolean;
+  }[];
+  regions?: Record<ElementRegion, { origin: PtBox; area: PtBox }>;
+  warnings?: BuildDiagnostic[];
+  resolution: CoverResolution | null;
   spine_text: CoverSpine;
+}
+export interface CoverPhotoView {
+  role: string;
+  layer: string;
+  region: PtBox;
+  window: { left: number; top: number; right: number; bottom: number };
+  center: [number, number];
+  pixels: [number, number, number, number];
+  resolution: CoverResolution;
+}
+export interface CoverConversion {
+  success: boolean;
+  stage?: string;
+  diagnostics?: BuildDiagnostic[];
+  cover?: CoverConfig;
+  identical?: boolean;
+  layout?: CoverLayoutView;
+  preview?: { pdf_sha256: string; scales: Record<string, number> };
+}
+export interface CoverPreset {
+  id: string;
+  name: string;
+  description: string;
+  cover: CoverConfig;
 }
 export interface CoverCheck {
   code: string;
@@ -882,4 +981,195 @@ export interface PlanningOptions {
   print_profiles: { id: string; description: string }[];
   puzzle_types: string[];
   directions: string[];
+}
+
+// Asset library. References and every removal decision come from Python.
+export interface AssetUse {
+  source: 'saved' | 'draft';
+  path: string;
+  label: string;
+  area: string;
+}
+export interface LibraryAsset {
+  kind: 'photo' | 'font';
+  path: string;
+  name: string;
+  bytes: number;
+  sha256: string | null;
+  facts: Record<string, unknown>;
+  problem: string | null;
+  uses: AssetUse[];
+  in_use: boolean;
+}
+export interface TrashEntry {
+  kind: 'photo' | 'font';
+  trashed: string;
+  restores_to: string;
+  bytes: number;
+  sha256: string;
+}
+export interface AssetListing {
+  revision: string;
+  assets: LibraryAsset[];
+  unmanaged: string[];
+  trash: TrashEntry[];
+}
+// Interior style (the book's interior section). Python resolves presets and renders pages.
+export interface InteriorStyle {
+  version: number;
+  preset: 'classic' | 'editorial' | 'modern' | 'high_contrast';
+  folio?: 'center' | 'outside';
+  title_page?: {
+    layout?: 'minimal' | 'editorial' | 'color_block' | 'framed' | 'photo_feature';
+    tint?: number;
+    title_size?: number;
+    align?: 'center' | 'left';
+    rule?: boolean;
+    photo?: { image: { path: string; sha256: string }; crop: Crop };
+  };
+  puzzle_pages?: {
+    header_align?: 'center' | 'left';
+    title_size?: number;
+    title_bold?: boolean;
+    theme_label?: boolean;
+    theme_size?: number;
+    header_rule?: boolean;
+    grid_frame?: number;
+    word_size?: number;
+    word_columns?: number;
+    word_rule?: boolean;
+  };
+  solution_pages?: { caption_size?: number; mark_width?: number; muted_ink?: number };
+  dividers?: {
+    layout?: 'centered' | 'framed' | 'band';
+    tint?: number;
+    photos?: { theme: string; image: { path: string; sha256: string }; crop: Crop }[];
+  };
+}
+export interface ThemeDivider {
+  theme: string;
+  title?: string;
+  text?: string;
+  quote?: string;
+  attribution?: string;
+}
+export interface InteriorDraft {
+  success: boolean;
+  stage?: string;
+  diagnostics?: BuildDiagnostic[];
+  pdf_sha256?: string;
+  page_count?: number;
+  pages?: { index: number; physical_page: number; kind: string; folio: string | null }[];
+  design?: Record<string, unknown>;
+  warnings?: BuildDiagnostic[];
+}
+// Editorial review: author judgments bound to Python's review identities.
+export type ReviewState = 'not_reviewed' | 'needs_changes' | 'reviewed' | 'stale';
+export interface RecordedReview {
+  puzzle: string;
+  status: 'not_reviewed' | 'needs_changes' | 'reviewed';
+  content?: string;
+  note?: string;
+  reviewer?: string;
+  reviewed_on?: string;
+}
+export interface PuzzleReviewState {
+  puzzle: string;
+  title: string;
+  theme: string;
+  identity: string;
+  state: ReviewState;
+  recorded: RecordedReview | null;
+}
+export interface ReviewSummary {
+  total: number;
+  reviewed: number;
+  needs_changes: number;
+  not_reviewed: number;
+  stale: number;
+  complete: boolean;
+  require_all: boolean;
+}
+export interface ReviewStatusResponse {
+  source_revision: string;
+  revision: string | null;
+  report: { summary: ReviewSummary; puzzles: PuzzleReviewState[]; orphaned: RecordedReview[] };
+}
+// Proof records and the production overview.
+export interface ProofArtifacts {
+  interior: string;
+  interior_pdf: string;
+  cover: string | null;
+  cover_pdf: string | null;
+}
+export interface ProofRecordView {
+  id: string;
+  kind: 'print_previewer' | 'physical_proof';
+  status: 'ordered' | 'received' | 'reviewed';
+  decision: 'undecided' | 'changes_needed' | 'approved';
+  artifacts: ProofArtifacts;
+  received_on?: string;
+  reviewed_on?: string;
+  issues?: string[];
+  note?: string;
+}
+export interface ProofState {
+  record: ProofRecordView;
+  current: boolean;
+}
+export interface ProofsResponse {
+  revision: string | null;
+  artifacts: ProofArtifacts | null;
+  proofs: ProofState[];
+  print_previewer: ProofState | null;
+  physical_proof: ProofState | null;
+}
+export type ItemStatus =
+  | 'completed'
+  | 'needs_attention'
+  | 'blocking'
+  | 'not_applicable'
+  | 'awaiting_review'
+  | 'external_pending';
+export interface ProductionItem {
+  code: string;
+  title: string;
+  status: ItemStatus;
+  basis: 'internal' | 'kdp_modeled' | 'author_judgment' | 'external';
+  blocks_export: boolean;
+  what: string;
+  why: string;
+  action: string | null;
+  area: string;
+  detail: string;
+}
+export interface ArtifactAssessment {
+  artifacts: { name: string; state: string; reasons: string[]; depends_on: string[] }[];
+  steps: { action: string; artifact: string; why: string; conditional: boolean }[];
+  manual: string[];
+  outdated: boolean;
+}
+export interface RebuildStepResult {
+  action: string;
+  status: 'succeeded' | 'failed' | 'skipped' | 'unchanged';
+  message: string;
+  stage: string | null;
+  diagnostics: BuildDiagnostic[];
+}
+export interface ProductionStatus {
+  key: string;
+  revision: string;
+  statement: string;
+  items: ProductionItem[];
+  stages: { code: string; title: string; reached: boolean | null; detail: string }[];
+  proofing: { code: string; title: string; area: string }[];
+  assessment: ArtifactAssessment;
+  reviews: ReviewSummary;
+  proofs: ProofsResponse;
+  rebuild?: {
+    success: boolean;
+    code?: string;
+    message?: string;
+    results: RebuildStepResult[];
+  };
 }

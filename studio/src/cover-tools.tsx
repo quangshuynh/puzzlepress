@@ -1,16 +1,30 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { request, upload } from './api';
 import { ROLES, addExtra, fontId, fontUsers, layerOf, setLayer } from './cover-model';
-import { FieldErrors, matchIssues } from './editor-fields';
-import type { CoverAsset, CoverConfig, CoverLibrary, FontFacts, Issue, PhotoOption } from './types';
+import { AssetsPanel } from './assets';
+import { LayersTab, PresetsSection, RegionPicker, ShapesTab } from './cover-elements';
+import { FieldErrors, matchIssues, type Source } from './editor-fields';
+import type {
+  CoverAsset,
+  CoverConfig,
+  CoverLayoutView,
+  CoverLibrary,
+  ElementRegion,
+  FontFacts,
+  Issue,
+  PhotoOption,
+} from './types';
 
 // Left-hand Cover Studio tools: the photo library, text layers, fonts and the
 // cover's design presets. Each tab edits authored values only.
 
 export const TOOL_TABS = [
-  ['photo', 'Photo'],
+  ['layers', 'Layers'],
+  ['photo', 'Photos'],
   ['text', 'Text'],
+  ['shapes', 'Shapes'],
   ['fonts', 'Fonts'],
+  ['assets', 'Assets'],
   ['design', 'Design'],
 ] as const;
 export type ToolTab = (typeof TOOL_TABS)[number][0];
@@ -105,6 +119,11 @@ function dpiText(photo: PhotoOption) {
   );
 }
 
+function inUse(cover: CoverConfig, path: string) {
+  if (cover.image) return cover.image.path === path;
+  return (cover.elements ?? []).some((e) => e.type === 'photo' && e.image.path === path);
+}
+
 export function PhotoLibrary({
   projectKey,
   cover,
@@ -114,6 +133,7 @@ export function PhotoLibrary({
   onChoose,
   notice,
   setNotice,
+  placeLabel,
 }: {
   projectKey: string;
   cover: CoverConfig;
@@ -123,6 +143,7 @@ export function PhotoLibrary({
   onChoose: (asset: CoverAsset) => void;
   notice: string;
   setNotice: (message: string) => void;
+  placeLabel?: string;
 }) {
   const [assets, setAssets] = useState<CoverAsset[]>();
   const [busy, setBusy] = useState(false);
@@ -192,7 +213,7 @@ export function PhotoLibrary({
       ) : (
         <ul className="photo-grid" aria-label="Photographs in this project">
           {photos.map((photo) => {
-            const current = photo.path === cover.image.path;
+            const current = inUse(cover, photo.path);
             const comparing = trial?.path === photo.path;
             const name = photo.path.replace('cover-assets/', '');
             return (
@@ -215,7 +236,7 @@ export function PhotoLibrary({
                   {dpiText(photo)}
                 </div>
                 <div className="photo-actions">
-                  {current ? (
+                  {current && !placeLabel ? (
                     <span className="small current-mark">In use</span>
                   ) : (
                     <>
@@ -235,10 +256,10 @@ export function PhotoLibrary({
                         type="button"
                         className="small-button"
                         disabled={!photo.sha256}
-                        aria-label={`Use ${name}`}
+                        aria-label={placeLabel ? `${placeLabel}: ${name}` : `Use ${name}`}
                         onClick={() => onChoose(photo)}
                       >
-                        Use
+                        {placeLabel ? 'Place' : 'Use'}
                       </button>
                     </>
                   )}
@@ -580,34 +601,53 @@ function setFont(
 }
 
 function DesignTab({
+  projectKey,
+  source,
   cover,
   update,
   issues,
+  onConvert,
 }: {
+  projectKey: string;
+  source: Source;
   cover: CoverConfig;
   update: (next: CoverConfig) => void;
   issues: Issue[];
+  onConvert: () => void;
 }) {
   const setType = (next: Partial<CoverConfig['type']>) =>
     update({ ...cover, type: { ...cover.type, ...next } });
+  const regions = cover.version >= 3;
   return (
     <div className="tool-section">
-      <Segmented
-        legend="Layout"
-        value={cover.layout}
-        path="cover.layout"
-        issues={issues}
-        options={[
-          ['full_wrap', 'Full wrap'],
-          ['front_photo', 'Front photo'],
-        ]}
-        onChange={(layout) => update({ ...cover, layout })}
-      />
-      <p className="small muted field-hint">
-        {cover.layout === 'full_wrap'
-          ? 'One photo across back, spine and front.'
-          : 'Photo on the front; spine and back in the fill color.'}
-      </p>
+      {regions ? (
+        <p className="small muted">
+          A region design: the back, spine and front have their own backgrounds (select a region
+          above to color it) and layers. Book text keeps the type preset below.
+        </p>
+      ) : (
+        <>
+          <Segmented
+            legend="Layout"
+            value={cover.layout}
+            path="cover.layout"
+            issues={issues}
+            options={[
+              ['full_wrap', 'Full wrap'],
+              ['front_photo', 'Front photo'],
+            ]}
+            onChange={(layout) => update({ ...cover, layout })}
+          />
+          <p className="small muted field-hint">
+            {cover.layout === 'full_wrap'
+              ? 'One photo across back, spine and front.'
+              : 'Photo on the front; spine and back in the fill color.'}
+          </p>
+          <button type="button" className="small-button" onClick={onConvert}>
+            Convert to region design…
+          </button>
+        </>
+      )}
       <Segmented
         legend="Type preset"
         value={cover.type.style}
@@ -666,16 +706,23 @@ function DesignTab({
         ]}
         onChange={(legibility) => update({ ...cover, legibility })}
       />
-      <ColorField
-        id="cover-background"
-        label="Fill color"
-        value={cover.background}
-        fallback="#26302b"
-        hint="Panels and wherever the photograph does not print."
-        issues={matchIssues(issues, 'cover.background')}
-        path="cover.background"
-        onChange={(background) => update({ ...cover, background })}
-      />
+      {regions && (
+        <p className="small muted field-hint">
+          Shade and panels apply only where book text sits over a photograph.
+        </p>
+      )}
+      {!regions && (
+        <ColorField
+          id="cover-background"
+          label="Fill color"
+          value={cover.background ?? '#26302b'}
+          fallback="#26302b"
+          hint="Panels and wherever the photograph does not print."
+          issues={matchIssues(issues, 'cover.background')}
+          path="cover.background"
+          onChange={(background) => update({ ...cover, background })}
+        />
+      )}
       <Segmented
         legend="Spine text"
         value={cover.spine_text}
@@ -688,6 +735,7 @@ function DesignTab({
         onChange={(spine_text) => update({ ...cover, spine_text })}
       />
       <p className="small muted field-hint">KDP needs 80+ pages and room for 7 pt type.</p>
+      <PresetsSection projectKey={projectKey} source={source} cover={cover} update={update} />
     </div>
   );
 }
@@ -746,37 +794,49 @@ export function CoverTools({
   tab,
   setTab,
   projectKey,
+  source,
   cover,
+  layout,
   library,
   display,
   selected,
+  region,
+  onRegion,
   onSelect,
   update,
   issues,
   trial,
   onTrial,
   onChoosePhoto,
+  onConvert,
   notice,
   setNotice,
 }: {
   tab: ToolTab;
   setTab: (tab: ToolTab) => void;
   projectKey: string;
+  source: Source;
   cover: CoverConfig;
+  layout?: CoverLayoutView;
   library?: CoverLibrary;
   display?: Record<string, string | null>;
   selected: string | null;
+  region: ElementRegion;
+  onRegion: (region: ElementRegion) => void;
   onSelect: (layer: string | null) => void;
   update: (next: CoverConfig) => void;
   issues: Issue[];
   trial: CoverAsset | null;
   onTrial: (asset: CoverAsset | null) => void;
   onChoosePhoto: (asset: CoverAsset) => void;
+  onConvert: () => void;
   notice: string;
   setNotice: (message: string) => void;
 }) {
+  const licenses = Object.fromEntries((cover.fonts ?? []).map((font) => [font.path, font.license]));
   return (
     <section className="cover-panel cover-tools" aria-label="Cover tools">
+      <RegionPicker region={region} onChange={onRegion} />
       <Tabs
         label="Cover tools"
         tabs={TOOL_TABS}
@@ -790,16 +850,30 @@ export function CoverTools({
         aria-labelledby={`cover-tools-tab-${tab}`}
         className="panel-body"
       >
+        {tab === 'layers' && (
+          <LayersTab
+            cover={cover}
+            selected={selected}
+            onSelect={onSelect}
+            update={update}
+            onConvert={onConvert}
+          />
+        )}
         {tab === 'photo' && (
           <PhotoLibrary
             projectKey={projectKey}
             cover={cover}
             library={library}
             trial={trial}
-            onTrial={onTrial}
+            onTrial={cover.image ? onTrial : undefined}
             onChoose={onChoosePhoto}
             notice={notice}
             setNotice={setNotice}
+            placeLabel={
+              cover.version >= 3
+                ? `Place on ${region === 'wrap' ? 'the full wrap' : `the ${region}`}`
+                : undefined
+            }
           />
         )}
         {tab === 'text' && (
@@ -812,6 +886,16 @@ export function CoverTools({
             issues={issues}
           />
         )}
+        {tab === 'shapes' && (
+          <ShapesTab
+            cover={cover}
+            layout={layout}
+            region={region}
+            update={update}
+            onSelect={onSelect}
+            onConvert={onConvert}
+          />
+        )}
         {tab === 'fonts' && (
           <FontsTab
             projectKey={projectKey}
@@ -821,7 +905,33 @@ export function CoverTools({
             issues={issues}
           />
         )}
-        {tab === 'design' && <DesignTab cover={cover} update={update} issues={issues} />}
+        {tab === 'assets' && (
+          <AssetsPanel
+            projectKey={projectKey}
+            draft={source}
+            licenses={licenses}
+            onShowUse={(use) => {
+              const match = use.path.match(/^cover\.elements\.(\d+)\./);
+              if (match) {
+                const element = cover.elements?.[Number(match[1])];
+                if (element) onSelect(`element:${element.id}`);
+              } else if (use.path === 'cover.image') onSelect('photo');
+              else if (use.area === 'book')
+                window.location.assign(`/books/${encodeURIComponent(projectKey)}/interior`);
+              else if (use.path.startsWith('cover.fonts')) setTab('fonts');
+            }}
+          />
+        )}
+        {tab === 'design' && (
+          <DesignTab
+            projectKey={projectKey}
+            source={source}
+            cover={cover}
+            update={update}
+            issues={issues}
+            onConvert={onConvert}
+          />
+        )}
       </div>
     </section>
   );

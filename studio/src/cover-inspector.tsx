@@ -21,6 +21,7 @@ import type {
   CoverReport,
   CoverResolution,
   CoverStatus,
+  Crop,
   Issue,
   PreflightFinding,
   TextLayer,
@@ -31,7 +32,7 @@ import { Status } from './ui';
 // The contextual inspector. Values shown are authored overrides or Python's
 // measurements; nothing here decides a position, size or verdict.
 
-const BUNDLED: [string, string][] = [
+export const BUNDLED: [string, string][] = [
   ['serif-display', 'Newsreader Display'],
   ['serif', 'Newsreader'],
   ['serif-italic', 'Newsreader Italic'],
@@ -39,7 +40,7 @@ const BUNDLED: [string, string][] = [
   ['sans-bold', 'Vera Sans Bold'],
   ['sans-italic', 'Vera Sans Oblique'],
 ];
-const SEVERITY = {
+export const SEVERITY = {
   error: ['fail', 'Blocking'],
   warning: ['review', 'Warning'],
   info: ['neutral', 'Note'],
@@ -51,7 +52,7 @@ const BOOK_FIELD: Record<string, keyof Source['book']> = {
   imprint: 'imprint',
 };
 
-function NumberField({
+export function NumberField({
   id,
   label,
   value,
@@ -104,7 +105,7 @@ function NumberField({
   );
 }
 
-function Group({ title, children }: { title: string; children: ReactNode }) {
+export function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
     <fieldset className="inspector-group">
       <legend>{title}</legend>
@@ -419,7 +420,7 @@ export function LayerInspector({
   );
 }
 
-function Slider({
+export function Slider({
   id,
   label,
   value,
@@ -516,32 +517,40 @@ export function PrintQuality({ resolution }: { resolution: CoverResolution }) {
 }
 
 export function PhotoInspector({
-  cover,
+  name,
+  crop,
+  path,
   resolution,
   center,
-  update,
+  onCrop,
   issues,
+  heading = 'Photograph',
+  children,
 }: {
-  cover: CoverConfig;
-  resolution?: CoverResolution;
+  name: string;
+  crop: Crop;
+  path: string;
+  resolution?: CoverResolution | null;
   center?: [number, number];
-  update: (next: CoverConfig) => void;
+  onCrop: (next: Crop) => void;
   issues: Issue[];
+  heading?: string;
+  children?: ReactNode;
 }) {
-  const crop = cover.crop;
-  const setCrop = (next: Partial<CoverConfig['crop']>) =>
-    update({ ...cover, crop: { ...crop, ...next } });
+  const setCrop = (next: Partial<Crop>) => onCrop({ ...crop, ...next });
+  const id = path.replaceAll('.', '-');
   return (
-    <div className="inspector-body" aria-label="Photograph properties">
+    <div className="inspector-body" aria-label={`${heading} properties`}>
       <div className="inspector-heading">
-        <h3>Photograph</h3>
+        <h3>{heading}</h3>
       </div>
-      <p className="small muted photo-name">{cover.image.path.replace('cover-assets/', '')}</p>
+      <p className="small muted photo-name">{name.replace('cover-assets/', '')}</p>
+      {children}
       <Group title="Crop and position">
         <Slider
-          id="cover-crop-x"
+          id={`${id}-x`}
           label="Focal point, left to right"
-          path="cover.crop.x"
+          path={`${path}.x`}
           issues={issues}
           value={crop.x}
           min={0}
@@ -551,9 +560,9 @@ export function PhotoInspector({
           onChange={(x) => setCrop({ x })}
         />
         <Slider
-          id="cover-crop-y"
+          id={`${id}-y`}
           label="Focal point, top to bottom"
-          path="cover.crop.y"
+          path={`${path}.y`}
           issues={issues}
           value={crop.y}
           min={0}
@@ -563,9 +572,9 @@ export function PhotoInspector({
           onChange={(y) => setCrop({ y })}
         />
         <Slider
-          id="cover-crop-zoom"
+          id={`${id}-zoom`}
           label="Zoom"
-          path="cover.crop.zoom"
+          path={`${path}.zoom`}
           issues={issues}
           value={crop.zoom}
           min={1}
