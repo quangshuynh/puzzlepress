@@ -24,6 +24,7 @@ from .validation import validate_project
 
 PLAN_VERSION = 1
 BLANK_REASON = "section_recto_start"
+DIVIDER_BLANK_REASON = "divider_recto_start"
 
 
 class Section(StrEnum):
@@ -42,6 +43,7 @@ class PageKind(StrEnum):
     PUZZLE = "puzzle"
     SOLUTIONS = "solutions"
     BLANK = "blank"
+    DIVIDER = "divider"  # A theme divider (composition.puzzles.dividers).
 
 
 class Side(StrEnum):
@@ -101,6 +103,26 @@ class MatterContent:
 
 
 @dataclass(frozen=True)
+class DividerContent:
+    """A theme divider page's authored words, exactly as the composition states them."""
+
+    theme: str
+    title: str
+    text: str | None = None
+    quote: str | None = None
+    attribution: str | None = None
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "theme": self.theme,
+            "title": self.title,
+            "text": self.text,
+            "quote": self.quote,
+            "attribution": self.attribution,
+        }
+
+
+@dataclass(frozen=True)
 class PuzzleRef:
     """Authoritative link to one generated puzzle; digest is None if generation failed."""
 
@@ -131,6 +153,7 @@ class PlanPage:
     solutions: tuple[SolutionRef, ...] = ()
     blank_reason: str | None = None
     blank_before: Section | None = None
+    divider: DividerContent | None = None
 
     @property
     def side(self) -> Side:
@@ -148,7 +171,10 @@ class PlanPage:
             }
 
         matter = self.matter
-        return {
+        extra: dict[str, object] = {}
+        if self.divider is not None:  # Only divider pages: earlier plan digests are unchanged.
+            extra["divider"] = self.divider.to_dict()
+        return extra | {
             "index": self.index,
             "side": self.side.value,
             "section": self.section.value,
@@ -198,11 +224,14 @@ class PlanStatistics:
     solutions: int
     first_puzzle_page: int | None
     first_solution_page: int | None
+    divider_pages: int = 0
 
 
 def plan_statistics(pages: tuple[PlanPage, ...]) -> PlanStatistics:
     def count(section: Section) -> int:
-        return sum(p.section is section and p.kind is not PageKind.BLANK for p in pages)
+        return sum(
+            p.section is section and p.kind not in (PageKind.BLANK, PageKind.DIVIDER) for p in pages
+        )
 
     def first(kind: PageKind) -> int | None:
         return next((p.index for p in pages if p.kind is kind), None)
@@ -218,6 +247,7 @@ def plan_statistics(pages: tuple[PlanPage, ...]) -> PlanStatistics:
         solutions=sum(len(p.solutions) for p in pages),
         first_puzzle_page=first(PageKind.PUZZLE),
         first_solution_page=first(PageKind.SOLUTIONS),
+        divider_pages=sum(p.kind is PageKind.DIVIDER for p in pages),
     )
 
 
@@ -256,7 +286,8 @@ class PublicationPlan:
                 "solutions": stats.solutions,
                 "first_puzzle_page": stats.first_puzzle_page,
                 "first_solution_page": stats.first_solution_page,
-            },
+            }
+            | ({"divider_pages": stats.divider_pages} if stats.divider_pages else {}),
             "diagnostics": [
                 {"path": d.path, "code": d.code, "message": d.message} for d in self.diagnostics
             ],
@@ -301,6 +332,8 @@ class _Slot:
     puzzle: PuzzleRef | None = None
     solutions: tuple[SolutionRef, ...] = ()
     blank_before: Section | None = None
+    divider: DividerContent | None = None
+    blank_reason: str = BLANK_REASON
 
 
 def plan_publication(project: Project, report: BatchReport) -> PublicationPlan:
@@ -331,6 +364,8 @@ def plan_publication(project: Project, report: BatchReport) -> PublicationPlan:
     diagnostics: list[ValidationIssue] = []
     refs: list[PuzzleRef] = []
     puzzle_pages: dict[str, int] = {}
+    dividers = composition.dividers
+    previous_theme: str | None = None
     for ordinal, (definition, result) in enumerate(
         zip(content.puzzles, report.puzzles, strict=True), start=1
     ):
@@ -351,6 +386,22 @@ def plan_publication(project: Project, report: BatchReport) -> PublicationPlan:
             None if result.puzzle is None else puzzle_digest(result.puzzle),
         )
         refs.append(ref)
+        if dividers is not None and definition.theme != previous_theme:
+            if dividers.start is SectionStart.RECTO and len(slots) % 2 == 1:
+                slots.append(
+                    _Slot(
+                        Section.PUZZLES,
+                        PageKind.BLANK,
+                        blank_before=Section.PUZZLES,
+                        blank_reason=DIVIDER_BLANK_REASON,
+                    )
+                )
+            entry = dividers.entry(definition.theme)
+            divider_page = DividerContent(
+                entry.theme, entry.title or entry.theme, entry.text, entry.quote, entry.attribution
+            )
+            slots.append(_Slot(Section.PUZZLES, PageKind.DIVIDER, divider=divider_page))
+        previous_theme = definition.theme
         slots.append(_Slot(Section.PUZZLES, PageKind.PUZZLE, puzzle=ref))
         puzzle_pages[ref.id] = len(slots)
     solution_pages: dict[str, int] = {}
@@ -390,7 +441,7 @@ def plan_publication(project: Project, report: BatchReport) -> PublicationPlan:
         number = PageNumber(
             index - front_count if roman_front and not in_front else index,
             NumberStyle.ROMAN if roman_front and in_front else NumberStyle.ARABIC,
-            slot.kind is not PageKind.BLANK and shown[slot.section],
+            slot.kind not in (PageKind.BLANK, PageKind.DIVIDER) and shown[slot.section],
         )
         pages.append(
             PlanPage(
@@ -403,8 +454,9 @@ def plan_publication(project: Project, report: BatchReport) -> PublicationPlan:
                 puzzle=slot.puzzle,
                 solution_page=solution_pages.get(slot.puzzle.id) if slot.puzzle else None,
                 solutions=slot.solutions,
-                blank_reason=BLANK_REASON if slot.kind is PageKind.BLANK else None,
+                blank_reason=slot.blank_reason if slot.kind is PageKind.BLANK else None,
                 blank_before=slot.blank_before,
+                divider=slot.divider,
             )
         )
     frozen = tuple(pages)

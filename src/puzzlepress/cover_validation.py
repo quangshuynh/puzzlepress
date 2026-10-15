@@ -1,4 +1,4 @@
-"""Optional cover section, versions 1 and 2. Collects independent issues; never repairs."""
+"""Optional cover section, versions 1, 2 and 3. Collects independent issues; never repairs."""
 
 import math
 import re
@@ -41,6 +41,7 @@ from .cover_config import (
     TextTone,
     TitlePosition,
 )
+from .cover_design import Element, GradientDirection, Region
 from .errors import ValidationIssue
 
 # A portable asset reference: one level below cover-assets, lowercase, no traversal.
@@ -64,8 +65,13 @@ Choice = TypeVar(
     LayerAlign,
     LayerPanel,
     LetterCase,
+    GradientDirection,
+    Region,
 )
 V2_FIELDS = {"text", "extra", "fonts"}
+V3_FIELDS = {"regions", "elements"}
+# Version 1/2 fields that version 3 replaces with regions and elements.
+V3_REPLACED = {"layout", "image", "crop", "background"}
 LAYER_FIELDS = {
     "visible",
     "text",
@@ -80,6 +86,7 @@ LAYER_FIELDS = {
 }
 FIELDS = {
     *V2_FIELDS,
+    *V3_FIELDS,
     "version",
     "layout",
     "image",
@@ -123,13 +130,39 @@ def validate_cover(
                 "requires_version_2",
                 f"Cover version 1 has no {key!r}; set version: 2 to use text layers and fonts.",
             )
-    image = _image(reader, data.get("image"), f"{path}.image", "image" in data)
-    crop = _crop(reader, data.get("crop", {}), f"{path}.crop")
-    kind = _choice(reader, data.get("layout", "full_wrap"), f"{path}.layout", CoverLayoutKind)
+    if version < 3:
+        for key in sorted(V3_FIELDS & set(data)):
+            reader.issue(
+                f"{path}.{key}",
+                "requires_version_3",
+                f"Cover version {version} has no {key!r}; convert the cover to a version 3 "
+                "region design to use regions and elements.",
+            )
+    else:
+        for key in sorted(V3_REPLACED & set(data)):
+            reader.issue(
+                f"{path}.{key}",
+                "not_in_version_3",
+                f"Cover version 3 has no {key!r}: photographs are elements and each region "
+                "has its own background.",
+            )
+    designed = version >= 3
+    image = (
+        None if designed else _image(reader, data.get("image"), f"{path}.image", "image" in data)
+    )
+    crop = _crop(reader, {} if designed else data.get("crop", {}), f"{path}.crop")
+    kind = _choice(
+        reader,
+        "full_wrap" if designed else data.get("layout", "full_wrap"),
+        f"{path}.layout",
+        CoverLayoutKind,
+    )
     cover_type = _type(reader, data.get("type", {}), f"{path}.type")
     legibility = _choice(reader, data.get("legibility", "shade"), f"{path}.legibility", Legibility)
     spine = _choice(reader, data.get("spine_text", "auto"), f"{path}.spine_text", SpineText)
-    background = data.get("background", CoverConfig.background)
+    background = (
+        CoverConfig.background if designed else data.get("background", CoverConfig.background)
+    )
     if not isinstance(background, str) or not HEX_COLOR.fullmatch(background):
         reader.issue(f"{path}.background", "color", "Use a #RRGGBB sRGB color.")
         background = CoverConfig.background
@@ -144,7 +177,17 @@ def validate_cover(
     font_ids = {font.id for font in fonts}
     text = _text_layers(reader, data.get("text", {}), f"{path}.text", font_ids)
     extra = _extra_layers(reader, data.get("extra", []), f"{path}.extra", font_ids)
-    if reader.issues or image is None:
+    regions = None
+    elements: tuple[Element, ...] = ()
+    if designed:
+        from .cover_design_validation import read_elements, read_regions
+
+        if "regions" not in data:
+            reader.issue(f"{path}.regions", "required", "State the three region backgrounds.")
+        else:
+            regions = read_regions(reader, data["regions"], f"{path}.regions")
+        elements = read_elements(reader, data.get("elements", []), f"{path}.elements", font_ids)
+    if reader.issues or (image is None and not designed) or (designed and regions is None):
         return None, tuple(reader.issues)
     return (
         CoverConfig(
@@ -160,6 +203,8 @@ def validate_cover(
             text=text,
             extra=extra,
             fonts=fonts,
+            regions=regions,
+            elements=elements,
         ),
         (),
     )

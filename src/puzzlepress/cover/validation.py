@@ -8,8 +8,9 @@ Each issue code is also a cover preflight finding code.
 from ..interior.issues import LayoutIssue
 from ..interior.model import Box
 from ..interior.spec import KDP_COVER, to_inches
+from .design import design_issues
 from .geometry import CoverGeometry
-from .model import CoverLayout, CoverText
+from .model import CoverLayout, CoverPhoto, CoverText, CoverTextBox
 
 TOLERANCE = 0.01  # Points, as for interior layout validation.
 FRONT_ROLES = ("title", "subtitle", "author")
@@ -26,8 +27,9 @@ def panel_of(text: CoverText) -> str:
     for panel, roles in PANEL_ROLES.items():
         if text.role in roles:
             return panel
-    for panel in ("front", "back"):  # The author's extra layers: <panel>_extra:<id>.
-        if text.role.startswith(f"{panel}_extra:"):
+    for panel in ("front", "back"):
+        # The author's extra layers (<panel>_extra:<id>) and text boxes (<panel>_element:<id>).
+        if text.role.startswith((f"{panel}_extra:", f"{panel}_element:")):
             return panel
     return "unknown"
 
@@ -156,39 +158,35 @@ def validate_cover_layout(
                 region="cover.background",
             )
         )
-    photo = layout.photo
-    if not g.media.contains(photo.region, TOLERANCE) or not photo.placement.contains(
-        photo.region, TOLERANCE
-    ):
-        issues.append(
-            LayoutIssue(
-                "photo_placement",
-                "The photograph does not cover its region inside the media box.",
-                region="cover.photo",
+    for photo in layout.photos:
+        issues += _photo_issues(layout, photo)
+    if not layout.config.designed:
+        photo = layout.photo
+        if (
+            photo.region.right < g.media.right - TOLERANCE
+            or photo.region.top < g.media.top - TOLERANCE
+        ):
+            issues.append(
+                LayoutIssue(
+                    "insufficient_bleed",
+                    "The photograph stops short of the bleed edge.",
+                    region="cover.photo",
+                )
             )
-        )
-    x0, y0, x1, y1 = photo.pixels
-    scale = photo.window.scale
-    expected = Box(0, 0, (x1 - x0) * scale, (y1 - y0) * scale)
-    if (
-        abs(expected.width - photo.placement.width) > TOLERANCE
-        or abs(expected.height - photo.placement.height) > TOLERANCE
-    ):
-        issues.append(
-            LayoutIssue(
-                "photo_placement",
-                "The photograph is not scaled uniformly.",
-                region="cover.photo",
-            )
-        )
-    if photo.region.right < g.media.right - TOLERANCE or photo.region.top < g.media.top - TOLERANCE:
-        issues.append(
-            LayoutIssue(
-                "insufficient_bleed",
-                "The photograph stops short of the bleed edge.",
-                region="cover.photo",
-            )
-        )
+    issues += design_issues(layout.stack, g)
+    for item in layout.stack:
+        if isinstance(item, CoverTextBox):
+            lines = [t for t in layout.texts if t.role == item.role]
+            if any(not item.box.contains(t.bounds, TOLERANCE) for t in lines):
+                issues.append(
+                    LayoutIssue(
+                        "text_box_overflow",
+                        "The text does not fit its box. Enlarge the box, shorten the text or "
+                        "set a smaller size; nothing is cut off.",
+                        region=f"cover.{item.role}",
+                        actual=f"{len(lines)} lines",
+                    )
+                )
     for panel in layout.panels:
         if not g.media.contains(panel.box, TOLERANCE):
             issues.append(
@@ -214,3 +212,31 @@ def validate_cover_layout(
             )
         )
     return tuple(issues)
+
+
+def _photo_issues(layout: CoverLayout, photo: CoverPhoto) -> list[LayoutIssue]:
+    """A photograph covers its region inside the media box, scaled uniformly."""
+    g = layout.geometry
+    issues: list[LayoutIssue] = []
+    region = f"cover.{photo.role}"
+    if not g.media.contains(photo.region, TOLERANCE) or not photo.placement.contains(
+        photo.region, TOLERANCE
+    ):
+        issues.append(
+            LayoutIssue(
+                "photo_placement",
+                "The photograph does not cover its region inside the media box.",
+                region=region,
+            )
+        )
+    x0, y0, x1, y1 = photo.pixels
+    scale = photo.window.scale
+    expected = Box(0, 0, (x1 - x0) * scale, (y1 - y0) * scale)
+    if (
+        abs(expected.width - photo.placement.width) > TOLERANCE
+        or abs(expected.height - photo.placement.height) > TOLERANCE
+    ):
+        issues.append(
+            LayoutIssue("photo_placement", "The photograph is not scaled uniformly.", region=region)
+        )
+    return issues

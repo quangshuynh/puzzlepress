@@ -1,3 +1,4 @@
+import { ProductionOverview } from './production';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { PublishingChecklist } from './publishing-checklist';
 import { ApiError, request } from './api';
@@ -1244,6 +1245,12 @@ export function Publishing({ d }: { d: Draft }) {
       ) : (
         !statusError && <Loading>Checking metadata, interior and cover…</Loading>
       )}
+      <ProductionOverview
+        projectKey={d.key}
+        revision={d.saved.revision}
+        dirty={d.dirty}
+        onRebuilt={() => setAttempt((n) => n + 1)}
+      />
       <div className="publishing-workspace">
         <div className="publishing-main">
           {pub ? (

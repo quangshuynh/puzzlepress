@@ -66,8 +66,17 @@ export function viewBox(g: CoverGeometry, view: View): PtBox {
 
 // A drag of (dx, dy) screen pixels at `scale` px/pt moves the focal point so the
 // photograph follows the pointer. Uses Python's applied (clamped) window.
-export function dragFocal(layout: CoverLayoutView, dx: number, dy: number, scale: number) {
-  const { region, window, center } = layout.photo;
+export function dragFocal(
+  layout: CoverLayoutView,
+  dx: number,
+  dy: number,
+  scale: number,
+  layer = 'photo',
+) {
+  const photo =
+    layer === 'photo' ? layout.photo : layout.photos?.find((item) => item.layer === layer);
+  if (!photo) return { x: 0.5, y: 0.5 };
+  const { region, window, center } = photo;
   const du = (-dx / scale / region.width) * (window.right - window.left);
   const dv = (-dy / scale / region.height) * (window.bottom - window.top);
   return { x: round(clamp(center[0] + du, 0, 1)), y: round(clamp(center[1] + dv, 0, 1)) };
@@ -242,6 +251,15 @@ export function fontUsers(cover: CoverConfig, id: string): string[] {
 
 export function layerName(cover: CoverConfig, layer: string): string {
   if (layer === 'photo') return 'Photograph';
+  if (layer.startsWith('region:')) return `${layer.slice(7)} region`;
+  if (layer.startsWith('element:')) {
+    const element = cover.elements?.find((e) => e.id === layer.slice(8));
+    if (!element) return 'Element';
+    if (element.name) return element.name;
+    if (element.type === 'text') return `Text box: ${element.text.split('\n')[0].slice(0, 24)}`;
+    const kinds = { photo: 'Photograph', rect: 'Rectangle', ellipse: 'Ellipse', line: 'Line' };
+    return `${kinds[element.type]} ${element.id}`;
+  }
   if (layer === 'spine') return 'Spine text';
   if (layer.startsWith('extra:')) {
     const extra = extraLayer(cover, layer.slice(6));

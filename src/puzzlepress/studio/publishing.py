@@ -79,12 +79,12 @@ class PublishingService:
     def _status(self, key: str) -> dict[str, object]:
         project, revision = self.store.snapshot(key)
         source, directory = self._folders(key, project)
-        photo = source / project.cover.image.path if project.cover else source / "-"
+        photos = [source / i.path for i in project.cover.images()] if project.cover else []
         cache_key = (
             key,
             revision,
             *(_digest(directory / name) for name in WATCHED),
-            _digest(photo),
+            *(_digest(photo) for photo in photos),
         )
         cached = self._reports.get(cache_key)
         if cached is None:

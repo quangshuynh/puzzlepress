@@ -12,7 +12,7 @@ from ..batch import BatchReport
 from ..publication import PageKind, PublicationPlan
 from .engine import page_count_checks
 from .issues import LayoutIssue
-from .model import Box, Element, InteriorLayout, LetterGrid, PhysicalPage, Rule, TextLine
+from .model import Box, Element, InteriorLayout, LetterGrid, Panel, PhysicalPage, Rule, TextLine
 from .spec import KDP
 
 # Containment tolerance in points (far below any visible distance).
@@ -104,9 +104,13 @@ def validate_layout(
         for element in page.elements:
             for code, message in _element_checks(element, content):
                 fail(code, message)
-        boxes = [_bounds(e) for e in page.elements]
+        # Panels are background: text may sit on them, but no grid may.
+        panels = [e for e in page.elements if isinstance(e, Panel)]
+        boxes = [_bounds(e) for e in page.elements if not isinstance(e, Panel)]
         if any(a.overlaps(b, EPSILON) for a, b in combinations(boxes, 2)):
             fail("element_collision", "Layout elements overlap.")
+        if any(p.bounds.overlaps(g.bounds, EPSILON) for p in panels for g in grids):
+            fail("panel_over_grid", "A tinted panel or frame overlaps a puzzle grid.")
     return tuple(issues)
 
 
@@ -122,6 +126,12 @@ def _element_checks(element: Element, content: Box) -> Iterator[tuple[str, str]]
         yield "font_too_small", f"Text {element.role} is below the minimum size."
     if isinstance(element, Rule) and element.width < KDP.min_line_weight:
         yield "line_weight_too_small", f"Rule {element.role} is below the minimum weight."
+    if (
+        isinstance(element, Panel)
+        and element.stroke_gray is not None
+        and element.stroke_width < KDP.min_line_weight
+    ):
+        yield "line_weight_too_small", f"Frame {element.role} is below the minimum weight."
     if isinstance(element, LetterGrid):
         if element.letter_size < KDP.min_font_size:
             yield "font_too_small", "Grid letters are below the minimum size."

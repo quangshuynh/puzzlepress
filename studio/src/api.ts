@@ -1,10 +1,11 @@
-import type { Issue } from './types';
+import type { AssetUse, Issue } from './types';
 
 export class ApiError extends Error {
   constructor(
     message: string,
     readonly code: string,
     readonly issues: Issue[] = [],
+    readonly uses: AssetUse[] = [],
   ) {
     super(message);
   }
@@ -23,12 +24,13 @@ async function send<T>(path: string, signal: AbortSignal, init: RequestInit): Pr
   }
   if (!response.ok) {
     const data = (await response.json().catch(() => null)) as {
-      error?: { message: string; code: string; issues: Issue[] };
+      error?: { message: string; code: string; issues: Issue[]; uses?: AssetUse[] };
     } | null;
     throw new ApiError(
       data?.error?.message ?? 'The server could not complete this request. Try again.',
       data?.error?.code ?? 'server_error',
       data?.error?.issues,
+      data?.error?.uses,
     );
   }
   try {

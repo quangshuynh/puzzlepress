@@ -19,9 +19,26 @@ import {
   type View,
 } from './cover-model';
 import { CoverTools, PhotoLibrary, Tabs, type ToolTab } from './cover-tools';
+import { ConvertDialog, ElementInspector, RegionInspector } from './cover-elements';
+import {
+  ALLOWED,
+  addElement,
+  elementOf,
+  moveElement,
+  photoCrop,
+  setPhotoCrop,
+  updateElement,
+} from './cover-elements-model';
 import { DraftToolbar, type Draft } from './draft';
 import type { Source } from './editor-fields';
-import type { CoverAsset, CoverConfig, CoverDraft, CoverStatus, Issue } from './types';
+import type {
+  CoverAsset,
+  CoverConfig,
+  CoverDraft,
+  CoverStatus,
+  ElementRegion,
+  Issue,
+} from './types';
 import { ErrorState, Loading, Status } from './ui';
 
 // Cover Studio. The preview is a PDFium raster of a real cover PDF rendered by
@@ -80,6 +97,8 @@ export function Cover({ d }: { d: Draft }) {
   const [zoom, setZoom] = useState(1);
   const [selected, setSelected] = useState<string | null>(null);
   const [toolTab, setToolTab] = useState<ToolTab>('photo');
+  const [region, setRegion] = useState<ElementRegion>('wrap');
+  const [converting, setConverting] = useState(false);
   const [side, setSide] = useState<Side>('properties');
   const [dock, setDock] = useState<Dock>('tools');
   const [trial, setTrial] = useState<CoverAsset | null>(null);
@@ -94,7 +113,7 @@ export function Cover({ d }: { d: Draft }) {
   }
   const latest = useRef(d.draft);
   latest.current =
-    trial && d.draft.cover
+    trial && d.draft.cover?.image
       ? ({
           ...d.draft,
           cover: { ...d.draft.cover, image: { path: trial.path, sha256: trial.sha256! } },
@@ -159,10 +178,12 @@ export function Cover({ d }: { d: Draft }) {
     }
   };
   const nudgeCrop = (key: string, big: boolean) => {
-    if (!cover) return false;
+    if (!cover || !selected) return false;
+    const crop = photoCrop(cover, selected);
+    if (!crop || elementOf(cover, selected)?.locked) return false;
     const step = big ? BIG_STEP : STEP;
-    const { x, y, zoom: z } = cover.crop;
-    const moves: Record<string, Partial<CoverConfig['crop']>> = {
+    const { x, y, zoom: z } = crop;
+    const moves: Record<string, Partial<typeof crop>> = {
       ArrowLeft: { x: round(clamp(x - step, 0, 1)) },
       ArrowRight: { x: round(clamp(x + step, 0, 1)) },
       ArrowUp: { y: round(clamp(y - step, 0, 1)) },
@@ -174,11 +195,16 @@ export function Cover({ d }: { d: Draft }) {
     };
     const move = moves[key];
     if (!move) return false;
-    update({ ...cover, crop: { ...cover.crop, ...move } });
+    update(setPhotoCrop(cover, selected, { ...crop, ...move }));
     return true;
   };
   const moveLayer = (layer: string, delta: { x: number; y: number }) => {
     if (!cover) return;
+    if (layer.startsWith('element:')) {
+      const next = moveElement(cover, layer.slice(8), delta.x, delta.y);
+      if (next !== cover) update(next);
+      return;
+    }
     const offset = layerOf(cover, layer).offset ?? { x: 0, y: 0 };
     update(
       setLayer(cover, layer, {
@@ -268,15 +294,45 @@ export function Cover({ d }: { d: Draft }) {
   const resolution = draft?.layout?.resolution;
   const interactive = !showBuilt && Boolean(draft?.success) && !trial;
 
+  const choosePhoto = (asset: CoverAsset) => {
+    if (!asset.sha256) return;
+    const image = { path: asset.path, sha256: asset.sha256 };
+    setTrial(null);
+    if (cover.image) {
+      update({ ...cover, image });
+      return;
+    }
+    const chosen = elementOf(cover, selected);
+    if (chosen?.type === 'photo') {
+      update(updateElement(cover, chosen.id, { image }));
+      return;
+    }
+    const layout = draft?.layout;
+    if (!layout || !ALLOWED.photo.includes(region)) {
+      setNotice('Photographs go on the back, the front or the full wrap, not the spine.');
+      return;
+    }
+    const [next, layer] = addElement(cover, 'photo', region, layout, image);
+    update(next);
+    select(layer);
+  };
   const tools = (
     <CoverTools
       tab={toolTab}
       setTab={setToolTab}
       projectKey={d.key}
+      source={d.draft}
       cover={cover}
+      layout={draft?.layout}
       library={draft?.library}
       display={draft?.display}
       selected={selected}
+      region={region}
+      onRegion={(next) => {
+        setRegion(next);
+        setView(next === 'wrap' ? 'wrap' : next);
+        if (cover.regions) select(`region:${next}`);
+      }}
       onSelect={select}
       update={update}
       issues={issues}
@@ -285,36 +341,54 @@ export function Cover({ d }: { d: Draft }) {
         setTrial(asset);
         setSource('draft');
       }}
-      onChoosePhoto={(asset) => {
-        if (!asset.sha256) return;
-        setTrial(null);
-        update({ ...cover, image: { path: asset.path, sha256: asset.sha256 } });
-      }}
+      onChoosePhoto={choosePhoto}
+      onConvert={() => setConverting(true)}
       notice={notice}
       setNotice={setNotice}
     />
   );
-  const properties =
-    selected && selected !== 'photo' ? (
-      <LayerInspector
-        layer={selected}
-        cover={cover}
-        book={d.draft.book}
-        library={draft?.library}
-        checks={checks}
-        issues={issues}
-        update={update}
-        onSelect={select}
-      />
-    ) : (
-      <PhotoInspector
-        cover={cover}
-        resolution={resolution}
-        center={draft?.layout?.photo.center}
-        update={update}
-        issues={issues}
-      />
-    );
+  const element = elementOf(cover, selected);
+  const firstPhoto = draft?.layout?.photos?.[0]?.layer ?? (cover.image ? 'photo' : null);
+  const properties = element ? (
+    <ElementInspector
+      element={element}
+      cover={cover}
+      layout={draft?.layout}
+      library={draft?.library}
+      checks={checks}
+      issues={issues}
+      update={update}
+      onSelect={select}
+    />
+  ) : selected?.startsWith('region:') || (!selected && !cover.image) ? (
+    <RegionInspector
+      cover={cover}
+      region={(selected?.slice(7) as ElementRegion | undefined) ?? region}
+      issues={issues}
+      update={update}
+    />
+  ) : selected && selected !== 'photo' ? (
+    <LayerInspector
+      layer={selected}
+      cover={cover}
+      book={d.draft.book}
+      library={draft?.library}
+      checks={checks}
+      issues={issues}
+      update={update}
+      onSelect={select}
+    />
+  ) : cover.crop && cover.image ? (
+    <PhotoInspector
+      name={cover.image.path}
+      crop={cover.crop}
+      path="cover.crop"
+      resolution={resolution}
+      center={draft?.layout?.photo?.center}
+      onCrop={(crop) => update({ ...cover, crop })}
+      issues={issues}
+    />
+  ) : null;
   const readiness = statusError ? (
     <ErrorState error={statusError} retry={() => setAttempt((n) => n + 1)} />
   ) : (
@@ -357,7 +431,10 @@ export function Cover({ d }: { d: Draft }) {
                   key={key}
                   type="button"
                   aria-pressed={view === key}
-                  onClick={() => setView(key)}
+                  onClick={() => {
+                    setView(key);
+                    setRegion(key);
+                  }}
                 >
                   {name}
                 </button>
@@ -443,7 +520,21 @@ export function Cover({ d }: { d: Draft }) {
               </button>
             </div>
           </div>
-          {trial && (
+          {converting && (
+            <ConvertDialog
+              projectKey={d.key}
+              source={d.draft}
+              onClose={() => setConverting(false)}
+              onUse={(next) => {
+                update(next);
+                setConverting(false);
+                setSelected(null);
+                setToolTab('layers');
+                setAnnounce('Converted to a region design. Undo restores the previous layout.');
+              }}
+            />
+          )}
+          {trial && cover.image && (
             <div className="compare-bar" role="status">
               <span>
                 Comparing <strong>{trial.path.replace('cover-assets/', '')}</strong>; not applied.
@@ -485,9 +576,13 @@ export function Cover({ d }: { d: Draft }) {
               selected={selected}
               flagged={flaggedLayers(checks)}
               onSelect={select}
-              onCrop={(focal) => update({ ...cover, crop: { ...cover.crop, ...focal } })}
+              onCrop={(layer, focal) => {
+                const crop = photoCrop(cover, layer);
+                if (crop) update(setPhotoCrop(cover, layer, { ...crop, ...focal }));
+              }}
               onNudgeCrop={nudgeCrop}
               onMoveLayer={moveLayer}
+              onMoveElement={moveLayer}
               onAnnounce={setAnnounce}
               fitWidth={mode === 'narrow'}
             />
@@ -507,7 +602,7 @@ export function Cover({ d }: { d: Draft }) {
                 type="button"
                 className="link-button"
                 onClick={() => {
-                  select('photo');
+                  if (firstPhoto) select(firstPhoto);
                   setSide('properties');
                 }}
               >

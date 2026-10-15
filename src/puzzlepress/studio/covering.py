@@ -16,6 +16,7 @@ import hashlib
 import io
 import re
 from collections import OrderedDict
+from dataclasses import replace
 from pathlib import Path
 from threading import Lock
 
@@ -41,7 +42,9 @@ from puzzlepress.cover.build import (
     write_cover,
     write_cover_preflight,
 )
+from puzzlepress.cover.convert import convert_to_regions, design_presets
 from puzzlepress.cover.crop import crop_window
+from puzzlepress.cover.design import region_area, region_origin
 from puzzlepress.cover.font_assets import (
     MAX_FONT_BYTES,
     FontEntry,
@@ -55,10 +58,17 @@ from puzzlepress.cover.font_assets import (
 from puzzlepress.cover.fonts import CoverFace, font_name, missing_characters
 from puzzlepress.cover.issues import CoverError
 from puzzlepress.cover.layout import CoverCopy, cover_display, same_words
-from puzzlepress.cover.model import CoverLayout
+from puzzlepress.cover.model import (
+    CoverLayout,
+    CoverPhoto,
+    CoverShape,
+    ImageResolution,
+    StackItem,
+)
 from puzzlepress.cover.preflight import RULESET_VERSION, preflight_cover, report_bytes
 from puzzlepress.cover.validation import panel_of
-from puzzlepress.cover_config import CoverConfig
+from puzzlepress.cover_config import CoverConfig, CoverImage, Crop
+from puzzlepress.cover_design import PhotoElement, Region
 from puzzlepress.interior import InteriorError
 from puzzlepress.interior.build import check_output_directory
 from puzzlepress.interior.issues import LayoutIssue
@@ -76,7 +86,7 @@ DIGEST = re.compile(r"[0-9a-f]{64}")
 COVER_SCALES = {"preview": 1.0, "detail": 2.5}
 LOCK_WAIT = 60.0
 DRAFT_BUDGET = 160 * 1024 * 1024
-PHOTO_CACHE = 2
+PHOTO_CACHE = 4
 THUMBNAIL_PIXELS = 360
 SPECIMEN_TEXT = "Aa Bb Cc Gg Qq 0123456789"
 # Bundled faces as Studio's font picker lists them: family, style, key.
@@ -94,6 +104,8 @@ def _layer_of(role: str) -> str:
     """The editable layer a measured line belongs to."""
     if role.startswith(("front_extra:", "back_extra:")):
         return "extra:" + role.split(":", 1)[1]
+    if "_element:" in role:
+        return "element:" + role.split(":", 1)[1]
     if role in ("spine_title", "spine_author"):
         return "spine"
     return role
@@ -103,11 +115,50 @@ def _box(box: Box) -> dict[str, float]:
     return {k: round(getattr(box, k), 3) for k in ("x", "y", "width", "height")}
 
 
+def _present_photo(photo: CoverPhoto, resolution: ImageResolution) -> dict[str, object]:
+    left, top, right, bottom = photo.window.normalized()
+    return {
+        "role": photo.role,
+        "layer": _layer_of(photo.role) if photo.role != "photo" else "photo",
+        "region": _box(photo.region),
+        "window": {"left": left, "top": top, "right": right, "bottom": bottom},
+        "center": list(photo.window.center),
+        "pixels": list(photo.pixels),
+        "resolution": resolution.to_dict(),
+    }
+
+
+def _present_item(item: StackItem) -> dict[str, object]:
+    if isinstance(item, CoverPhoto):
+        kind, box, bounds = "photo", item.region, item.region
+    elif isinstance(item, CoverShape):
+        kind, box, bounds = item.kind, item.box, item.bounds
+    else:
+        kind, box, bounds = "text", item.box, item.box
+    return {
+        "role": item.role,
+        "layer": _layer_of(item.role),
+        "kind": kind,
+        "box": _box(box),
+        "bounds": _box(bounds),
+        "rotation": round(item.rotation, 3) if isinstance(item, CoverShape) else 0.0,
+    }
+
+
 def present_layout(layout: CoverLayout) -> dict[str, object]:
     """Authoritative geometry for overlays and crop interaction, in PDF points."""
     g = layout.geometry
-    photo = layout.photo
-    left, top, right, bottom = photo.window.normalized()
+    photos = [
+        _present_photo(photo, res)
+        for photo, res in zip(layout.photos, layout.resolutions, strict=True)
+    ]
+    items: list[dict[str, object]] = []
+    for item in layout.stack:
+        if layout.config.designed:
+            items.append(_present_item(item))
+            if isinstance(item, CoverPhoto):
+                items += [_present_item(shape) | {"baked": True} for shape in item.baked]
+    resolution = layout.resolution
     return {
         "geometry": g.to_dict(),
         "texts": [
@@ -124,13 +175,19 @@ def present_layout(layout: CoverLayout) -> dict[str, object]:
             for text in layout.texts
         ],
         "panels": [{"role": p.role, "box": _box(p.box)} for p in layout.panels],
-        "photo": {
-            "region": _box(photo.region),
-            "window": {"left": left, "top": top, "right": right, "bottom": bottom},
-            "center": list(photo.window.center),
-            "pixels": list(photo.pixels),
+        # The first photograph (versions 1 and 2 have exactly one); None without photos.
+        "photo": photos[0] if photos else None,
+        "photos": photos,
+        "elements": items,
+        "regions": {
+            region.value: {
+                "origin": _box(region_origin(g, region)),
+                "area": _box(region_area(g, region)),
+            }
+            for region in Region
         },
-        "resolution": layout.resolution.to_dict(),
+        "warnings": [issue.to_dict() for issue in layout.warnings],
+        "resolution": None if resolution is None else resolution.to_dict(),
         "spine_text": layout.spine.to_dict(),
     }
 
@@ -193,6 +250,8 @@ def issue_checks(issues: tuple[LayoutIssue, ...]) -> list[dict[str, str]]:
         layer = layers.get(region, "")
         if "_extra:" in region:
             layer = "extra:" + region.split(":", 1)[1]
+        elif "_element:" in region:
+            layer = "element:" + region.split(":", 1)[1]
         checks.append(
             {
                 "code": issue.code,
@@ -208,23 +267,36 @@ def issue_checks(issues: tuple[LayoutIssue, ...]) -> list[dict[str, str]]:
 def layout_checks(layout: CoverLayout, page_count: int) -> list[dict[str, str]]:
     """Readiness facts a draft can know before a cover is built (no artifacts yet)."""
     checks: list[dict[str, str]] = []
-    res = layout.resolution
-    if res.status == "image_too_small":
+    for photo, res in zip(layout.photos, layout.resolutions, strict=True):
+        layer = "photo" if photo.role == "photo" else _layer_of(photo.role)
+        if res.status == "image_too_small":
+            checks.append(
+                {
+                    "code": "image_too_small",
+                    "severity": "error",
+                    "layer": layer,
+                    "message": f"The photo reaches at most {res.max_dpi:.0f} DPI here; KDP "
+                    f"needs {res.minimum_dpi:g}. Use a larger photograph.",
+                }
+            )
+        elif res.status == "image_low_effective_dpi":
+            checks.append(
+                {
+                    "code": "image_low_effective_dpi",
+                    "severity": "error",
+                    "layer": layer,
+                    "message": f"This crop prints at {res.effective_dpi:.0f} DPI; KDP needs "
+                    f"{res.minimum_dpi:g}. Zoom out (up to {res.max_dpi:.0f} DPI available).",
+                }
+            )
+    for warning in layout.warnings:
+        region = warning.region or ""
         checks.append(
             {
-                "code": "image_too_small",
-                "severity": "error",
-                "message": f"The photo reaches at most {res.max_dpi:.0f} DPI here; KDP needs "
-                f"{res.minimum_dpi:g}. Use a larger photograph.",
-            }
-        )
-    elif res.status == "image_low_effective_dpi":
-        checks.append(
-            {
-                "code": "image_low_effective_dpi",
-                "severity": "error",
-                "message": f"This crop prints at {res.effective_dpi:.0f} DPI; KDP needs "
-                f"{res.minimum_dpi:g}. Zoom out (up to {res.max_dpi:.0f} DPI available).",
+                "code": warning.code,
+                "severity": "warning",
+                "layer": _layer_of(region.removeprefix("cover.")) if "_element:" in region else "",
+                "message": warning.message,
             }
         )
     if page_count < KDP.min_pages:
@@ -280,14 +352,13 @@ class CoverService:
             ) from error
         return source, directory
 
-    def _photo(self, source: Path, project: Project) -> Photo:
-        assert project.cover is not None
-        digest = project.cover.image.sha256
+    def _photo(self, source: Path, image: CoverImage) -> Photo:
+        digest = image.sha256
         with self._lock:
             cached = self._photos.get(digest)
             if cached is not None:
                 self._photos.move_to_end(digest)
-        data = read_asset(source, project.cover.image)  # Always re-verify the file.
+        data = read_asset(source, image)  # Always re-verify the file.
         if cached is not None:
             return cached
         photo = decode_photo(data)
@@ -296,6 +367,10 @@ class CoverService:
             while len(self._photos) > PHOTO_CACHE:
                 self._photos.popitem(last=False)
         return photo
+
+    def _photo_set(self, source: Path, project: Project) -> dict[str, Photo]:
+        assert project.cover is not None
+        return {image.sha256: self._photo(source, image) for image in project.cover.images()}
 
     def _remember(self, pdf: bytes) -> str:
         digest = hashlib.sha256(pdf).hexdigest()
@@ -403,18 +478,18 @@ class CoverService:
                 503, "preview_unavailable", "Install the studio extra (pypdfium2) for previews."
             ) from error
 
-    def _library(self, source: Path, project: Project, region: Box) -> dict[str, object]:
+    def _library(
+        self, source: Path, project: Project, region: Box, crop: Crop
+    ) -> dict[str, object]:
         """Photos with the resolution each reaches here; fonts with the characters they lack."""
         assert project.cover is not None
-        zoom = project.cover.crop.zoom
+        zoom = crop.zoom
         photos = []
         for entry in self._photo_entries(source):
             item: dict[str, object] = {"path": entry.path, "problem": entry.problem}
             if entry.info is not None:
                 item |= entry.info.to_dict()
-                window = crop_window(
-                    entry.info.width, entry.info.height, region, project.cover.crop
-                )
+                window = crop_window(entry.info.width, entry.info.height, region, crop)
                 item["dpi"] = {
                     "effective": round(window.effective_dpi, 2),
                     "max": round(window.max_dpi, 2),
@@ -484,8 +559,8 @@ class CoverService:
             directory / name
             for name in ("cover.pdf", "cover.json", "interior.pdf", "interior.json")
         ]
-        photo = source / project.cover.image.path
-        cache_key = (key, revision, *(_digest(path) for path in [*files, photo]))
+        photos = [source / image.path for image in project.cover.images()]
+        cache_key = (key, revision, *(_digest(path) for path in [*files, *photos]))
         cached = self._reports.get(cache_key)
         if cached is None:
             report = preflight_cover(project, source, directory, built)
@@ -546,10 +621,10 @@ class CoverService:
             source, directory = self._folders(key, project)
             try:
                 interior = read_interior_facts(directory, project, require_current=False)
-                photo = self._photo(source, project)
+                photos = self._photo_set(source, project)
                 fonts = load_cover_fonts(source, project.cover)
                 build = render_cover(
-                    project, interior, photo, fonts=fonts, allow_layout_issues=True
+                    project, interior, photos, fonts=fonts, allow_layout_issues=True
                 )
             except CoverError as error:
                 return {
@@ -572,9 +647,66 @@ class CoverService:
                 + layout_checks(build.layout, interior.page_count),
                 "buildable": not build.layout_issues,
                 "display": cover_display(project.cover, CoverCopy.from_project(project)),
-                "library": self._library(source, project, build.layout.photo.region),
+                "library": self._library(source, project, *_library_frame(build.layout)),
                 "preview": {"pdf_sha256": digest, "scales": COVER_SCALES},
             }
+
+    def convert(self, key: str, source_data: object) -> dict[str, object]:
+        """The version 3 equivalent of a draft's v1/v2 cover, verified by rendering both.
+
+        Nothing is saved: the browser offers the converted cover as a draft edit.
+        """
+        project = self.drafts.validate(key, source_data)
+        cover = project.cover
+        if cover is None:
+            raise StudioError(422, "no_cover", "This draft has no cover section.")
+        if cover.designed:
+            raise StudioError(422, "already_designed", "This cover is already a region design.")
+        converted = convert_to_regions(cover)
+        designed = replace(project, cover=converted)
+        with self.service.exclusive(wait=LOCK_WAIT):
+            source, directory = self._folders(key, project)
+            try:
+                interior = read_interior_facts(directory, project, require_current=False)
+                photos = self._photo_set(source, project)
+                fonts = load_cover_fonts(source, cover)
+                before = render_cover(
+                    project, interior, photos, fonts=fonts, allow_layout_issues=True
+                )
+                after = render_cover(
+                    designed, interior, photos, fonts=fonts, allow_layout_issues=True
+                )
+            except CoverError as error:
+                return {
+                    "success": False,
+                    "stage": error.stage,
+                    "diagnostics": [issue.to_dict() for issue in error.issues],
+                }
+        digest = self._remember(after.pdf)
+        return {
+            "success": True,
+            "cover": converted.to_dict(),
+            "identical": before.pdf == after.pdf,
+            "layout": present_layout(after.layout),
+            "preview": {"pdf_sha256": digest, "scales": COVER_SCALES},
+        }
+
+    def presets(self, key: str, source_data: object) -> dict[str, object]:
+        """Named version 3 starting points from the draft's photograph and colors."""
+        project = self.drafts.validate(key, source_data)
+        if project.cover is None:
+            raise StudioError(422, "no_cover", "This draft has no cover section.")
+        return {
+            "presets": [
+                {
+                    "id": preset.id,
+                    "name": preset.name,
+                    "description": preset.description,
+                    "cover": preset.config.to_dict(),
+                }
+                for preset in design_presets(project.cover)
+            ]
+        }
 
     # ------------------------------------------------------------ rasters
 
@@ -603,6 +735,22 @@ class CoverService:
             raise StudioError(
                 503, "preview_unavailable", "Install the studio extra (pypdfium2) for previews."
             ) from error
+
+
+def _library_frame(layout: CoverLayout) -> tuple[Box, Crop]:
+    """Where library DPI is measured: the first photograph, else the front region."""
+    config = layout.config
+    if layout.photos:
+        photo = layout.photos[0]
+        if config.image is not None:
+            return photo.region, config.crop
+        element = next(
+            e
+            for e in config.elements
+            if isinstance(e, PhotoElement) and photo.role.endswith(f":{e.id}")
+        )
+        return photo.region, element.crop
+    return region_area(layout.geometry, Region.FRONT), Crop()
 
 
 def _digest(path: Path) -> str:

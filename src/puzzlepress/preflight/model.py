@@ -15,7 +15,9 @@ REPORT_VERSION = 1
 RULESET_ID = "puzzlepress-kdp-paperback"
 # 2: live-area containment is the structural `content_in_live_area` rule;
 # `kdp_no_printer_marks` judges only the area beyond the trim.
-RULESET_VERSION = 2
+# 3: styled photographs: `raster_images` accepts the layout's own images and
+# `kdp_image_resolution` measures their effective DPI from the verified layout.
+RULESET_VERSION = 3
 KDP_RULES_CHECKED = "2026-10-07"
 
 

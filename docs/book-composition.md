@@ -106,6 +106,18 @@ Every plan entry is one **logical page** in reading order. Page 1 is a recto
   and the section it precedes. It belongs to the preceding section. Blanks are
   inserted only for this reason, at most one per section start.
 
+`puzzles.dividers` (optional) inserts a `divider` page before each theme group:
+`start` any or recto, and `themes` with each theme's own `title` (default: the
+theme name), `text`, `quote` and `attribution` (the author's words; nothing is
+supplied). Each theme's puzzles must be consecutive in publication order
+(`themes_not_contiguous`); a listed theme no puzzle uses is `unknown_theme`. With
+`start: recto`, one blank with reason `divider_recto_start` precedes a divider
+that would fall on a verso. Dividers belong to the puzzles section and are
+counted but never print a page number; they change
+the page count, so the cover must be rebuilt. Without `dividers`, plans and
+identities are unchanged. Divider styling (layout, tint, photograph) is the
+interior style's ([production design](production-design-polish.md#theme-dividers)).
+
 Back matter follows directly after solutions (or puzzles when solutions are
 omitted). Signatures, imposition and final even-page padding are print concerns
 and are not modelled.
@@ -156,7 +168,8 @@ Quality findings are reported separately and never change a plan.
 
 `logical_pages`, `front_matter_pages`, `puzzle_pages`, `solution_pages`,
 `back_matter_pages`, `blank_pages`, `puzzles`, `solutions`, `first_puzzle_page`
-and `first_solution_page` (logical indexes). These are logical counts. The current
+and `first_solution_page` (logical indexes), plus `divider_pages` only when
+dividers exist. These are logical counts. The current
 renderer prints exactly one physical page per logical page; they are not a KDP
 page count, cost or royalty estimate.
 

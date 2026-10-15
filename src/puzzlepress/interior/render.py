@@ -5,17 +5,25 @@ layouts produce identical bytes. Ink is DeviceGray only; nothing is transparent.
 No annotations, outlines, marks or links are written.
 """
 
+import hashlib
 import io
 import math
+from collections.abc import Mapping
+from typing import Any
 
+from reportlab.pdfbase import pdfdoc
 from reportlab.pdfgen.canvas import Canvas
 
 from .. import __version__
 from .fonts import font_name
-from .model import Anchor, Face, InteriorLayout, LetterGrid, Rule, TextLine
+from .model import Anchor, Face, ImageBlock, InteriorLayout, LetterGrid, Panel, Rule, TextLine
+
+# Encoded grayscale photographs by (physical page, element role).
+EncodedImages = Mapping[tuple[int, str], tuple[bytes, tuple[int, int]]]
 
 
-def render_pdf(layout: InteriorLayout) -> bytes:
+def render_pdf(layout: InteriorLayout, images: EncodedImages | None = None) -> bytes:
+    """Draw `layout`; `images` holds each ImageBlock's encoded DeviceGray JPEG."""
     buffer = io.BytesIO()
     size = (layout.spec.trim.width, layout.spec.trim.height)
     # A TrueType initial font keeps ReportLab from adding an unembedded Helvetica.
@@ -41,6 +49,12 @@ def render_pdf(layout: InteriorLayout) -> bytes:
                 _text(canvas, element)
             elif isinstance(element, Rule):
                 _rule(canvas, element)
+            elif isinstance(element, Panel):
+                _panel(canvas, element)
+            elif isinstance(element, ImageBlock):
+                if images is None or (page.number, element.role) not in images:
+                    raise ValueError(f"No encoded image for {element.role} on page {page.number}")
+                _image(canvas, element, *images[(page.number, element.role)])
             else:
                 _grid(canvas, element)
         canvas.showPage()
@@ -63,6 +77,52 @@ def _rule(canvas: Canvas, rule: Rule) -> None:
     canvas.setStrokeGray(rule.gray)
     canvas.setLineWidth(rule.width)
     canvas.line(rule.x1, rule.y1, rule.x2, rule.y2)
+
+
+def _panel(canvas: Canvas, panel: Panel) -> None:
+    box = panel.box
+    if panel.fill_gray is not None:
+        canvas.setFillGray(panel.fill_gray)
+    if panel.stroke_gray is not None:
+        canvas.setStrokeGray(panel.stroke_gray)
+        canvas.setLineWidth(panel.stroke_width)
+    canvas.rect(
+        box.x,
+        box.y,
+        box.width,
+        box.height,
+        stroke=int(panel.stroke_gray is not None),
+        fill=int(panel.fill_gray is not None),
+    )
+
+
+def _image(canvas: Canvas, block: ImageBlock, jpeg: bytes, size: tuple[int, int]) -> None:
+    """Embed the grayscale JPEG unchanged as one DCTDecode DeviceGray XObject, clipped."""
+    name = "PPInteriorPhoto" + hashlib.sha256(jpeg).hexdigest()[:16]
+    raw: Any = canvas  # ReportLab's private registration API (pinned 5.0.x).
+    if name not in raw._formsinuse:
+        image: Any = pdfdoc.PDFImageXObject(name)
+        image.width, image.height = size
+        image.bitsPerComponent = 8
+        image.colorSpace = "DeviceGray"
+        image.streamContent = jpeg
+        image._filters = ("DCTDecode",)
+        image.mask = None
+        registered = raw._doc.getXObjectName(name)
+        raw._setXObjects(image)
+        raw._doc.Reference(image, registered)
+        raw._doc.addForm(name, image)
+    registered = raw._doc.getXObjectName(name)
+    box, placement = block.box, block.placement
+    canvas.saveState()
+    path = canvas.beginPath()
+    path.rect(box.x, box.y, box.width, box.height)
+    canvas.clipPath(path, stroke=0, fill=0)
+    canvas.translate(placement.x, placement.y)
+    canvas.scale(placement.width, placement.height)
+    raw._code.append(f"/{registered} Do")
+    canvas.restoreState()
+    raw._formsinuse.append(name)
 
 
 def _grid(canvas: Canvas, grid: LetterGrid) -> None:

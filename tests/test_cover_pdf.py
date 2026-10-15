@@ -281,7 +281,7 @@ def test_inspection_catches_tampered_pdfs(demo):
     layout, size = build.layout, build.image_size
 
     def codes(data):
-        return {issue.code for issue in inspect_cover_pdf(data, layout, size)}
+        return {issue.code for issue in inspect_cover_pdf(data, layout, build.image_sizes)}
 
     assert codes(build.pdf) == set()
     writer = PdfWriter(clone_from=io.BytesIO(build.pdf))
@@ -294,8 +294,8 @@ def test_inspection_catches_tampered_pdfs(demo):
     assert codes(b"not a pdf") == {"pdf_unreadable"}
     leaky = photo_bytes(*size, private=True)
     assert "APP1" in jpeg_segments(leaky)
-    assert "pdf_metadata_leak" in codes(render_cover_pdf(layout, leaky, size))
-    assert "pdf_image" in codes(render_cover_pdf(layout, photo_bytes(64, 64), (64, 64)))
+    assert "pdf_metadata_leak" in codes(render_cover_pdf(layout, [(leaky, size)]))
+    assert "pdf_image" in codes(render_cover_pdf(layout, [(photo_bytes(64, 64), (64, 64))]))
 
 
 def test_canonical_fixture_unchanged_by_cover_tests():

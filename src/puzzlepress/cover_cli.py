@@ -174,19 +174,29 @@ def _inspect(loaded: LoadedProject, args: argparse.Namespace) -> int:
     geometry = cover_geometry(
         interior.page_count, interior.trim_width, interior.trim_height, interior.paper
     )
-    photo = inspect_photo(read_asset(loaded.source_path.parent, project.cover.image))
+    photos = {
+        image.sha256: inspect_photo(read_asset(loaded.source_path.parent, image))
+        for image in project.cover.images()
+    }
     fonts = load_cover_fonts(loaded.source_path.parent, project.cover)
     layout = layout_cover(
-        project.book.id, CoverCopy.from_project(project), project.cover, geometry, photo, fonts
+        project.book.id, CoverCopy.from_project(project), project.cover, geometry, photos, fonts
     )
-    data = {
+    resolution = layout.resolution
+    data: dict[str, object] = {
         "success": True,
         "interior": interior.physical() | {"interior_identity": interior.interior_identity},
         "geometry": geometry.to_dict(),
-        "photo": photo.to_dict(),
-        "resolution": layout.resolution.to_dict(),
+        "resolution": None if resolution is None else resolution.to_dict(),
         "spine_text": layout.spine.to_dict(),
     }
+    if project.cover.image is not None:
+        data["photo"] = photos[project.cover.image.sha256].to_dict()
+    else:
+        data["photos"] = [
+            {"role": item.role, **photos[item.sha256].to_dict(), "resolution": res.to_dict()}
+            for item, res in zip(layout.photos, layout.resolutions, strict=True)
+        ]
     if args.json:
         _json(data)
         return 0
@@ -203,10 +213,15 @@ def _inspect(loaded: LoadedProject, args: argparse.Namespace) -> int:
         "authored": "omitted (spine_text: none)",
     }
     print(f"Spine text: {shown[spine.reason]}")
-    print(
-        f"Photo: {photo.width}x{photo.height} px; effective {res.effective_dpi:.0f} DPI "
-        f"(at most {res.max_dpi:.0f}); KDP minimum {res.minimum_dpi:g}: {res.status}"
-    )
+    for item, each in zip(layout.photos, layout.resolutions, strict=True):
+        width, height = each.source_pixels
+        name = "Photo" if item.role == "photo" else f"Photo {item.role.split(':', 1)[1]}"
+        print(
+            f"{name}: {width}x{height} px; effective {each.effective_dpi:.0f} DPI "
+            f"(at most {each.max_dpi:.0f}); KDP minimum {each.minimum_dpi:g}: {each.status}"
+        )
+    if res is None:
+        print("Photo: the design places no photograph")
     return 0
 
 
@@ -234,7 +249,8 @@ def _build(loaded: LoadedProject, args: argparse.Namespace) -> int:
         f"Full wrap {g['width_in']:.4f} x {g['height_in']:.4f} in | spine "
         f"{g['spine_width_in']:.4f} in | {g['page_count']} pages, {g['paper']} paper"
     )
-    print(f"Photo: {res.effective_dpi:.0f} DPI effective ({res.status})")
+    if res is not None:
+        print(f"Photo: {res.effective_dpi:.0f} DPI effective ({res.status})")
     print(f"Cover identity: {manifest['cover_identity']}")
     pdf = manifest["pdf"]
     assert isinstance(pdf, dict)

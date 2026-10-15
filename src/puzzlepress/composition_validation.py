@@ -6,8 +6,11 @@ from .composition import (
     BACK_MATTER_KINDS,
     FRONT_MATTER_KINDS,
     MATTER_FIELDS,
+    MAX_DIVIDER_QUOTE,
+    MAX_DIVIDER_TEXT,
     SOLUTIONS_PER_PAGE,
     Composition,
+    DividerPolicy,
     MatterItem,
     MatterKind,
     NumberingScheme,
@@ -15,7 +18,9 @@ from .composition import (
     SectionStart,
     SolutionPlacement,
     SolutionPolicy,
+    ThemeDivider,
 )
+from .content import PuzzleDefinition
 from .content_validation import _Reader
 from .errors import ValidationIssue
 
@@ -42,9 +47,14 @@ def validate_composition(
         reader, root.get("front_matter", []), f"{path}.front_matter", FRONT_MATTER_KINDS
     )
     back = _matter(reader, root.get("back_matter", []), f"{path}.back_matter", BACK_MATTER_KINDS)
-    puzzles = reader.mapping(root.get("puzzles", {}), f"{path}.puzzles", {"start"})
+    puzzles = reader.mapping(root.get("puzzles", {}), f"{path}.puzzles", {"start", "dividers"})
     puzzles_start = _choice(
         reader, puzzles.get("start", "any"), f"{path}.puzzles.start", SectionStart
+    )
+    dividers = (
+        _dividers(reader, puzzles["dividers"], f"{path}.puzzles.dividers")
+        if "dividers" in puzzles
+        else None
     )
     solutions = _solutions(reader, root.get("solutions"), f"{path}.solutions", "solutions" in root)
     numbers = _page_numbers(reader, root.get("page_numbers", {}), f"{path}.page_numbers")
@@ -56,7 +66,55 @@ def validate_composition(
         )
     if reader.issues or solutions is None:
         return None, tuple(reader.issues)
-    return Composition(solutions, tuple(front), puzzles_start, tuple(back), numbers), ()
+    return (
+        Composition(solutions, tuple(front), puzzles_start, tuple(back), numbers, dividers),
+        (),
+    )
+
+
+def _limited(reader: _Reader, value: object, path: str, limit: int) -> str:
+    text = _body(reader, value, path)
+    if len(text) > limit:
+        reader.issue(path, "text", f"Expected at most {limit} characters.")
+    return text
+
+
+def _dividers(reader: _Reader, raw: object, path: str) -> DividerPolicy:
+    data = reader.mapping(raw, path, {"start", "themes"})
+    start = _choice(reader, data.get("start", "any"), f"{path}.start", SectionStart)
+    themes: list[ThemeDivider] = []
+    seen: set[str] = set()
+    for index, entry in enumerate(
+        reader.sequence(data.get("themes", []), f"{path}.themes", 100, 0)
+    ):
+        item = f"{path}.themes.{index}"
+        values = reader.mapping(entry, item, {"theme", "title", "text", "quote", "attribution"})
+        theme = reader.text(values.get("theme"), f"{item}.theme")
+        if theme in seen:
+            reader.issue(f"{item}.theme", "duplicate", f"Theme {theme!r} is listed twice.")
+        seen.add(theme)
+        title = _title(reader, values["title"], f"{item}.title") if "title" in values else None
+        text = (
+            _limited(reader, values["text"], f"{item}.text", MAX_DIVIDER_TEXT)
+            if "text" in values
+            else None
+        )
+        quote = (
+            _limited(reader, values["quote"], f"{item}.quote", MAX_DIVIDER_QUOTE)
+            if "quote" in values
+            else None
+        )
+        attribution = (
+            _title(reader, values["attribution"], f"{item}.attribution")
+            if "attribution" in values
+            else None
+        )
+        if attribution is not None and quote is None:
+            reader.issue(
+                f"{item}.attribution", "requires_quote", "An attribution belongs to a quote."
+            )
+        themes.append(ThemeDivider(theme, title, text, quote, attribution))
+    return DividerPolicy(start, tuple(themes))
 
 
 def _choice(reader: _Reader, value: object, path: str, enum: type[Choice]) -> Choice:
@@ -170,3 +228,38 @@ def _page_numbers(reader: _Reader, raw: object, path: str) -> PageNumberPolicy:
         _flag(reader, data.get("show_solutions", True), f"{path}.show_solutions"),
         _flag(reader, data.get("show_back_matter", True), f"{path}.show_back_matter"),
     )
+
+
+def divider_issues(
+    composition: Composition, puzzles: tuple[PuzzleDefinition, ...]
+) -> list[ValidationIssue]:
+    """Dividers need each theme's puzzles to be consecutive and name only real themes."""
+    issues: list[ValidationIssue] = []
+    assert composition.dividers is not None
+    finished: set[str] = set()
+    previous: str | None = None
+    for index, puzzle in enumerate(puzzles):
+        if puzzle.theme != previous:
+            if puzzle.theme in finished:
+                issues.append(
+                    ValidationIssue(
+                        f"word_search.puzzles.{index}.theme",
+                        "themes_not_contiguous",
+                        f"Theme {puzzle.theme!r} returns after another theme; divider pages "
+                        "need each theme's puzzles together in publication order.",
+                    )
+                )
+            if previous is not None:
+                finished.add(previous)
+            previous = puzzle.theme
+    known = {puzzle.theme for puzzle in puzzles}
+    for index, entry in enumerate(composition.dividers.themes):
+        if entry.theme not in known:
+            issues.append(
+                ValidationIssue(
+                    f"composition.puzzles.dividers.themes.{index}.theme",
+                    "unknown_theme",
+                    f"No puzzle has the theme {entry.theme!r}.",
+                )
+            )
+    return issues

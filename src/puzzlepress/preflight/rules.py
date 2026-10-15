@@ -10,10 +10,19 @@ import json
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 
-from ..interior.build import interior_identity, toolchain
+from ..interior.build import interior_identity, style_currency, toolchain
 from ..interior.fonts import BUNDLED_FAMILY
 from ..interior.inspection import same_box
-from ..interior.model import Box, Element, LetterGrid, PhysicalPage, Rule, TextLine
+from ..interior.model import (
+    Box,
+    Element,
+    ImageBlock,
+    LetterGrid,
+    Panel,
+    PhysicalPage,
+    Rule,
+    TextLine,
+)
 from ..interior.spec import KDP, PrintSpecification, to_inches
 from .context import Context
 from .model import (
@@ -247,7 +256,10 @@ def _source_current(r: PreflightRule, ctx: Context) -> Check:
                 ),
             )
         )
-    return Check(note="Manifest identity equals the current source identity.")
+    style = style_currency(manifest, ctx.project)
+    if style is not None:
+        return Check((_finding(r, f"{style} Rebuild it.", region="style"),))
+    return Check(note="Manifest identity and style equal the current source.")
 
 
 @rule(
@@ -572,20 +584,43 @@ def _bundled(r: PreflightRule, ctx: Context) -> Check:
     "raster_images",
     Scope.STRUCTURAL,
     Category.CONTENT,
-    "No raster images",
-    "The renderer draws no images; any raster image is foreign to the interior.",
+    "Raster images are the layout's",
+    "Raster images appear only where the verified layout places a styled photograph "
+    "(a photo-feature title page or a theme divider); any other image is foreign.",
     CONTRACT,
 )
 def _images(r: PreflightRule, ctx: Context) -> Check:
     if ctx.facts is None:
         return _skip(NO_PDF)
+    with_images = [p for p in ctx.facts.pages if p.images]
+    # Compare with what the current verified layout places, even when the PDF's
+    # bytes differ from it: an image the layout does not place is foreign.
+    expected = ctx.expected.layout if ctx.expected is not None else None
+    if expected is None:
+        if not with_images:
+            return Check(note="No raster images.")
+        return _skip("No current layout to attribute the images to.")
+    placed = {
+        page.number: sum(isinstance(e, ImageBlock) for e in page.elements)
+        for page in expected.pages
+    }
+    total = sum(placed.values())
     return Check(
         tuple(
-            _finding(r, f"{p.images} raster image(s) on the page.", ctx, p.number, region="images")
+            _finding(
+                r,
+                f"{p.images} raster image(s) on the page; the layout places "
+                f"{placed.get(p.number, 0)}.",
+                ctx,
+                p.number,
+                region="images",
+            )
             for p in ctx.facts.pages
-            if p.images
+            if p.images != placed.get(p.number, 0)
         ),
-        note="No raster images.",
+        note=f"{total} styled photograph(s), as the layout places them."
+        if total
+        else "No raster images.",
     )
 
 
@@ -985,6 +1020,8 @@ def _font_sizes(element: Element) -> Iterator[tuple[str, float]]:
 def _line_weights(element: Element) -> Iterator[tuple[str, float]]:
     if isinstance(element, Rule):
         yield element.role, element.width
+    elif isinstance(element, Panel) and element.stroke_gray is not None:
+        yield element.role, element.stroke_width
     elif isinstance(element, LetterGrid):
         yield f"{element.role}_frame", element.frame_width
         for mark in element.marks:
@@ -1165,18 +1202,47 @@ def _resolution(r: PreflightRule, ctx: Context) -> Check:
     pages = [p for p in ctx.facts.pages if p.images]
     if not pages:
         return _na("The interior contains no raster images.")
+    if ctx.layout is None:
+        # Without the verified layout, the images' printed sizes are unknown.
+        return Check(
+            tuple(
+                _finding(
+                    r,
+                    "PuzzlePress cannot verify the effective resolution of raster images.",
+                    ctx,
+                    p.number,
+                    region="images",
+                    measure=Measure("unverified", KDP.min_image_dpi, "dpi", "at_least"),
+                )
+                for p in pages
+            )
+        )
+    blocks = [
+        (page.number, e)
+        for page in ctx.layout.pages
+        for e in page.elements
+        if isinstance(e, ImageBlock)
+    ]
+    lowest = min(block.effective_dpi for _, block in blocks)
     return Check(
         tuple(
             _finding(
                 r,
-                "PuzzlePress cannot verify the effective resolution of raster images.",
+                f"The {block.role.replace('_', ' ')} prints at {block.effective_dpi:.0f} DPI "
+                f"(at most {block.max_dpi:.0f} available from the photograph).",
                 ctx,
-                p.number,
-                region="images",
-                measure=Measure("unverified", KDP.min_image_dpi, "dpi", "at_least"),
+                number,
+                region=block.role,
+                bounds=block.box,
+                measure=Measure(
+                    round(block.effective_dpi, 1), KDP.min_image_dpi, "dpi", "at_least"
+                ),
             )
-            for p in pages
-        )
+            for number, block in blocks
+            if block.effective_dpi + 1e-9 < KDP.min_image_dpi
+        ),
+        note=f"Lowest effective resolution {lowest:.0f} DPI.",
+        measure=Measure(round(lowest, 1), KDP.min_image_dpi, "dpi", "at_least"),
     )
 
 

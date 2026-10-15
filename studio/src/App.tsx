@@ -11,6 +11,7 @@ import { Print } from './Print';
 import { Cover } from './Cover';
 import { Publishing } from './Publishing';
 import { Planning } from './Planning';
+import { Interior } from './Interior';
 import { useDraft } from './draft';
 
 function usePath(allow: (next: string, current: string) => boolean) {
@@ -69,6 +70,7 @@ function DraftWorkspace({
         <Editor d={draft} />
       </div>
       {section === 'book' && <Composer d={draft} />}
+      {section === 'interior' && <Interior d={draft} />}
       {section === 'cover' && <Cover d={draft} />}
       {section === 'publishing' && <Publishing d={draft} />}
     </>
@@ -121,6 +123,7 @@ function ProjectWorkspace({
     'overview',
     'edit',
     'book',
+    'interior',
     'print',
     'cover',
     'publishing',
@@ -201,8 +204,9 @@ function ProjectWorkspace({
           <Planning projectKey={projectKey} onDirty={trackPlanDirty} />
         </div>
       )}
-      {['edit', 'book', 'cover', 'publishing', 'planning'].includes(section) ? null : section ===
-        'print' ? (
+      {['edit', 'book', 'interior', 'cover', 'publishing', 'planning'].includes(
+        section,
+      ) ? null : section === 'print' ? (
         <Print project={project} dirty={dirty} />
       ) : section === 'overview' ? (
         <Overview project={project} />
@@ -246,6 +250,7 @@ const NAV: { group: string; items: [string, string, string?][] }[] = [
       ['planning', 'Plan'],
       ['edit', 'Puzzles', 'count'],
       ['book', 'Book'],
+      ['interior', 'Interior'],
       ['cover', 'Cover'],
     ],
   },
@@ -345,7 +350,7 @@ export function App() {
     first.current = false;
   }, [path]);
   const match = path.match(
-    /^\/books\/([^/]+)(?:\/(puzzles|quality|edit|book|print|cover|publishing|planning)(?:\/([^/]+))?)?\/?$/,
+    /^\/books\/([^/]+)(?:\/(puzzles|quality|edit|book|interior|print|cover|publishing|planning)(?:\/([^/]+))?)?\/?$/,
   );
   const isLibrary = path === '/' || path === '/books' || path === '/books/';
   return (
@@ -372,9 +377,16 @@ export function App() {
               <Library />
             ) : match &&
               !(
-                ['quality', 'edit', 'book', 'print', 'cover', 'publishing', 'planning'].includes(
-                  match[2],
-                ) && match[3]
+                [
+                  'quality',
+                  'edit',
+                  'book',
+                  'interior',
+                  'print',
+                  'cover',
+                  'publishing',
+                  'planning',
+                ].includes(match[2]) && match[3]
               ) ? (
               <ProjectWorkspace
                 key={match[1]}

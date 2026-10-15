@@ -10,6 +10,7 @@ import {
   viewBox,
   type View,
 } from './cover-model';
+import { elementOf, isPhotoLayer, movable } from './cover-elements-model';
 import type { CoverConfig, CoverLayoutView, PtBox } from './types';
 
 // The cover canvas: a PDFium raster of the real cover PDF with an SVG layer of
@@ -23,6 +24,7 @@ export const OVERLAYS = [
   ['design', 'Type area', 'PuzzlePress keeps type 0.5 in from panel edges'],
   ['barcode', 'Barcode area', 'Lower-right back corner reserved for KDP'],
   ['text', 'Text bounds', 'Measured extent of every line'],
+  ['regions', 'Region boundaries', 'Back, spine and front as the interior sizes them'],
 ] as const;
 export type Overlay = (typeof OVERLAYS)[number][0];
 export const ZOOMS = [1, 1.5, 2, 3, 4] as const;
@@ -94,6 +96,15 @@ function Overlays({ layout, overlays }: { layout: CoverLayoutView; overlays: Set
       )}
       {overlays.has('text') &&
         layout.texts.map((t, i) => <Rect key={i} box={t.box} className="overlay-element" />)}
+      {overlays.has('regions') &&
+        layout.regions &&
+        (['back', 'spine', 'front'] as const).map((key) => (
+          <Rect key={key} box={layout.regions![key].area} className="overlay-region" />
+        ))}
+      {overlays.has('regions') &&
+        (layout.elements ?? []).map((e) => (
+          <Rect key={e.role} box={e.bounds} className="overlay-element" />
+        ))}
     </g>
   );
 }
@@ -116,7 +127,7 @@ function useSize() {
 }
 
 type Drag = {
-  kind: 'photo' | 'layer';
+  kind: 'photo' | 'layer' | 'element';
   layer: string;
   x: number;
   y: number;
@@ -142,6 +153,7 @@ export function CoverCanvas({
   onCrop,
   onNudgeCrop,
   onMoveLayer,
+  onMoveElement,
   onAnnounce,
   fitWidth = false,
 }: {
@@ -158,9 +170,10 @@ export function CoverCanvas({
   selected: string | null;
   flagged: Set<string>;
   onSelect: (layer: string | null) => void;
-  onCrop: (focal: { x: number; y: number }) => void;
+  onCrop: (layer: string, focal: { x: number; y: number }) => void;
   onNudgeCrop: (key: string, big: boolean) => boolean;
   onMoveLayer: (layer: string, delta: { x: number; y: number }) => void;
+  onMoveElement?: (layer: string, delta: { x: number; y: number }) => void;
   onAnnounce: (message: string) => void;
   // Phones: fit the width and let the canvas take the cover's own height.
   fitWidth?: boolean;
@@ -183,16 +196,28 @@ export function CoverCanvas({
   const boxes = layerBoxes(layout);
   const viewName = VIEWS.find(([v]) => v === view)![1].toLowerCase();
   const textSelected = selected !== null && selected !== 'photo' && boxes.has(selected);
-  const photoDrag = drag?.kind === 'photo' && drag.moved;
+  const photoSelected = isPhotoLayer(cover, selected);
+  const elements = layout.elements ?? [];
+  const elementBoxes = new Map(elements.map((e) => [e.layer, e.bounds]));
+  const chosen = elementOf(cover, selected);
+  const elementSelected = chosen !== undefined && chosen.type !== 'photo';
+  const photoDrag = drag?.kind === 'photo' && drag.moved && drag.layer === 'photo';
 
   // The dragged layer's box in points, with snapping to its panel's centre lines.
   let ghost: PtBox | null = null;
   const guides: { x?: number; y?: number } = {};
   let outside = false;
-  if (drag?.kind === 'layer' && drag.moved) {
-    const original = boxes.get(drag.layer)!;
-    const panel = panelOf(drag.layer, cover);
-    const area = panel === 'spine' ? g.regions.spine_safe : g.regions[`${panel}_design`];
+  if ((drag?.kind === 'layer' || drag?.kind === 'element') && drag.moved) {
+    const isElement = drag.kind === 'element';
+    const original = (isElement ? elementBoxes : boxes).get(drag.layer)!;
+    const region = isElement ? elementOf(cover, drag.layer)?.region : undefined;
+    const panel = region ? (region === 'wrap' ? 'front' : region) : panelOf(drag.layer, cover);
+    const area =
+      isElement && region && layout.regions
+        ? layout.regions[region].area
+        : panel === 'spine'
+          ? g.regions.spine_safe
+          : g.regions[`${panel}_design`];
     let dx = drag.dx / scale;
     let dy = -drag.dy / scale;
     const cx = original.x + original.width / 2 + dx;
@@ -217,12 +242,14 @@ export function CoverCanvas({
 
   const finishDrag = () => {
     if (!drag) return;
-    if (drag.moved && drag.kind === 'photo') onCrop(dragFocal(layout, drag.dx, drag.dy, scale));
-    if (drag.moved && drag.kind === 'layer' && ghost) {
-      const original = boxes.get(drag.layer)!;
-      // Snapped ghost position minus the measured box: the change of offset in points.
+    if (drag.moved && drag.kind === 'photo')
+      onCrop(drag.layer, dragFocal(layout, drag.dx, drag.dy, scale, drag.layer));
+    if (drag.moved && (drag.kind === 'layer' || drag.kind === 'element') && ghost) {
+      const original = (drag.kind === 'element' ? elementBoxes : boxes).get(drag.layer)!;
+      // Snapped ghost position minus the measured box: the change in points.
       const delta = { x: round(ghost.x - original.x, 2), y: round(ghost.y - original.y, 2) };
-      onMoveLayer(drag.layer, delta);
+      if (drag.kind === 'element') onMoveElement?.(drag.layer, delta);
+      else onMoveLayer(drag.layer, delta);
       onAnnounce(
         `${layerName(cover, drag.layer)} moved ${delta.x} pt across and ${delta.y} pt up${
           outside ? '; it is outside the safe area' : ''
@@ -234,11 +261,15 @@ export function CoverCanvas({
 
   const help = !interactive
     ? ''
-    : textSelected
-      ? `${layerName(cover, selected!)} selected. Drag it, or use arrow keys to move it by 1 point (Shift for 10). Escape clears the selection.`
-      : selected === 'photo'
-        ? 'Photograph selected. Drag to move it; arrow keys move the focal point (Shift for larger steps); plus and minus zoom; 0 resets the crop.'
-        : 'Select a text layer or the photograph to edit it.';
+    : elementSelected
+      ? chosen!.locked
+        ? `${layerName(cover, selected!)} is locked; unlock it in Layers or Properties to move it.`
+        : `${layerName(cover, selected!)} selected. Drag it, or use arrow keys to move it by 1 point (Shift for 10). Escape cancels a drag or clears the selection.`
+      : textSelected
+        ? `${layerName(cover, selected!)} selected. Drag it, or use arrow keys to move it by 1 point (Shift for 10). Escape clears the selection.`
+        : photoSelected
+          ? `${layerName(cover, selected!)} selected. Drag to move the picture inside its frame; arrow keys move the focal point (Shift for larger steps); plus and minus zoom; 0 resets the crop.`
+          : 'Select a layer or a photograph to edit it.';
   return (
     <div
       className={`cover-canvas${drag ? ' dragging' : ''}${selected === 'photo' ? ' photo-selected' : ''}`}
@@ -255,7 +286,7 @@ export function CoverCanvas({
           event.preventDefault();
           return;
         }
-        if (textSelected && event.key.startsWith('Arrow')) {
+        if ((textSelected || elementSelected) && event.key.startsWith('Arrow')) {
           const step = event.shiftKey ? 10 : 1;
           const delta = {
             ArrowLeft: { x: -step, y: 0 },
@@ -264,12 +295,13 @@ export function CoverCanvas({
             ArrowDown: { x: 0, y: -step },
           }[event.key];
           if (delta) {
-            onMoveLayer(selected!, delta);
+            if (elementSelected) onMoveElement?.(selected!, delta);
+            else onMoveLayer(selected!, delta);
             event.preventDefault();
           }
           return;
         }
-        if (selected === 'photo') {
+        if (photoSelected) {
           const known = ['+', '=', '-', '0'].includes(event.key) || event.key.startsWith('Arrow');
           const key = known ? event.key : (KEY_CODES[event.code] ?? event.key);
           if (onNudgeCrop(key, event.shiftKey)) event.preventDefault();
@@ -280,6 +312,39 @@ export function CoverCanvas({
         const target = event.target as Element;
         const layer = target.getAttribute?.('data-layer');
         event.currentTarget.focus();
+        const element = layer ? elementOf(cover, layer) : undefined;
+        if (element?.type === 'photo') {
+          if (selected !== layer) {
+            onSelect(layer);
+            return;
+          }
+          event.currentTarget.setPointerCapture?.(event.pointerId);
+          setDrag({
+            kind: 'photo',
+            layer: layer!,
+            x: event.clientX,
+            y: event.clientY,
+            dx: 0,
+            dy: 0,
+            moved: false,
+          });
+          return;
+        }
+        if (element) {
+          onSelect(layer);
+          if (element.locked || !movable(element)) return;
+          event.currentTarget.setPointerCapture?.(event.pointerId);
+          setDrag({
+            kind: 'element',
+            layer: layer!,
+            x: event.clientX,
+            y: event.clientY,
+            dx: 0,
+            dy: 0,
+            moved: false,
+          });
+          return;
+        }
         if (layer) {
           onSelect(layer);
           event.currentTarget.setPointerCapture?.(event.pointerId);
@@ -292,6 +357,10 @@ export function CoverCanvas({
             dy: 0,
             moved: false,
           });
+          return;
+        }
+        if (!cover.image) {
+          onSelect(null); // A region design: empty canvas clears the selection.
           return;
         }
         if (selected !== 'photo') {
@@ -342,6 +411,23 @@ export function CoverCanvas({
           aria-hidden="true"
         >
           {overlays.size > 0 && !drag && <Overlays layout={layout} overlays={overlays} />}
+          {interactive &&
+            elements
+              .filter((e) => e.kind !== 'text')
+              .map((e) => (
+                <rect
+                  key={e.layer}
+                  data-layer={e.layer}
+                  className={`layer-hit element-hit${e.layer === selected ? ' selected' : ''}${
+                    flagged.has(e.layer) ? ' flagged' : ''
+                  }`}
+                  x={e.bounds.x}
+                  y={-(e.bounds.y + e.bounds.height)}
+                  width={e.bounds.width}
+                  height={e.bounds.height}
+                  vectorEffect="non-scaling-stroke"
+                />
+              ))}
           {interactive &&
             [...boxes].map(([layer, b]) =>
               layer === 'spine' ? null : (

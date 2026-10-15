@@ -109,6 +109,15 @@ the printed edition, identified by its own cover identity, so editing a crop nev
 stales the interior. Its photograph lives in the project's `cover-assets/` folder.
 Likewise a `publishing` section is never part of canonical build inputs; it has its
 own `pp1-publishing-sha256-` identity, so editing keywords never stales a build.
+An `interior` style section is excluded too: its resolved design enters the
+interior identity only. `composition.puzzles.dividers` is composition and is part
+of canonical inputs when present.
+
+Two optional authored files may sit beside `book.yaml`, outside every identity
+and read by no build: `reviews.yaml` (editorial reviews) and `proofs.yaml` (proof
+records). Each is revision-checked and written atomically; see
+[production design](production-design-polish.md). Removed assets go to
+`cover-assets/.trash/`, which no import or listing reads.
 
 Absent `word_search` is omitted from canonical inputs, preserving all legacy
 identities. Likewise, a present `composition` is included in full with envelope

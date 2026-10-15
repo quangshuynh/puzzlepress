@@ -107,7 +107,7 @@ Formatting Issues" and "Print Options".
 | `page_rotation` | No rotated pages. |
 | `pdf_interactive_features` | No annotations, forms, actions, name trees or bookmarks. |
 | `fonts_bundled` | Only embedded subsets of the bundled Vera Sans faces. |
-| `raster_images` | No raster images (the renderer draws none). |
+| `raster_images` | Raster images appear only where the verified layout places a styled photograph (photo-feature title page or theme divider); any other image is foreign. |
 | `blank_pages` | Plan blanks have no text or painting. |
 | `folios_printed` | Every displayed page number is in the page text. |
 | `content_in_live_area` | Every element's painted extent lies inside the profile's live area. |
@@ -156,8 +156,9 @@ Ambiguities, recorded rather than resolved:
 - **Line weight.** KDP states "0.75 point or 0.01 in"; 0.01 in is 0.72 pt. The
   stricter 0.75 pt applies.
 
-Not modeled here: invisible objects, placeholder text, bleed profiles, color interiors, paper type, per-marketplace trim
-tables and image effective resolution (images make readiness fail as unverified).
+Not modeled here: invisible objects, placeholder text, bleed profiles, color interiors, paper type and
+per-marketplace trim tables. Image resolution is measured from the layout: each
+styled photograph's used source pixels over its printed size, against 300 DPI.
 
 ### Updating KDP rules
 
@@ -170,7 +171,11 @@ tables and image effective resolution (images make readiness fail as unverified)
    the ruleset belongs to inspection, not authored semantics.
 4. Add boundary tests for the new value (`tests/test_preflight.py`).
 
-Ruleset history. **v2**: version 1's `kdp_no_printer_marks` also failed any element
+Ruleset history. **v3**: interior styles may print grayscale photographs, so
+`raster_images` attributes each image to the layout instead of refusing all images,
+and `kdp_image_resolution` measures effective DPI from the layout (previously any
+image failed both as unverified). Books without styled photographs get the same
+verdicts as v2. **v2**: version 1's `kdp_no_printer_marks` also failed any element
 outside the profile's live area. That area is PuzzlePress's own margin choice
 (0.75/0.5/0.625 in), not a KDP rule, and an element past it is not a printer's mark.
 Containment is now the structural `content_in_live_area` rule; `kdp_no_printer_marks`

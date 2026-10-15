@@ -14,6 +14,7 @@ from .identity import build_identity
 from .models import Project
 from .publication import (
     BLANK_REASON,
+    DIVIDER_BLANK_REASON,
     PLAN_VERSION,
     NumberStyle,
     PageKind,
@@ -85,9 +86,12 @@ def verify_publication_plan(
             fail(f"{path}.puzzle", "puzzle", "Exactly puzzle pages reference a puzzle.")
         if (page.kind in _MATTER) != (page.matter is not None):
             fail(f"{path}.matter", "matter", "Exactly matter pages carry matter content.")
+        if (page.kind is PageKind.DIVIDER) != (page.divider is not None):
+            fail(f"{path}.divider", "divider", "Exactly divider pages carry divider content.")
         expected_section = {
             PageKind.PUZZLE: Section.PUZZLES,
             PageKind.SOLUTIONS: Section.SOLUTIONS,
+            PageKind.DIVIDER: Section.PUZZLES,
         }.get(page.kind)
         if expected_section and page.section is not expected_section:
             fail(f"{path}.section", "section", "Page kind is in the wrong section.")
@@ -140,9 +144,13 @@ def verify_publication_plan(
             )
             if ref.digest != expected_digest:
                 fail(f"{path}.digest", "digest", "Puzzle digest does not match generation.")
-    if composition.puzzles_start is SectionStart.RECTO and puzzle_pages:
-        if puzzle_pages[0].side is not Side.RECTO:
+    section_pages = [
+        p for p in pages if p.section is Section.PUZZLES and p.kind is not PageKind.BLANK
+    ]
+    if composition.puzzles_start is SectionStart.RECTO and section_pages:
+        if section_pages[0].side is not Side.RECTO:
             fail("pages", "recto", "Puzzles must start on a recto page.")
+    _check_dividers(pages, project, fail)
 
     _check_solutions(pages, refs, project, fail)
     _check_numbers(pages, project, fail)
@@ -165,6 +173,7 @@ def verify_publication_plan(
         or stats.front_matter_pages != len(composition.front_matter)
         or stats.back_matter_pages != len(composition.back_matter)
         or stats.first_puzzle_page != (puzzle_pages[0].index if puzzle_pages else None)
+        or stats.divider_pages != sum(p.kind is PageKind.DIVIDER for p in pages)
     ):
         fail("statistics", "statistics", "Statistics do not match the planned pages.")
     return PlanVerification(tuple(issues))
@@ -182,6 +191,21 @@ def _check_blank(
     composition = project.composition
     assert composition is not None
     following = pages[position + 1] if position + 1 < len(pages) else None
+    if page.blank_reason == DIVIDER_BLANK_REASON:
+        dividers = composition.dividers
+        if (
+            dividers is None
+            or dividers.start is not SectionStart.RECTO
+            or following is None
+            or following.kind is not PageKind.DIVIDER
+            or page.section is not Section.PUZZLES
+            or page.blank_before is not Section.PUZZLES
+            or page.side is not Side.VERSO
+            or position == 0
+            or pages[position - 1].kind is PageKind.BLANK
+        ):
+            fail(path, "blank", "Blank page is not justified by a recto divider start.")
+        return
     policies = {Section.PUZZLES: puzzles_start, Section.SOLUTIONS: composition.solutions.start}
     if (
         page.blank_reason != BLANK_REASON
@@ -258,9 +282,51 @@ def _check_numbers(pages: tuple[PlanPage, ...], project: Project, fail: _Fail) -
         expected_value = previous.number.value + 1 if previous and continues else 1
         if number.style is not style or number.value != expected_value:
             fail(path, "numbering", "Page number breaks the numbering scheme.")
-        if number.displayed != (page.kind is not PageKind.BLANK and shown[page.section]):
+        printed = page.kind not in (PageKind.BLANK, PageKind.DIVIDER) and shown[page.section]
+        if number.displayed != printed:
             fail(path, "display", "Page number visibility differs from policy.")
         previous = page
+
+
+def _check_dividers(pages: tuple[PlanPage, ...], project: Project, fail: _Fail) -> None:
+    """One divider directly before the first puzzle of each theme group, with its words."""
+    composition, content = project.composition, project.word_search
+    assert composition is not None and content is not None
+    dividers = composition.dividers
+    found = [p for p in pages if p.kind is PageKind.DIVIDER]
+    if dividers is None:
+        if found:
+            fail("pages", "divider", "The composition has no dividers but the plan places some.")
+        return
+    starts: list[str] = []
+    for definition in content.puzzles:
+        if not starts or definition.theme != starts[-1]:
+            starts.append(definition.theme)
+    if [p.divider.theme for p in found if p.divider] != starts:
+        fail("pages", "divider_coverage", "Each theme group needs exactly one divider.")
+        return
+    for page in found:
+        path = f"pages.{page.index - 1}.divider"
+        assert page.divider is not None
+        entry = dividers.entry(page.divider.theme)
+        expected = (entry.title or entry.theme, entry.text, entry.quote, entry.attribution)
+        actual = (
+            page.divider.title,
+            page.divider.text,
+            page.divider.quote,
+            page.divider.attribution,
+        )
+        if actual != expected:
+            fail(path, "divider", "Divider text differs from the composition.")
+        following = pages[page.index] if page.index < len(pages) else None
+        if (
+            following is None
+            or following.puzzle is None
+            or following.puzzle.theme != page.divider.theme
+        ):
+            fail(path, "divider", "A divider must directly precede its theme's first puzzle.")
+        if dividers.start is SectionStart.RECTO and page.side is not Side.RECTO:
+            fail(path, "recto", "Dividers must start on a recto page.")
 
 
 def publication_payload(

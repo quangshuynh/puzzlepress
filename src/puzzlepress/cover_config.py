@@ -11,13 +11,22 @@ in points from the layout's own position), extra text layers and imported fonts.
 A layer override never changes book metadata: hiding the title on the cover
 leaves `book.title` untouched. Every override is optional; a version 2 cover
 without overrides lays out exactly like version 1.
+
+Version 3 (`cover_design`) replaces the single layout, photograph and fill with
+independent back, spine and front regions and an ordered stack of design
+elements; it keeps version 2's text layers, extra layers and fonts. Versions 1
+and 2 are never upgraded implicitly; conversion is an explicit action.
 """
 
 from dataclasses import dataclass, field
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
-COVER_VERSION = 2
-SUPPORTED_VERSIONS = (1, 2)
+if TYPE_CHECKING:
+    from .cover_design import CoverRegions, Element
+
+COVER_VERSION = 3
+SUPPORTED_VERSIONS = (1, 2, 3)
 # Project-relative directory for imported photographs, beside book.yaml.
 ASSET_DIRECTORY = "cover-assets"
 # Imported cover fonts live one level below it.
@@ -226,7 +235,7 @@ class CoverFont:
 
 @dataclass(frozen=True)
 class CoverConfig:
-    image: CoverImage
+    image: CoverImage | None  # Versions 1 and 2; version 3 places photographs as elements.
     layout: CoverLayoutKind = CoverLayoutKind.FULL_WRAP
     crop: Crop = field(default_factory=Crop)
     type: CoverType = field(default_factory=CoverType)
@@ -239,6 +248,25 @@ class CoverConfig:
     text: tuple[tuple[TextRole, TextLayer], ...] = ()
     extra: tuple[ExtraLayer, ...] = ()
     fonts: tuple[CoverFont, ...] = ()
+    # Version 3: region backgrounds and the element stack (bottom to top).
+    regions: "CoverRegions | None" = None
+    elements: "tuple[Element, ...]" = ()
+
+    @property
+    def designed(self) -> bool:
+        """A version 3 cover with independent regions and elements."""
+        return self.version >= 3
+
+    def images(self) -> tuple[CoverImage, ...]:
+        """Every photograph the configuration references, in stack order, once each."""
+        if self.image is not None:
+            return (self.image,)
+        seen: dict[str, CoverImage] = {}
+        for element in self.elements:
+            image = getattr(element, "image", None)
+            if isinstance(image, CoverImage):
+                seen.setdefault(image.sha256 + image.path, image)
+        return tuple(seen.values())
 
     def layer(self, role: TextRole) -> TextLayer:
         return dict(self.text).get(role, TextLayer())
@@ -247,16 +275,27 @@ class CoverConfig:
         return next((f for f in self.fonts if f.id == font_id), None)
 
     def to_dict(self) -> dict[str, object]:
-        data: dict[str, object] = {
-            "version": self.version,
-            "layout": self.layout.value,
-            "image": self.image.to_dict(),
-            "crop": self.crop.to_dict(),
-            "type": self.type.to_dict(),
-            "legibility": self.legibility.value,
-            "background": self.background,
-            "spine_text": self.spine_text.value,
-        }
+        data: dict[str, object] = {"version": self.version}
+        if self.designed:
+            assert self.regions is not None
+            data |= {
+                "type": self.type.to_dict(),
+                "legibility": self.legibility.value,
+                "spine_text": self.spine_text.value,
+                "regions": self.regions.to_dict(),
+                "elements": [element.to_dict() for element in self.elements],
+            }
+        else:
+            assert self.image is not None
+            data |= {
+                "layout": self.layout.value,
+                "image": self.image.to_dict(),
+                "crop": self.crop.to_dict(),
+                "type": self.type.to_dict(),
+                "legibility": self.legibility.value,
+                "background": self.background,
+                "spine_text": self.spine_text.value,
+            }
         if self.back_text is not None:
             data["back_text"] = self.back_text
         text = {role.value: layer.to_dict() for role, layer in self.text if not layer.is_default}

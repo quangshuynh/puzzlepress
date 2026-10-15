@@ -91,7 +91,7 @@ A 48px app bar (logo, Books, a local-only note) stays at the top; main content u
 28px gutters (20px below 1150px, 16px below 600px) up to 1720px. A project opens
 with a one-line header (22px serif title linking to Overview, subtitle, ID,
 language and an Unsaved draft mark) and one grouped navigation rule: Overview, then
-small-caps group labels Create (Plan, Puzzles, Book, Cover) → Review (Print proof,
+small-caps group labels Create (Plan, Puzzles, Book, Interior, Cover) → Review (Print proof,
 Solutions, Quality) → Publish (Publishing). Below 600px the group labels become
 screen-reader text and the links wrap. Draft sections share a compact bar sticky
 under the app bar. Side columns (puzzle navigator, plan, readiness, previews) stay
@@ -124,9 +124,12 @@ Small status marks differ in shape as well as color. The supplied logo is preser
 - Draft bar: section name, a round mark for saved and an amber diamond for unsaved,
   the latest status, then Validate, the section's preview, Revert and Save last.
   The canonical-YAML reminder stays visible in small text.
-- Puzzle navigator: search, theme and difficulty filters, a scrolling ruled list
-  (ordinal, title, theme and level, a review mark) and one puzzle's fields at a
-  time with Previous/Next.
+- Puzzle navigator: search, theme, difficulty and review filters, a review
+  progress line, a scrolling ruled list (ordinal, title, theme and level, a review
+  mark: round for reviewed, a rotated square when stale) and one puzzle's fields
+  at a time with Previous/Next and Next unreviewed. Editorial review is one
+  compact row (state, Mark reviewed, Needs changes, Reset) with notes behind a
+  disclosure; it records what the author decided and never infers it.
 - Lists: ruled project and definition rows, real counts, no decorative statistics.
 - Inspector: semantic letter table, highlighted solution cells with underlines and
   heavier weight, plus a textual coordinate register.
@@ -145,7 +148,8 @@ Small status marks differ in shape as well as color. The supplied logo is preser
   dashed SVG lines over the raster, labeled and off by default; the binding edge
   is marked. Passed checks are secondary disclosures.
 - Cover studio: an editing workspace with three bordered regions of fixed height:
-  tools (Photo, Text, Fonts, Design tabs), the canvas, and an inspector (Properties,
+  tools (a Full wrap/Back/Spine/Front region picker above Layers, Photos, Text,
+  Shapes, Fonts, Assets and Design tabs), the canvas, and an inspector (Properties,
   Checks). The rendered wrap dominates the neutral canvas, a raster of the real
   cover PDF, never an HTML reconstruction. Python's measured text boxes are drawn
   as thin outlines: dashed on hover, solid blue when selected, red when a check
@@ -157,8 +161,24 @@ Small status marks differ in shape as well as color. The supplied logo is preser
   beside its minimum, with the pixels and inches behind it. Below 1200px the tools,
   properties and checks share one tabbed panel beside the canvas, and below 800px
   under it. Overlays are thin labeled lines from Python geometry, off by default.
-  Presets stay few and named; overrides are per text layer; there are no effects,
-  shapes or free graphics.
+  Presets stay few and named; overrides are per text layer. Version 3 covers add
+  native rectangles, ellipses, lines and text boxes in a ruled layer list (top of
+  the stack first, with visibility, lock and forward/backward buttons); regions are
+  outlined in dashed purple. There are no effects, free paths, filters or browser
+  drawing: every element is laid out and rendered by Python. Converting to regions
+  is an explicit dialog showing Python's preview. The asset library is a ruled
+  list with thumbnails, facts and every use; removal goes to a trash with restore,
+  and permanent deletion is a second, red confirmation.
+- Interior: a style sheet beside sample pages. Presets are radio rows with one
+  line each; overrides show "Preset" until set; sections open with a heavy ink
+  rule. Sample pages are rasters of Python's PDF of the draft, labeled with their
+  kind and page, never an HTML imitation of a page.
+- Production: rebuild and final steps are ruled lists. Each artifact and step is a
+  text state; conditional steps say "only if needed"; results appear only after
+  the server confirms them. Checklist items carry a bordered kind label
+  (PuzzlePress rule, modeled KDP requirement, your judgment, outside PuzzlePress)
+  and a status mark, with what, why and where to act behind a disclosure. Proof
+  records are what the author typed; the decision starts undecided.
 - Publishing: a production handoff. A ruled summary (the front panel cropped from
   the real cover raster, book facts, separate text verdicts) above a metadata form
   beside a readiness column. Readiness is an ordered list of what is done and what
@@ -193,8 +213,10 @@ Small status marks differ in shape as well as color. The supplied logo is preser
 - Don't present Cover Studio as an image editor or imply AI generation, and don't
   draw cover type in the browser.
 - Don't let a hidden or restyled cover layer change book metadata.
-- Don't introduce gradients, glass effects, decorative charts or nested cards.
-- Don't imply that no quality findings means publication readiness.
+- Don't introduce gradients, glass effects, decorative charts or nested cards in
+  the interface (a cover region gradient is authored content, rendered by Python).
+- Don't imply that no quality findings means publication readiness, or that an
+  automated check is an editorial review or a proof approval.
 - Don't present future workflows as working navigation.
 - Don't imply preflight readiness means Amazon will accept a book.
 - Don't preselect a declaration, confirmation or ISBN choice for the author, or

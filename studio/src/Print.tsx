@@ -1,3 +1,4 @@
+import { RebuildPanel } from './production';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { ApiError, request } from './api';
 import type {
@@ -727,14 +728,13 @@ function Viewer({ status }: { status: InteriorStatus }) {
   );
 }
 
+const STALE_RULES = [
+  'source_current',
+  'plan_current',
+  'print_profile_current',
+  'toolchain_current',
+];
 const STATE_NOTES: Record<string, ReactNode> = {
-  stale: (
-    <>
-      <strong>This interior is out of date.</strong> The saved source, composition, print profile or
-      renderer changed after it was built. The pages below show the old PDF. Rebuild to proof the
-      current book.
-    </>
-  ),
   invalid: (
     <>
       <strong>This interior failed structural checks.</strong> The files on disk do not match a
@@ -751,6 +751,7 @@ export function Print({ project, dirty }: { project: Project; dirty: boolean }) 
   const [failure, setFailure] = useState<InteriorStatus['build']>();
   const [attempt, setAttempt] = useState(0);
   const [profile, setProfile] = useState<string>();
+  const [rebuilding, setRebuilding] = useState(false);
   const base = `/api/projects/${encodeURIComponent(project.key)}/interior`;
   useEffect(() => {
     const controller = new AbortController();
@@ -867,8 +868,49 @@ export function Print({ project, dirty }: { project: Project; dirty: boolean }) 
       ) : (
         <>
           {status.report && <Verdict report={status.report} />}
+          {status.state === 'stale' && (
+            <div className="print-state stale stale-banner" role="status">
+              <p>
+                <strong>This interior is out of date.</strong> The pages below show the old PDF.
+              </p>
+              <ul className="small">
+                {(status.report?.findings ?? [])
+                  .filter((f) => STALE_RULES.includes(f.rule))
+                  .map((f, i) => (
+                    <li key={i}>{f.message}</li>
+                  ))}
+              </ul>
+              <div className="button-row">
+                <button
+                  type="button"
+                  className="primary small-button"
+                  disabled={busy || dirty}
+                  onClick={() => void build()}
+                >
+                  Rebuild interior
+                </button>
+                <button
+                  type="button"
+                  className="small-button"
+                  aria-expanded={rebuilding}
+                  onClick={() => setRebuilding((open) => !open)}
+                >
+                  Rebuild outdated artifacts…
+                </button>
+              </div>
+            </div>
+          )}
           {STATE_NOTES[status.state] && (
             <p className={`print-state ${status.state}`}>{STATE_NOTES[status.state]}</p>
+          )}
+          {rebuilding && (
+            <RebuildPanel
+              projectKey={project.key}
+              revision={project.revision}
+              dirty={dirty}
+              onDone={() => setAttempt((n) => n + 1)}
+              onClose={() => setRebuilding(false)}
+            />
           )}
           {status.preview && status.report ? (
             <Viewer key={status.preview.pdf_sha256} status={status} />

@@ -15,7 +15,7 @@ from pypdf.errors import PyPdfError
 from pypdf.generic import ArrayObject, DictionaryObject
 
 from .issues import LayoutIssue
-from .model import Box, InteriorLayout
+from .model import Box, ImageBlock, InteriorLayout
 
 BOX_TOLERANCE = 0.01
 IDENTITY_TRANSFORM = b"1 0 0 1 0 0 cm"
@@ -207,6 +207,13 @@ def contract_issues(facts: PdfFacts, layout: InteriorLayout) -> tuple[LayoutIssu
                 fail("pdf_page_size", f"{name} differs from the layout.", number)
         if any(not font.embedded for font in page.fonts):
             fail("font_not_embedded", "A font on the page is not embedded.", number)
+        placed = sum(isinstance(e, ImageBlock) for e in planned.elements)
+        if page.images != placed:
+            fail(
+                "pdf_images",
+                f"The page has {page.images} images; its layout places {placed}.",
+                number,
+            )
         if not planned.elements:
             # Font resources are shared document-wide; a blank page may carry only
             # ReportLab's identity transform and no painting operators.

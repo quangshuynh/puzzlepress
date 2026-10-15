@@ -2,45 +2,62 @@
 
 ## Completed scope
 
-Studio UX and Cover Editor refinement (between Interval 12 and 13) on branch
-`feat/studio-ux-refinement` from main `d7e9695` (Interval 12 merged via PR #6);
+Production design and publishing polish (Interval 12.2) on branch
+`feat/production-design-publishing-polish` from main `ceed0a4` (PR #7 merged);
 pushed, not merged; no PR, tag, release or deployment. No Interval 13 work.
+Guide: docs/production-design-polish.md.
 
-- Cover version 2 (`cover_config`, `cover_validation`, `cover/layout`): per-layer
-  overrides for title, subtitle, author, back text and imprint (visible, display
-  text, font, size, color, align left/center/right, line and letter spacing, case,
-  offset in points), up to 8 extra front/back text layers, up to 8 imported fonts
-  with author-recorded license/source. Version 1 accepted unchanged; v2 without
-  overrides lays out identically. Hiding text never changes `book`; `cover.json`
-  records `display`.
-- Imported fonts (`cover/font_assets`): static TrueType outlines in .ttf/.otf,
-  validated from memory (sfnt directory, OS/2 fsType, checksums via ReportLab);
-  refused: CFF, variable, collections, WOFF, restricted/bitmap-only/no-subsetting,
-  damaged. Content-addressed import into `cover-assets/fonts`, digest-pinned,
-  registered under `PuzzlePressFont-<sha>`; never system fonts. `cover import`
-  takes fonts too.
-- Cover preflight ruleset 2: `cover_fonts` (structural), `cover_font_license`
-  (warning). Publishing ruleset 3: displayed text must match the details
-  (`cover_text_matches`), hidden title/author is the `cover_text_omitted` warning;
-  rights review covers extra cover text and fonts only when used.
-- Studio API: draft cover previews render layouts that fail validation (moved text)
-  and say `buildable: false`; text lines carry `layer`/`face`; `library` gives
-  per-photo DPI and per-font missing characters; new thumbnail, font list/import
-  (`font/ttf|otf`) and specimen endpoints.
-- Studio UI: app bar instead of the sidebar; grouped navigation Create (Plan,
-  Puzzles, Book, Cover) / Review (Print proof, Solutions, Quality) / Publish, URLs
-  unchanged; compact sticky draft bar; Cover Studio workspace (tools, canvas with
-  selectable/draggable text, guides, safe-area warnings, keyboard nudging, undo,
-  zoom; inspector with layer properties and print quality; photo library with
-  compare; fonts with specimens); Puzzles navigator (search, theme/difficulty
-  filters, previous/next, findings beside fields); Book page-sequence strip and
-  built-versus-planned pages; Publishing checklist by stage; Planning compact
-  toolbar and evidence badges; touch targets 44 px on coarse pointers.
+- Cover version 3 (`cover_design`, `cover_design_validation`, `cover/design`,
+  `cover/convert`): back/spine/front regions (color, optional two-stop gradient)
+  and up to 24 stacked elements (photo <=4, rect, ellipse, line, text box) in points
+  from each region's bottom-left trim corner. Strokes are filled even-odd rings;
+  opacity is flattened by Python against one solid color or baked into one photo,
+  else `opacity_not_flattenable`. Layout issues `text_overflow`,
+  `spine_element_outside`, `element_outside_media`; warnings `spine_color_at_fold`,
+  `spine_element_at_fold`, `element_under_barcode`. Cover preflight ruleset 3 adds
+  `kdp_spine_design` and `kdp_barcode_design` (warnings). Explicit
+  `convert_to_regions` renders identical bytes (identity changes); four design
+  presets. Versions 1/2 unchanged.
+- Asset library (`asset_library`, `studio/assets`): photos and fonts with uses in
+  saved source and draft; unused assets move atomically to `cover-assets/.trash/`
+  (restore, purge as a second step); `asset_in_use`, `asset_changed`,
+  `asset_collision`, `asset_unsafe`; save lock held while moving.
+- Interior styles (`interior_style`, `interior_style_validation`,
+  `interior/design`, `interior/images`): optional `interior` v1 with presets
+  classic/editorial/modern/high_contrast and bounded overrides; title layouts
+  minimal/editorial/color_block/framed/photo_feature; DeviceGray tints; grayscale
+  photographs (luma, DeviceGray JPEG, no metadata). Outside build identity; the
+  resolved design (v1) is the manifest `style` input. `sample_interior` renders
+  the first page of each kind for previews. Interior preflight ruleset 3:
+  `raster_images` attributes images to the layout, `kdp_image_resolution`
+  measures DPI from it.
+- Theme dividers (`composition.puzzles.dividers`): `divider` plan pages before
+  each theme group, start any/recto (`divider_recto_start` blank), author text
+  only, `themes_not_contiguous`, `unknown_theme`, `divider_pages` statistic only
+  when non-zero; verified by `publication_verification`.
+- Editorial review (`editorial`, `sidecar`): `reviews.yaml` beside book.yaml,
+  identity `pp1-puzzle-review-sha256-` over book ID, puzzle ID, title, theme,
+  profile grid/directions and ordered words; states not_reviewed, reviewed,
+  needs_changes, stale; optional `require_all` policy (internal gate).
+- Proof records (`proofing`): `proofs.yaml`, print_previewer / physical_proof,
+  bound to interior and cover identities and PDF digests, stale when either
+  changes; decisions only as typed.
+- Production (`production/artifacts`, `rebuild`, `guidance`; `studio/production`):
+  dependency assessment from the readiness report, minimal rebuild plans
+  (cover-only, nothing for metadata/reviews, conditional cover after interior),
+  verified one-step-at-a-time rebuilds with `before_write` source checks
+  (`source_changed`), and an overview with kinds internal / kdp_modeled /
+  author_judgment / external, six statuses, stages and ten proofing steps.
+- Studio: Interior page; Cover region picker and Layers, Shapes, Assets tabs,
+  convert dialog, element inspector; review row, filters and Next unreviewed in
+  Puzzles; stale banner and rebuild panel in Print; Final steps and proof records
+  in Publishing. API rows in docs/studio.md.
 
-Engine 0.1.0; identity, pipeline, composition, plan, print profile, renderer,
-cover renderer (1), cover profile (1), publishing schema, package and planning
-versions unchanged. Existing covers are byte-identical with unchanged identities
-(cover-demo and publishing-demo `cover.pdf` `5dcaf42d…`, compared against main).
+Engine 0.1.0; build identity, pipeline, composition (dividers additive), plan,
+print profile, renderer (2), cover renderer (1), cover profile (1), publishing
+schema, package and planning versions unchanged. Every demo and the synthetic
+production book build byte-identical interiors and covers with unchanged
+identities (compared against main).
 
 ## Architecture and launch
 
@@ -149,7 +166,12 @@ versions unchanged. Existing covers are byte-identical with unchanged identities
 
 ## Cover (docs/cover.md)
 
-- Config: optional `cover` (version 1 or 2; see docs/cover.md) in book.yaml, requires composition,
+- Version 2 (text layers): per-layer overrides for title, subtitle, author, back text
+  and imprint (visible, display text, font, size, color, align, spacing, case,
+  offset), up to 8 extra text layers and 8 imported static TrueType fonts with
+  author-recorded license; hiding text never changes `book`. Version 3: see
+  Completed scope.
+- Config: optional `cover` (version 1, 2 or 3; see docs/cover.md) in book.yaml, requires composition,
   excluded from build identity. layout full_wrap|front_photo; image {path
   `cover-assets/<name>.jpg|png`, sha256}; crop {x, y 0..1, zoom 1..4, 4 dp};
   type {style editorial|bold|minimal, position top|middle|bottom, align
@@ -350,40 +372,47 @@ small external-editor race remains. Drafts memory-only; no autosave/undo/merge.
 
 ## Actual local verification (Windows, Python 3.13.15, Node 24.18.0)
 
-Studio UX refinement, 2026-10-15:
+Production design and publishing polish, 2026-10-15:
 
-- Python: **1416 passed, 5 skipped** (symlink permission), 1 Starlette httpx
-  warning; new: cover v2 schema and layers (34), imported fonts (28: permissions,
-  CFF, variable, collection, WOFF, checksums, import, digest, PDF subset
-  embedding, preflight), publishing display checks (3), Studio cover API (9).
-  Ruff lint and format, strict mypy (96 files), pip check, `git diff --check`.
-- Frontend: tsc, ESLint, Prettier, 71 Vitest, build. Playwright **22/22** with
-  axe (cover: keyboard crop with falling DPI, text drag at fit and 200% checked
-  against Python's re-laid box, nudge, undo, hidden title with book.title kept,
-  font import/use/build/preflight, restricted font refused, four widths). All
-  captures in docs/images/studio regenerated; the cover, editor, book, print,
-  publishing and planning captures were reviewed by eye. No horizontal overflow
-  at 1440, 1024, 768 or 390 px.
-- Compatibility: cover-demo and publishing-demo `cover.pdf` (`5dcaf42d…`) and cover
-  identities equal main's; Studio's draft render of cover-demo has the same PDF
-  digest and identity as before. Interiors unchanged (composition-demo
-  `4e0748fb`). AGENTS.md commands give their documented exits (publish validate
-  and inspect 1: publishing-demo leaves AI disclosure and confirmations open).
-- External book: a copy of puzzlepress-books `books/automotive` (working tree at
-  `2eb9551` plus the author's uncommitted cover edits) loaded in Studio, built
-  (interior `00da6391…` unchanged) and its cover preflighted: structurally valid,
-  not KDP ready only for photo resolution (67 DPI of 300, `image_too_small`). With
-  a hidden title, an imported OFL font on the subtitle and letter spacing, the
-  cover built with that font embedded as a subset, byte-identical across hash
-  seeds, `book.title` unchanged and publishing warning `cover_text_omitted`. The
-  repository's status and book.yaml SHA-256 were identical before and after.
-- KDP help read 2026-10-10: "Fix Paperback and Hardcover Formatting Issues"
-  (files must match book details; fonts fully embedded; fonts may not allow
-  commercial use).
+- Python: **1553 passed, 6 skipped (symlink permission)**, 1 Starlette httpx warning; run with a scratch
+  `--basetemp` and `-p no:cacheprovider` because this machine's
+  `.pytest_cache` folder denies access. Ruff lint and format, strict mypy (115
+  files), pip check, `git diff --check`.
+- Frontend: tsc, ESLint, 79 Vitest, build. Prettier passes except three
+  unchanged e2e files whose Windows CRLF checkout it flags locally. Playwright
+  **28/28** with axe, including `polish.spec.ts` (region conversion, add, nudge,
+  lock, reorder, save and build; asset trash and restore with used assets
+  protected; interior preset, dividers and sample pages; rebuild plan and
+  confirmed results; review record, filter and stale on edit; final steps and a
+  proof record). Captures regenerated and reviewed at 1440, 1024, 768 and 390; no
+  horizontal overflow.
+- Compatibility: every demo book and the synthetic production book give the same
+  interior and cover PDF digests and identities as main; converting cover-demo to
+  regions renders the same bytes.
+- Performance (synthetic 60-puzzle book with the demo cover; medians, same as
+  main within 1 % where both exist): cover open 0.33 s, plain/24-element preview
+  0.47/0.48 s, style preview 0.25 s, interior build 3.5 s, interior preflight
+  0.16 s, cover build 0.68 s, cover preflight 0.28 s, readiness 4.1 s, asset list
+  0.15 s, review navigator 0.15 s, no-op rebuild 4.3 s, rebuild after a puzzle
+  edit 15.2 s.
+- External book: a disposable copy of puzzlepress-books `books/automotive`
+  (`2eb9551` plus the author's uncommitted edits) built interior `f7dc9987…` and
+  cover `5f034847…`, identical to main with equal identities; the cover is
+  structurally valid and KDP ready. Converting it to regions rendered the same
+  bytes and its rebuild rewrote the same `cover.pdf`; a style preview took 0.9 s;
+  the review navigator lists 60 puzzles, none reviewed; the overview blocks only
+  on metadata and export and waits on the author's decisions (AI disclosure,
+  rights, ISBN, classification, content review, plan approval). The repository's
+  status and 15 recorded file digests were identical before and after.
 
 ## Limits and decisions for review
 
-Studio UX refinement: variable, CFF and WOFF fonts are deferred; no kerning or
+Production polish: interior photographs are grayscale and placed with a centred
+crop in Studio (other crops in YAML); no element grouping, alignment tools or
+multi-stop gradients; rotation for rectangles and ellipses only; text boxes take
+one style; reviews and proofs keep no history and have no CLI; a no-op rebuild
+still costs one readiness evaluation (about 4 s at 60 puzzles). Earlier: variable,
+CFF and WOFF fonts are deferred; no kerning or
 ligatures; spine text keeps its preset face; offsets are relative to the
 layout's position, so a preset or text change moves the start point; extra
 layers are plain text only. Cover undo covers the current session only and is

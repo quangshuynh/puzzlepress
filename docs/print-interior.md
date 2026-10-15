@@ -26,7 +26,25 @@ below profile minimums. Content that does not fit fails with a diagnostic.
 Code lives in `puzzlepress.interior`: `spec` (profiles, units, KDP constraints),
 `fonts`, `text` (wrapping), `geometry`, `engine` (layout), `validation`,
 `render` (ReportLab), `inspection` (pypdf) and `build` (pipeline and writer).
-`build_interior(project, spec)` is pure; `write_interior` is the only writer.
+`build_interior(project, spec, source_directory=None)` is pure (the directory
+is read only for styled photographs); `write_interior` is the only writer.
+`sample_interior` lays out every page but renders only the first page of each
+kind a style changes, for Studio previews.
+
+## Interior styles
+
+An optional `interior` section restyles the same plan
+([production design](production-design-polish.md#interior-styles)): presets
+classic, editorial, modern and high_contrast, title-page layouts (minimal,
+editorial, color block, framed, photo feature), puzzle-page header, grid frame
+and word-list settings, solution captions, mark weight and muted letters, and
+divider layouts. `interior/design.py` resolves a style into one `InteriorDesign`
+(version 1); the engine reads only that object. Tints are DeviceGray percentages
+of black, panels stay inside the live area and photographs are converted to
+grayscale by Python (`interior/images.py`). Without a style the engine uses the
+classic constants and renders byte-identical PDFs; with one, the manifest records
+the resolved design as its `style` input, so the interior identity changes while
+the build identity, plan and grids do not.
 
 ## Print specification
 
@@ -228,8 +246,9 @@ for saved source; `book preflight` inspects the result ([preflight](preflight.md
 
 One trim (8.5 x 11 in, no bleed, black ink; white or cream paper). Fonts are subset-embedded (KDP
 recommends, but does not require, full embedding). One sans family with Latin-1
-coverage. No PDF/X conformance, color management, images, hyphenation, running
-heads, table of contents or per-book typography settings. The KDP page minimum
+coverage. No PDF/X conformance, color management, color images, hyphenation,
+running heads or table of contents; typography is limited to the style's bounded
+settings. The KDP page minimum
 is a build warning and a preflight readiness failure. Layout never repaginates, so
 overflow must be fixed in source or composition. Covers are built from the
 interior's facts ([cover](cover.md)); KDP packaging is not implemented.

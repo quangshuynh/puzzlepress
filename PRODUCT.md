@@ -27,7 +27,11 @@ saves, saved-source interior builds, a print proof of the real PDF with
 structural and modeled-KDP preflight, a photography-first full-wrap paperback
 cover built from the author's own photograph and the interior's real facts
 (per-layer text controls, imported fonts, a photo library with print-quality
-feedback), and KDP
+feedback, independent back/spine/front regions with native shapes, lines and text
+boxes in layers), a reference-aware asset library with a reversible trash,
+grayscale interior styles and theme divider pages, per-puzzle editorial review
+bound to content identity, dependency-aware rebuilds of outdated artifacts, a
+production overview with human-proof records, and KDP
 paperback metadata with author-declared AI disclosure and confirmations, assembled
 into a verified package for manual upload. No AI imagery or copy, KDP login, upload
 or submission, marketplace scraping or market metrics, cloud or accounts.

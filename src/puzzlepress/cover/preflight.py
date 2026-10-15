@@ -29,7 +29,6 @@ from ..preflight.model import (
     Severity,
 )
 from ..preflight.model import Rule as PreflightRule
-from .assets import decode_photo, read_asset
 from .build import (
     IDENTITY_INPUTS,
     MANIFEST_NAME,
@@ -38,6 +37,7 @@ from .build import (
     CoverBuild,
     InteriorFacts,
     cover_identity,
+    load_photos,
     read_interior_facts,
     render_cover,
 )
@@ -49,7 +49,8 @@ from .validation import validate_cover_layout
 
 REPORT_VERSION = 1
 RULESET_ID = "puzzlepress-kdp-cover"
-RULESET_VERSION = 2
+# 3: version 3 design notes (`kdp_spine_design`, `kdp_barcode_design`) and several photos.
+RULESET_VERSION = 3
 KDP_RULES_CHECKED = "2026-10-07"
 COVER_HELP = "KDP help: Create a Paperback Cover"
 BARCODE_HELP = "KDP help: Low-Content Book Barcode Details"
@@ -221,9 +222,12 @@ def _issues(r: PreflightRule, issues: list[LayoutIssue] | tuple[LayoutIssue, ...
     CONTRACT,
 )
 def _configured(r: PreflightRule, ctx: CoverContext) -> Check:
-    if ctx.project.cover is None:
+    cover = ctx.project.cover
+    if cover is None:
         return Check((_finding(r, "[cover_missing] The project has no cover section."),))
-    return Check(note=f"Cover version {ctx.project.cover.version}, {ctx.project.cover.layout}.")
+    if cover.designed:
+        return Check(note=f"Cover version {cover.version}, {len(cover.elements)} design elements.")
+    return Check(note=f"Cover version {cover.version}, {cover.layout}.")
 
 
 @rule(
@@ -297,15 +301,19 @@ def _interior(r: PreflightRule, ctx: CoverContext) -> Check:
     Scope.STRUCTURAL,
     Category.CONTENT,
     "Photograph available",
-    "The configured photograph is in cover-assets, matches its pinned SHA-256 and decodes.",
+    "Every configured photograph is in cover-assets, matches its pinned SHA-256 and decodes.",
     CONTRACT,
 )
 def _photo(r: PreflightRule, ctx: CoverContext) -> Check:
-    if ctx.project.cover is None:
+    cover = ctx.project.cover
+    if cover is None:
         return _skip("No cover section.")
     if ctx.photo_error is not None:
         return _issues(r, ctx.photo_error.issues)
-    return Check(note=f"{ctx.project.cover.image.path} matches its digest.")
+    images = cover.images()
+    if not images:
+        return _na("The design places no photograph.")
+    return Check(note=f"{', '.join(i.path for i in images)} match their digests.")
 
 
 @rule(
@@ -517,7 +525,7 @@ def _structure(r: PreflightRule, ctx: CoverContext) -> Check:
         return _skip(NO_PDF)
     if ctx.layout is None or ctx.expected is None:
         return _skip(NO_LAYOUT)
-    return _issues(r, cover_contract_issues(ctx.facts, ctx.layout, ctx.expected.image_size))
+    return _issues(r, cover_contract_issues(ctx.facts, ctx.layout, ctx.expected.image_sizes))
 
 
 # ---------------------------------------------------------------- KDP
@@ -625,6 +633,25 @@ def _resolution(r: PreflightRule, ctx: CoverContext) -> Check:
     if layout is None:
         return _skip(NO_LAYOUT)
     res = layout.resolution
+    if res is None:
+        return _na("The design places no photograph.")
+    if len(layout.resolutions) > 1:
+        findings = []
+        for photo, item in zip(layout.photos, layout.resolutions, strict=True):
+            if item.status != "ok":
+                findings.append(
+                    _finding(
+                        r,
+                        f"[{item.status}] {photo.role.split(':', 1)[1]} prints at "
+                        f"{item.effective_dpi:.0f} DPI (at most {item.max_dpi:.0f} available).",
+                        region=f"cover.{photo.role}",
+                        measure=Measure(
+                            round(item.effective_dpi, 1), item.minimum_dpi, "dpi", "at_least"
+                        ),
+                    )
+                )
+        lowest = Measure(round(res.effective_dpi, 1), res.minimum_dpi, "dpi", "at_least")
+        return Check(tuple(findings), note=f"Lowest {res.effective_dpi:.0f} DPI.", measure=lowest)
     measure = Measure(round(res.effective_dpi, 1), res.minimum_dpi, "dpi", "at_least")
     if res.status == "image_too_small":
         message = (
@@ -832,6 +859,49 @@ def _color(r: PreflightRule, ctx: CoverContext) -> Check:
     return Check(note="No RGB images.")
 
 
+def _design_rule(codes: tuple[str, ...], passed: str) -> Evaluator:
+    def evaluate(r: PreflightRule, ctx: CoverContext) -> Check:
+        cover = ctx.project.cover
+        if cover is None or not cover.designed:
+            return _na("Only version 3 region designs place design elements.")
+        layout = ctx.layout
+        if layout is None:
+            return _skip(NO_LAYOUT)
+        return (
+            _issues(r, [w for w in layout.warnings if w.code in codes])
+            if any(w.code in codes for w in layout.warnings)
+            else Check(note=passed)
+        )
+
+    return evaluate
+
+
+rule(
+    "kdp_spine_design",
+    Scope.KDP,
+    Category.GEOMETRY,
+    "Spine design and fold variance",
+    f"KDP keeps spine text {to_inches(KDP_COVER.spine_text_clearance):g} in from each fold "
+    "because binding varies. Region colors that change at a fold, and spine elements that "
+    "end within that distance of a fold, may shift onto a cover.",
+    COVER_HELP,
+    Basis.KDP_AMBIGUOUS,
+    Severity.WARNING,
+)(_design_rule(("spine_color_at_fold", "spine_element_at_fold"), "No design edge at a fold."))
+
+rule(
+    "kdp_barcode_design",
+    Scope.KDP,
+    Category.GEOMETRY,
+    "Design under the barcode",
+    "Design elements that lie mostly inside the 2 x 1.2 in box where KDP prints its barcode "
+    "will be covered. Backgrounds and photographs may run behind it.",
+    BARCODE_HELP,
+    Basis.KDP_AMBIGUOUS,
+    Severity.WARNING,
+)(_design_rule(("element_under_barcode",), "No design element lies under the barcode."))
+
+
 # ---------------------------------------------------------------- engine
 
 
@@ -895,7 +965,7 @@ class CoverPreflightReport:
                 **ctx.interior.physical(),
             },
             "geometry": layout.geometry.to_dict() if layout else None,
-            "resolution": layout.resolution.to_dict() if layout else None,
+            "resolution": layout.resolution.to_dict() if layout and layout.resolution else None,
             "spine_text": layout.spine.to_dict() if layout else None,
             "artifacts": {
                 "pdf": None
@@ -948,13 +1018,13 @@ def preflight_cover(
         except CoverError as error:
             font_error = error
         try:
-            photo = decode_photo(read_asset(project_directory, project.cover.image))
+            photos = load_photos(project_directory, project.cover.images())
         except CoverError as error:
             photo_error = error
         else:
             if interior is not None and expected is None and font_error is None:
                 try:
-                    expected = render_cover(project, interior, photo, fonts=fonts)
+                    expected = render_cover(project, interior, photos, fonts=fonts)
                 except CoverError as error:
                     expected_error = error
     if (

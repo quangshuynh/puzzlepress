@@ -20,11 +20,12 @@ from ..identity import IDENTITY_VERSION
 from ..models import Project
 from ..publication import PublicationPlan, build_publication
 from ..publication_verification import verify_publication_plan
+from .design import resolve_design, style_images, style_inputs
 from .engine import RENDERER_VERSION, layout_interior
 from .fonts import font_manifest
 from .inspection import PdfFacts, contract_issues, read_pdf_facts
 from .issues import InteriorError, LayoutIssue
-from .model import InteriorLayout
+from .model import ImageBlock, InteriorLayout
 from .render import render_pdf
 from .spec import PrintSpecification, to_inches
 from .validation import validate_layout
@@ -59,26 +60,46 @@ def _canonical(data: object) -> bytes:
     ).encode("ascii")
 
 
-def build_interior(project: Project, spec: PrintSpecification) -> InteriorBuild:
-    """Run the full pipeline in memory. Raises ProjectError or InteriorError."""
+def build_interior(
+    project: Project, spec: PrintSpecification, source_directory: Path | None = None
+) -> InteriorBuild:
+    """Run the full pipeline in memory. Raises ProjectError or InteriorError.
+
+    `source_directory` is the project folder; it is read only when the interior
+    style prints photographs from cover-assets.
+    """
+    from .images import InteriorPhotos, encode_gray, load_photos
+
     report, plan = build_publication(project)
     verification = verify_publication_plan(plan, project, report)
     if not verification.valid:
         raise RuntimeError(f"Publication plan failed verification: {verification.issues!r}")
-    layout = layout_interior(plan, report, spec)
+    style = project.interior
+    photos = load_photos(source_directory, style.images() if style else ())
+    placed = InteriorPhotos(style_images(style), {k: v.info for k, v in photos.items()})
+    layout = layout_interior(plan, report, spec, resolve_design(style), placed)
     layout_issues = validate_layout(layout, plan, report)
     if layout_issues:
         raise InteriorError("layout_validation", layout_issues)
-    pdf = render_pdf(layout)
+    encoded = {
+        (page.number, element.role): encode_gray(photos[element.sha256], element)
+        for page in layout.pages
+        for element in page.elements
+        if isinstance(element, ImageBlock)
+    }
+    pdf = render_pdf(layout, encoded)
     facts = read_pdf_facts(pdf)
     pdf_issues = (facts,) if isinstance(facts, LayoutIssue) else contract_issues(facts, layout)
     if pdf_issues:
         raise InteriorError("pdf_verification", pdf_issues)
     assert not isinstance(facts, LayoutIssue)
-    return InteriorBuild(report, plan, layout, pdf, interior_manifest(layout, pdf), facts)
+    manifest = interior_manifest(layout, pdf, style_inputs(project.interior))
+    return InteriorBuild(report, plan, layout, pdf, manifest, facts)
 
 
-# Manifest fields that, together, are the interior identity's inputs.
+# Manifest fields that, together, are the interior identity's inputs. `style`
+# (the resolved interior style) is an input only when the book has one, so
+# interiors without a style keep their identities.
 IDENTITY_INPUTS = (
     "identity",
     "plan_digest",
@@ -88,6 +109,7 @@ IDENTITY_INPUTS = (
     "pdf_library",
     "fonts",
 )
+OPTIONAL_INPUTS = ("style",)
 
 
 def toolchain() -> dict[str, object]:
@@ -102,11 +124,14 @@ def toolchain() -> dict[str, object]:
 
 def interior_identity(inputs: dict[str, object]) -> str:
     material = {key: inputs[key] for key in IDENTITY_INPUTS}
+    material |= {key: inputs[key] for key in OPTIONAL_INPUTS if key in inputs}
     digest = hashlib.sha256(_canonical(material)).hexdigest()
     return f"pp{IDENTITY_VERSION}-interior-sha256-{digest}"
 
 
-def interior_manifest(layout: InteriorLayout, pdf: bytes) -> dict[str, object]:
+def interior_manifest(
+    layout: InteriorLayout, pdf: bytes, style: dict[str, object] | None = None
+) -> dict[str, object]:
     """Deterministic traceability record. It contains no timestamps or paths."""
     spec = layout.spec
     inputs = {
@@ -115,6 +140,8 @@ def interior_manifest(layout: InteriorLayout, pdf: bytes) -> dict[str, object]:
         "print_profile": spec.to_dict(),
         **toolchain(),
     }
+    if style is not None:
+        inputs["style"] = style
     return {
         "manifest_version": MANIFEST_VERSION,
         "book_id": layout.book_id,
@@ -252,3 +279,76 @@ def write_preflight_report(data: bytes, book_id: str, output: Path, source_direc
         if staged is not None:
             staged.unlink(missing_ok=True)
     return target
+
+
+def style_currency(manifest: dict[str, object], project: Project) -> str | None:
+    """Why a recorded interior's style differs from the project's, or None."""
+    recorded = manifest.get("style")
+    current = style_inputs(project.interior)
+    if json.loads(json.dumps(current)) == recorded:
+        return None
+    if current is None:
+        return "The interior style was removed after this interior was built."
+    if recorded is None:
+        return "An interior style was added after this interior was built."
+    return "The interior style changed after this interior was built."
+
+
+@dataclass(frozen=True)
+class InteriorSample:
+    """A draft preview: the whole book laid out and validated, a few pages rendered."""
+
+    pdf: bytes
+    pages: tuple[tuple[int, str, str | None], ...]  # (physical page, kind, folio) per PDF page.
+    page_count: int
+    warnings: tuple[LayoutIssue, ...]
+
+
+def sample_interior(
+    project: Project,
+    spec: PrintSpecification,
+    source_directory: Path | None = None,
+    publication: tuple[BatchReport, PublicationPlan] | None = None,
+) -> InteriorSample:
+    """Lay out every page, then render the first page of each kind a style changes.
+
+    The same engine, validation and renderer as `build_interior`; only the set of
+    pages drawn differs, so a style edit never renders the whole book. Raises
+    ProjectError or InteriorError. `publication` reuses a generation and plan
+    made from this exact source (styles never change them).
+    """
+    from dataclasses import replace
+
+    from ..publication import PageKind
+    from .images import InteriorPhotos, encode_gray, load_photos
+
+    report, plan = publication or build_publication(project)
+    verification = verify_publication_plan(plan, project, report)
+    if not verification.valid:
+        raise RuntimeError(f"Publication plan failed verification: {verification.issues!r}")
+    style = project.interior
+    photos = load_photos(source_directory, style.images() if style else ())
+    placed = InteriorPhotos(style_images(style), {k: v.info for k, v in photos.items()})
+    layout = layout_interior(plan, report, spec, resolve_design(style), placed)
+    issues = validate_layout(layout, plan, report)
+    if issues:
+        raise InteriorError("layout_validation", issues)
+    wanted = (PageKind.TITLE_PAGE, PageKind.DIVIDER, PageKind.PUZZLE, PageKind.SOLUTIONS)
+    chosen = []
+    for kind in wanted:
+        page = next((p for p in layout.pages if p.kind == kind.value), None)
+        if page is not None:
+            chosen.append(page)
+    sample = replace(layout, pages=tuple(chosen))
+    encoded = {
+        (page.number, element.role): encode_gray(photos[element.sha256], element)
+        for page in chosen
+        for element in page.elements
+        if isinstance(element, ImageBlock)
+    }
+    return InteriorSample(
+        render_pdf(sample, encoded),
+        tuple((page.number, page.kind, page.folio) for page in chosen),
+        len(layout.pages),
+        layout.warnings,
+    )

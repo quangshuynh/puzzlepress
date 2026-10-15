@@ -5,9 +5,11 @@ bleed corner), y upward. The layout engine decides every position and every
 pixel used from the photograph; the renderer draws exactly these elements.
 """
 
+import math
 from dataclasses import dataclass
 
 from ..cover_config import CoverConfig
+from ..interior.issues import LayoutIssue
 from ..interior.model import Anchor, Box
 from .crop import CropWindow
 from .geometry import CoverGeometry
@@ -17,11 +19,16 @@ RGB = tuple[float, float, float]
 
 @dataclass(frozen=True)
 class Fill:
-    """An opaque rectangle (background, spine or legibility panel)."""
+    """An opaque rectangle (background, region or legibility panel).
+
+    `gradient` is (end color, direction): a linear blend from `color` at the top
+    (vertical) or left (horizontal) to the end color, drawn as a PDF shading.
+    """
 
     role: str
     box: Box
     color: RGB
+    gradient: tuple[RGB, str] | None = None
 
 
 @dataclass(frozen=True)
@@ -79,6 +86,60 @@ class CoverPhoto:
     window: CropWindow
     pixels: tuple[int, int, int, int]  # (x0, y0, x1, y1) of the upright photo.
     shade: tuple[ShadeBand, ...] = ()
+    role: str = "photo"  # Version 3: `element:<id>`.
+    # Translucent shapes flattened into these pixels, bottom to top (version 3).
+    baked: tuple["CoverShape", ...] = ()
+
+
+@dataclass(frozen=True)
+class CoverShape:
+    """A rectangle, ellipse or line (a thin rectangle), drawn only with fills.
+
+    `box` is the unrotated shape in page points; it turns `rotation` degrees
+    counterclockwise about its centre. A stroke is a filled outline inside the
+    box, so a cover never strokes a path. `bounds` is the painted extent.
+    """
+
+    role: str
+    kind: str  # rect, ellipse or line.
+    box: Box
+    rotation: float
+    fill: RGB | None
+    stroke: RGB | None
+    stroke_width: float
+    bounds: Box
+    opacity: float = 1.0  # Below 1 only when baked into a photograph.
+
+    def outline(self, steps: int = 96) -> tuple[tuple[float, float], ...]:
+        """Polygon of the painted shape in page points (rotation applied)."""
+        box = self.box
+        cx, cy = box.x + box.width / 2, box.y + box.height / 2
+        if self.kind == "ellipse":
+            points = [
+                (
+                    cx + box.width / 2 * math.cos(2 * math.pi * i / steps),
+                    cy + box.height / 2 * math.sin(2 * math.pi * i / steps),
+                )
+                for i in range(steps)
+            ]
+        else:
+            points = [(box.x, box.y), (box.right, box.y), (box.right, box.top), (box.x, box.top)]
+        if not self.rotation:
+            return tuple(points)
+        angle = math.radians(self.rotation)
+        cos, sin = math.cos(angle), math.sin(angle)
+        return tuple(
+            (cx + (x - cx) * cos - (y - cy) * sin, cy + (x - cx) * sin + (y - cy) * cos)
+            for x, y in points
+        )
+
+
+@dataclass(frozen=True)
+class CoverTextBox:
+    """Where a version 3 text box's lines are drawn in the stack (lines in `texts`)."""
+
+    role: str
+    box: Box  # The authored box in page points.
 
 
 @dataclass(frozen=True)
@@ -131,15 +192,51 @@ class SpineStatus:
         }
 
 
+StackItem = CoverPhoto | CoverShape | CoverTextBox
+
+
 @dataclass(frozen=True)
 class CoverLayout:
+    """Drawing order: background, region fills, the stack (bottom to top) with the
+    legibility panels directly above its topmost photograph, then book text.
+
+    Versions 1 and 2 have one photograph and no region fills, which is exactly
+    their original order. `texts` holds every line (book text and text boxes) for
+    validation; text-box lines are drawn at their stack position.
+    """
+
     book_id: str
     config: CoverConfig
     geometry: CoverGeometry
     background: Fill
-    photo: CoverPhoto
-    panels: tuple[Fill, ...]  # Drawn over the photo, under the text.
+    stack: tuple[StackItem, ...]
+    panels: tuple[Fill, ...]  # Drawn over the topmost photo, under later elements.
     texts: tuple[CoverText, ...]
     spine: SpineStatus
-    resolution: ImageResolution
+    resolutions: tuple[ImageResolution, ...]  # One per photograph, in stack order.
     fonts: tuple[str, ...] = ()  # PostScript names of imported fonts the text uses.
+    region_fills: tuple[Fill, ...] = ()  # Version 3, when regions differ.
+    # Findings that never block a build (spine variance, elements under the barcode).
+    warnings: tuple[LayoutIssue, ...] = ()
+
+    @property
+    def photos(self) -> tuple[CoverPhoto, ...]:
+        return tuple(item for item in self.stack if isinstance(item, CoverPhoto))
+
+    @property
+    def photo(self) -> CoverPhoto:
+        """The first photograph (versions 1 and 2 have exactly one)."""
+        photos = self.photos
+        if not photos:
+            raise ValueError("This cover places no photograph")
+        return photos[0]
+
+    @property
+    def resolution(self) -> ImageResolution | None:
+        """The lowest effective resolution of any photograph; None without photos."""
+        if not self.resolutions:
+            return None
+        return min(self.resolutions, key=lambda r: (r.effective_dpi, r.max_dpi))
+
+    def is_stack_text(self, text: CoverText) -> bool:
+        return "_element:" in text.role
