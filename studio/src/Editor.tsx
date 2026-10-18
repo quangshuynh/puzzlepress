@@ -137,6 +137,18 @@ export function Editor({ d }: { d: Draft }) {
         <form aria-label="Project authoring" onSubmit={(event) => event.preventDefault()}>
           <fieldset className="authoring-fields" disabled={busy}>
             <legend className="sr-only">Project draft</legend>
+            {/* Publishing and Book send authors here to retitle: keep it in view on opening. */}
+            <section className="book-fields" aria-labelledby="book-fields-heading">
+              <h3 id="book-fields-heading">Book</h3>
+              <Field
+                label="Book title"
+                path="book.title"
+                value={draft.book.title}
+                issues={issues}
+                hint="Prints on the title page and cover and is the title KDP receives. Subtitle, author and imprint are on the title page in Book."
+                onChange={(title) => change({ ...draft, book: { ...draft.book, title } })}
+              />
+            </section>
             {!ws ? (
               <Empty title="No word-search content">
                 <span>
@@ -264,14 +276,7 @@ export function Editor({ d }: { d: Draft }) {
               <p>Add a puzzle definition to continue. Python requires at least one.</p>
             )}
             <details className="editor-settings">
-              <summary>Book title & shared seed</summary>
-              <Field
-                label="Book title"
-                path="book.title"
-                value={draft.book.title}
-                issues={issues}
-                onChange={(title) => change({ ...draft, book: { ...draft.book, title } })}
-              />
+              <summary>Shared seed</summary>
               <Field
                 label="Project seed"
                 path="build.seed"

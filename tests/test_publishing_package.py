@@ -178,6 +178,68 @@ def test_renderer_change_stales_interior_cover_and_package(tmp_path, monkeypatch
     assert export_state(output, source, new.book_id, new.identity).state == "stale"
 
 
+def retitle(source, title):
+    from puzzlepress import validate_project
+    from puzzlepress.yaml_io import dump_project
+
+    data = load_project(source).project.to_dict()
+    data["book"]["title"] = title
+    project = validate_project(data).require_project()
+    (source / "book.yaml").write_text(dump_project(project), encoding="utf-8")
+
+
+def pdf_words(data):
+    from pypdf import PdfReader
+
+    pages = PdfReader(io.BytesIO(data)).pages
+    return " ".join(" ".join(page.extract_text() for page in pages).split()).casefold()
+
+
+def test_title_change_stales_everything_it_reaches_until_rebuilt(ready):
+    """book.title -> build identity -> interior, cover, metadata confirmation, package."""
+    from puzzlepress.cover.build import build_cover, write_cover
+    from puzzlepress.interior import build_interior, print_profile, write_interior
+
+    source, output = ready
+    old = package_of(source, output)
+    write_package(old, output, source)
+    old_title = load_project(source).project.book.title
+    title = "Harbour Word Search Puzzle Book for Adults"
+    retitle(source, title)
+
+    report = evaluate(source, output)
+    verdicts = report.verdicts()
+    assert verdicts["interior"]["state"] == "stale" and verdicts["cover"]["state"] == "stale"
+    assert verdicts["artifacts"] == "stale" and verdicts["attestations"] == "incomplete"
+    confirmations = {c["name"]: c["state"] for c in report.to_dict()["confirmations"]}
+    assert confirmations["metadata"] == "stale" and confirmations["rights"] == "confirmed"
+    assert not report.package_ready
+    with pytest.raises(PackageError):
+        assemble_package(report)
+    # The exported package still holds the old title and is never reported current.
+    assert export_state(output, source, old.book_id, None).state == "stale"
+    assert json.loads(old.file("metadata.json"))["title"] == old_title
+    for name in ("interior.pdf", "cover.pdf"):
+        assert old_title.casefold() in pdf_words(old.file(name)), name
+
+    # Rebuild interior and cover, and confirm the metadata again (a synthetic decision).
+    project = load_project(source).project
+    write_interior(build_interior(project, print_profile("paperback-8.5x11")), output, source)
+    write_cover(build_cover(project, source, output), output, source)
+    reconfirm(source, "metadata")
+    report = evaluate(source, output)
+    assert report.package_ready
+    new = assemble_package(report)
+    assert export_state(output, source, new.book_id, new.identity).state == "stale"
+    write_package(new, output, source)
+    assert export_state(output, source, new.book_id, new.identity).state == "current"
+    exported = output / "publishing"
+    assert json.loads((exported / "metadata.json").read_bytes())["title"] == title
+    for name in ("interior.pdf", "cover.pdf"):
+        words = pdf_words((exported / name).read_bytes())
+        assert title.casefold() in words and old_title.casefold() not in words, name
+
+
 def test_damaged_exports_are_detected(ready):
     source, output = ready
     package = package_of(source, output)

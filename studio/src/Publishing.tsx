@@ -70,7 +70,7 @@ const SEVERITY = {
 } as const;
 const AREAS: Record<PublishingFinding['area'], string> = {
   publishing: 'Publishing',
-  edit: 'Edit',
+  edit: 'Puzzles',
   book: 'Book',
   print: 'Print',
   cover: 'Cover',
@@ -335,8 +335,8 @@ function Metadata({
         <FieldFindings id="book" findings={findings} />
         <p className="small muted">
           These come from the book and print on the cover, so KDP sees the same values. Edit the
-          title and language in <a href={`${base}/edit`}>Edit</a>; subtitle, author and imprint in{' '}
-          <a href={`${base}/book`}>Book</a>.
+          title at the top of <a href={`${base}/edit`}>Puzzles</a>; subtitle, author and imprint on
+          the title page in <a href={`${base}/book`}>Book</a>. The language is set in book.yaml.
         </p>
         <div className="field-pair">
           {text(

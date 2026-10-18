@@ -407,6 +407,24 @@ small external-editor race remains. Drafts memory-only; no autosave/undo/merge.
 
 ## Actual local verification
 
+Book title editing, 2026-10-18 (Windows, Python 3.13): the only title control
+was inside a collapsed disclosure at the end of Puzzles (about 8,500 px down on
+the 60-puzzle automotive book), and Publishing and Book pointed to an "Edit" tab
+that is labelled Puzzles. Book title is now the first field of Puzzles; the seed
+stays under Shared seed. Save, validation, staleness and packaging were already
+correct and are now covered by tests.
+
+- Python: **1659 passed, 7 skipped (symlink permission)**, scratch `--basetemp`
+  and `-p no:cacheprovider`. Ruff lint and format, strict mypy (120 files), pip
+  check, `git diff --check`.
+- Frontend: tsc, ESLint, 84 Vitest, build. Prettier passes except the CRLF
+  checkout it flags locally. Playwright **31/32**: the `templates.spec.ts` rich
+  text test fails here with and without this change (Windows Ctrl+Shift+Right
+  selects the trailing space).
+- External book: a disposable copy of puzzlepress-books `books/automotive`
+  retitled through Studio changed only `book.title`, survived reload, showed in
+  Publishing with no title findings, and staled the metadata confirmation.
+
 Cover templates, rich text and Studio fixes, 2026-10-15 (Linux container,
 Python 3.13, Chromium 1194 via `STUDIO_BROWSER_PATH`):
 
@@ -479,6 +497,9 @@ Production design and publishing polish (Windows, Python 3.13.15, Node 24.18.0):
   status and 15 recorded file digests were identical before and after.
 
 ## Limits and decisions for review
+
+Book details: Studio has no language control; `book.language` is edited in
+`book.yaml` (its `language_supported` finding still points to Puzzles).
 
 Templates and rich text: templates are authored at 8.5 x 11 in and scaled; a
 project template using imported fonts works only where the same font files

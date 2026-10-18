@@ -28,6 +28,17 @@ function setup(fail?: string) {
       saved = { ...saved, source: body.source, revision: 'sha256-new' };
       saved.source.word_search.puzzles[0].title = saved.source.word_search.puzzles[0].title.trim();
     }
+    if (path.endsWith('/validate') && !String(body.source.book.title).trim())
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: 'invalid_project',
+            message: 'Project validation failed.',
+            issues: [{ path: 'book.title', code: 'type', message: 'Expected a nonempty string.' }],
+          },
+        }),
+        { status: 422 },
+      );
     if (path.endsWith('/validate') && !body.source.word_search.puzzles[0].title)
       return new Response(
         JSON.stringify({
@@ -72,6 +83,60 @@ test('loads, edits, validates, previews and saves authoritative returned state',
   expect(title).toHaveValue('Edited flowers');
   expect(screen.queryByText('Unsaved changes')).not.toBeInTheDocument();
   expect(calls.find((c) => c.url.endsWith('/save'))?.body.revision).toBe(projectData.revision);
+});
+
+test('the book title is visible on opening, saves only the title and reloads', async () => {
+  const calls = setup();
+  const user = userEvent.setup();
+  const field = await screen.findByRole('textbox', { name: 'Book title' });
+  // Publishing and Book link here to change the title: it must not be tucked away.
+  expect(field).toBeVisible();
+  expect(field).toHaveValue('Garden Word Searches');
+  await user.clear(field);
+  await user.type(field, 'Garden Word Search Puzzle Book for Adults');
+  expect(screen.getByText('Unsaved draft')).toBeVisible();
+  await user.click(screen.getByRole('button', { name: 'Save changes' }));
+  expect(await screen.findByText('Saved and reloaded from source.')).toBeVisible();
+  const sent = calls.find((c) => c.url.endsWith('/save'))!.body.source as typeof projectData.source;
+  expect(sent).toEqual({
+    ...projectData.source,
+    book: { ...projectData.source.book, title: 'Garden Word Search Puzzle Book for Adults' },
+  });
+  expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+    'Garden Word Search Puzzle Book for Adults',
+  );
+  expect(screen.getByRole('textbox', { name: 'Book title' })).toHaveValue(
+    'Garden Word Search Puzzle Book for Adults',
+  );
+  expect(screen.queryByText('Unsaved draft')).not.toBeInTheDocument();
+});
+
+test('a blank book title is reported beside its field by Python validation', async () => {
+  setup();
+  const user = userEvent.setup();
+  const field = await screen.findByRole('textbox', { name: 'Book title' });
+  await user.clear(field);
+  await user.click(screen.getByRole('button', { name: 'Validate draft' }));
+  await waitFor(() => expect(field).toHaveAttribute('aria-invalid', 'true'));
+  const beside = document.getElementById('book.title-issues')!;
+  expect(beside).toBeVisible();
+  expect(beside).toHaveTextContent('book.title: Expected a nonempty string.');
+  expect(field).toHaveAccessibleDescription(/Expected a nonempty string/);
+  expect(screen.queryByText('Saved and reloaded from source.')).not.toBeInTheDocument();
+});
+
+test('a failed title save keeps the draft and never reports success', async () => {
+  setup('save_failed');
+  const user = userEvent.setup();
+  const field = await screen.findByRole('textbox', { name: 'Book title' });
+  await user.clear(field);
+  await user.type(field, 'Retitled garden');
+  await user.click(screen.getByRole('button', { name: 'Save changes' }));
+  expect(await screen.findByText(/Save failed/)).toBeVisible();
+  expect(screen.queryByText('Saved and reloaded from source.')).not.toBeInTheDocument();
+  expect(field).toHaveValue('Retitled garden');
+  expect(screen.getByText('Unsaved draft')).toBeVisible();
+  expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Garden Word Searches');
 });
 
 test('word editing, target ordering, puzzle management and shared profile selection', async () => {

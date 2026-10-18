@@ -3505,6 +3505,14 @@ summary:hover {
   font-weight: 400;
   font-size: 11px;
 }
+.book-fields {
+  margin-bottom: 20px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--line);
+}
+.book-fields h3 {
+  margin-top: 0;
+}
 .puzzle-fields {
   margin-top: 0;
 }
