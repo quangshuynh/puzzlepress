@@ -100,6 +100,15 @@ with tempfile.TemporaryDirectory(prefix="puzzlepress-browser-") as directory:
         ),
         encoding="utf-8",
     )
+    # Interior design: a cover-demo copy (20 puzzles) with its own builds.
+    shutil.copytree(ROOT / "books/cover-demo", books / "interior-demo")
+    source = books / "interior-demo" / "book.yaml"
+    source.write_text(
+        source.read_text(encoding="utf-8").replace(
+            "../../build/cover-demo", "../../build/interior-demo"
+        ),
+        encoding="utf-8",
+    )
     # An unused photograph for the asset library (SYNTHETIC test pixels).
     from cover_helpers import photo_bytes  # noqa: E402
 

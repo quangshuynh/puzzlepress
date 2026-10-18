@@ -87,7 +87,6 @@ test('edits matter, policies and keyboard order, then previews and saves the dra
   const order = screen.getByRole('list', { name: 'Puzzle publication order' });
   expect(within(order).getAllByRole('listitem')[0]).toHaveTextContent('By the Harbour');
 
-  await user.selectOptions(screen.getByLabelText('Solutions per logical page'), '4');
   await user.selectOptions(screen.getByLabelText('Puzzle section starts on'), 'any');
   await user.click(screen.getByRole('radio', { name: /^Continuous/ }));
   await user.click(screen.getByRole('checkbox', { name: 'Front matter pages' }));
@@ -113,7 +112,7 @@ test('edits matter, policies and keyboard order, then previews and saves the dra
       composed.source.composition.front_matter[2],
     ],
     puzzles: { start: 'any' },
-    solutions: { ...composed.source.composition.solutions, per_page: 4 },
+    solutions: composed.source.composition.solutions,
     back_matter: [{ kind: 'about', title: 'About', text: '' }],
     page_numbers: {
       scheme: 'continuous',
@@ -137,7 +136,7 @@ test('omitting solutions removes solution-only settings from the draft', async (
   const user = userEvent.setup();
   await status('Publication plan ready. Source has not changed.');
   await user.click(screen.getByRole('radio', { name: /^Omit solutions/ }));
-  expect(screen.queryByLabelText('Solutions per logical page')).not.toBeInTheDocument();
+  expect(screen.queryByText(/solutions on each printed page/)).not.toBeInTheDocument();
   await user.click(screen.getByRole('button', { name: 'Validate draft' }));
   await status('Draft is valid. Python accepted the proposed project.');
   const source = calls.at(-1)!.body.source as typeof composed.source;

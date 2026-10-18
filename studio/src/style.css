@@ -4515,3 +4515,84 @@ button.primary.danger {
 .check-group + .check-group {
   border-top: 1px solid var(--line);
 }
+/* Interior design studio */
+.interior-design .panel-tabs {
+  margin-bottom: 12px;
+}
+.preset-list .swatch {
+  width: 12px;
+  height: 12px;
+  margin-right: 4px;
+  border: 1px solid var(--line);
+  vertical-align: -1px;
+}
+.answer-choices {
+  margin: 8px 0;
+  padding: 0;
+  border: 0;
+}
+.answer-choice {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+}
+.answer-choice span {
+  display: flex;
+  flex-direction: column;
+}
+.colour-field > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.colour-field input[type='color'] {
+  width: 44px;
+  height: 32px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--paper);
+}
+.reset-all {
+  margin: 18px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.preview-pages {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  margin: 10px 0;
+}
+.preview-pages.spread {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+}
+.preview-pages figure {
+  margin: 0;
+}
+.preview-pages img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+.impact-note {
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-left: 3px solid var(--review);
+  background: var(--review-bg);
+}
+.impact-note h4 {
+  margin: 0 0 4px;
+}
+.impact-note ul {
+  margin: 0;
+  padding-left: 18px;
+}
+@media (min-width: 1101px) {
+  .interior-design .interior-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(420px, 560px);
+  }
+}

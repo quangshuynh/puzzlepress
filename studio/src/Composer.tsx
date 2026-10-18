@@ -41,7 +41,7 @@ function newItem(kind: string): MatterItem {
 export const STARTER: Composition = {
   front_matter: [{ kind: 'title_page' }, newItem('instructions')],
   puzzles: { start: 'any' },
-  solutions: { placement: 'end', title: 'Solutions', per_page: 1, start: 'any' },
+  solutions: { placement: 'end', title: 'Solutions', per_page: 4, start: 'any' },
   back_matter: [],
   page_numbers: {
     scheme: 'continuous',
@@ -692,7 +692,7 @@ export function Composer({ d }: { d: Draft }) {
                       solutions:
                         placement === 'omit'
                           ? { placement }
-                          : { placement, title: 'Solutions', per_page: 1, start: 'any' },
+                          : { placement, title: 'Solutions', per_page: 4, start: 'any' },
                     })
                   }
                 />
@@ -707,20 +707,15 @@ export function Composer({ d }: { d: Draft }) {
                         set({ ...composition, solutions: { ...composition.solutions, title } })
                       }
                     />
+                    <p className="small">
+                      {composition.solutions.per_page ?? 4} solutions on each printed page. Choose
+                      and preview the answer layout in{' '}
+                      <a href={`/books/${encodeURIComponent(d.key)}/interior#answers`}>
+                        Interior design
+                      </a>
+                      .
+                    </p>
                     <div className="field-pair">
-                      <SelectField
-                        label="Solutions per logical page"
-                        path={`${path}.solutions.per_page`}
-                        value={String(composition.solutions.per_page ?? 1)}
-                        options={['1', '2', '4', '6'].map((n) => [n, n])}
-                        issues={issues}
-                        onChange={(value) =>
-                          set({
-                            ...composition,
-                            solutions: { ...composition.solutions, per_page: Number(value) },
-                          })
-                        }
-                      />
                       <SelectField
                         label="Solutions section starts on"
                         path={`${path}.solutions.start`}

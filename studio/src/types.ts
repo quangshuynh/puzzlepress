@@ -36,6 +36,7 @@ export interface Composition {
   front_matter: MatterItem[];
   puzzles: {
     start: string;
+    layout?: 'single' | 'spread';
     dividers?: { start: 'any' | 'recto'; themes: ThemeDivider[] };
   };
   solutions: { placement: string; title?: string; per_page?: number; start?: string };
@@ -1019,9 +1020,30 @@ export interface AssetListing {
   trash: TrashEntry[];
 }
 // Interior style (the book's interior section). Python resolves presets and renders pages.
-export interface InteriorStyle {
+export type ThemeId =
+  | 'classic'
+  | 'racing_orange'
+  | 'classic_garage'
+  | 'editorial_minimal'
+  | 'high_contrast'
+  | 'ink_saver';
+export type PageLayoutId = 'classic' | 'bold_header' | 'clean_minimal' | 'large_readability';
+// Version 2 theme overrides; absent keys keep the theme's value.
+export interface LookOverrides {
+  banner?: 'none' | 'rule' | 'outline' | 'solid';
+  corners?: 'square' | 'rounded';
+  background?: 'none' | 'header_band' | 'frame';
+  motif?: 'none' | 'stripes' | 'chevrons';
+  motif_intensity?: 'subtle' | 'medium' | 'bold';
+  density?: 'compact' | 'balanced' | 'spacious';
+  folio_style?: 'plain' | 'rule' | 'outline';
+}
+export interface InteriorStyle extends LookOverrides {
   version: number;
-  preset: 'classic' | 'editorial' | 'modern' | 'high_contrast';
+  preset?: 'classic' | 'editorial' | 'modern' | 'high_contrast'; // Version 1 only.
+  theme?: ThemeId; // Version 2.
+  layout?: PageLayoutId;
+  colors?: { accent?: string; secondary?: string };
   folio?: 'center' | 'outside';
   title_page?: {
     layout?: 'minimal' | 'editorial' | 'color_block' | 'framed' | 'photo_feature';
@@ -1042,8 +1064,20 @@ export interface InteriorStyle {
     word_size?: number;
     word_columns?: number;
     word_rule?: boolean;
+    word_position?: 'below' | 'above';
+    word_align?: 'center' | 'left';
+    word_weight?: 'regular' | 'bold';
+    letter_scale?: 'standard' | 'large';
+    grid_width?: number;
+    puzzle_number?: boolean;
+    answer_reference?: string;
   };
-  solution_pages?: { caption_size?: number; mark_width?: number; muted_ink?: number };
+  solution_pages?: {
+    caption_size?: number;
+    mark_width?: number;
+    muted_ink?: number;
+    page_label?: string;
+  };
   dividers?: {
     layout?: 'centered' | 'framed' | 'band';
     tint?: number;
@@ -1057,15 +1091,84 @@ export interface ThemeDivider {
   quote?: string;
   attribution?: string;
 }
+export type SampleRole =
+  | 'title'
+  | 'instructions'
+  | 'divider'
+  | 'puzzle'
+  | 'spread_left'
+  | 'spread_right'
+  | 'answers'
+  | 'answers_last';
+// Python's fit of one solutions-per-page choice for this book's largest grids.
+export interface AnswerChoice {
+  per_page: number;
+  columns: number;
+  rows: number;
+  letter_size: number;
+  minimum: number;
+  grid: [number, number] | null;
+  fits: boolean;
+  comfortable: boolean;
+}
+export interface AnswerSummary {
+  per_page: number;
+  pages: number;
+  last_page_solutions: number;
+  first_page: number | null;
+  choices: AnswerChoice[];
+}
+// The resolved version 2 look Python laid the draft out with.
+export interface ResolvedLook {
+  theme: ThemeId;
+  layout: PageLayoutId;
+  accent: string;
+  secondary: string;
+  accent_gray: number;
+  secondary_gray: number;
+  banner: string;
+  motif: string;
+  background: string;
+  [key: string]: unknown;
+}
 export interface InteriorDraft {
   success: boolean;
   stage?: string;
   diagnostics?: BuildDiagnostic[];
   pdf_sha256?: string;
   page_count?: number;
-  pages?: { index: number; physical_page: number; kind: string; folio: string | null }[];
-  design?: Record<string, unknown>;
+  pages?: {
+    index: number;
+    physical_page: number;
+    kind: string;
+    folio: string | null;
+    roles: SampleRole[];
+  }[];
+  design?: { look?: ResolvedLook; [key: string]: unknown };
   warnings?: BuildDiagnostic[];
+  answers?: AnswerSummary | null;
+}
+export interface DesignCatalogue {
+  themes: {
+    id: ThemeId;
+    name: string;
+    description: string;
+    look: ResolvedLook;
+    design: Record<string, unknown>;
+  }[];
+  layouts: {
+    id: PageLayoutId;
+    name: string;
+    description: string;
+    look: Record<string, unknown>;
+    design: Record<string, unknown>;
+  }[];
+}
+export interface DesignImport {
+  success: boolean;
+  name?: string;
+  interior?: InteriorStyle;
+  issues?: Issue[];
 }
 // Editorial review: author judgments bound to Python's review identities.
 export type ReviewState = 'not_reviewed' | 'needs_changes' | 'reviewed' | 'stale';

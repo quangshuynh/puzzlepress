@@ -219,18 +219,20 @@ test('assets: an unused photo goes to the trash and back; used assets are protec
 test('interior design: preset, dividers and Python sample pages', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(`/books/${KEY}/interior`);
-  await page.getByRole('button', { name: 'Add an interior style' }).click();
+  await page.getByRole('tab', { name: 'Theme' }).click();
+  await page.getByRole('button', { name: 'Add an interior design' }).click();
   let preview = draft(page, '/draft/interior');
-  await page.getByRole('radio', { name: /High contrast/ }).check();
+  await page.getByRole('radio', { name: /High Contrast/ }).check();
   await preview;
-  const samples = page.locator('.sample-pages img');
+  const samples = page.locator('.preview-pages img');
   await expect(samples.first()).toBeVisible();
-  expect(await samples.count()).toBeGreaterThanOrEqual(3);
+  await page.getByRole('tab', { name: 'Title & dividers' }).click();
   preview = draft(page, '/draft/interior');
   await page.getByRole('checkbox', { name: /Add theme divider pages/ }).focus();
   await page.keyboard.press('Space');
   await preview;
   await expect(page.getByText('Changes the page count')).toBeVisible();
+  await page.getByRole('button', { name: 'Divider', exact: true }).click();
   await expect(page.getByRole('img', { name: /Draft divider/ })).toBeVisible();
   // Turn dividers off again: the built page count stays as it was.
   preview = draft(page, '/draft/interior');
