@@ -45,7 +45,17 @@ class NumberingScheme(StrEnum):
     ROMAN_FRONT_MATTER = "roman_front_matter"
 
 
-SOLUTIONS_PER_PAGE = (1, 2, 4, 6)
+class PuzzleLayout(StrEnum):
+    """How many pages one puzzle occupies. Pagination, so composition, never style."""
+
+    SINGLE = "single"  # Title, grid and word list on one page.
+    SPREAD = "spread"  # Word list on a left-hand page facing the grid on the right.
+
+
+# Solutions grouped on one printed page. Four (a 2 x 2 arrangement) is the default
+# when a composition places solutions without stating a count.
+SOLUTIONS_PER_PAGE = (1, 2, 4, 6, 8)
+DEFAULT_SOLUTIONS_PER_PAGE = 4
 MAX_DIVIDER_TEXT = 600
 MAX_DIVIDER_QUOTE = 300
 
@@ -76,7 +86,7 @@ class SolutionPolicy:
 
     placement: SolutionPlacement = SolutionPlacement.END
     title: str | None = None
-    per_page: int = 1
+    per_page: int = DEFAULT_SOLUTIONS_PER_PAGE
     start: SectionStart = SectionStart.ANY
 
     def to_dict(self) -> dict[str, object]:
@@ -159,9 +169,13 @@ class Composition:
     page_numbers: PageNumberPolicy = PageNumberPolicy()
     # Present only when the author enables dividers, so earlier identities never change.
     dividers: DividerPolicy | None = None
+    # Recorded only for spreads, so single-page books keep their identities.
+    puzzle_layout: PuzzleLayout = PuzzleLayout.SINGLE
 
     def to_dict(self) -> dict[str, object]:
         puzzles: dict[str, object] = {"start": self.puzzles_start.value}
+        if self.puzzle_layout is not PuzzleLayout.SINGLE:
+            puzzles["layout"] = self.puzzle_layout.value
         if self.dividers is not None:
             puzzles["dividers"] = self.dividers.to_dict()
         return {

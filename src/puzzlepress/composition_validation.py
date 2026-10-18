@@ -4,6 +4,7 @@ from typing import TypeVar
 
 from .composition import (
     BACK_MATTER_KINDS,
+    DEFAULT_SOLUTIONS_PER_PAGE,
     FRONT_MATTER_KINDS,
     MATTER_FIELDS,
     MAX_DIVIDER_QUOTE,
@@ -15,6 +16,7 @@ from .composition import (
     MatterKind,
     NumberingScheme,
     PageNumberPolicy,
+    PuzzleLayout,
     SectionStart,
     SolutionPlacement,
     SolutionPolicy,
@@ -25,7 +27,7 @@ from .content_validation import _Reader
 from .errors import ValidationIssue
 
 MAX_BODY_TEXT = 2000
-Choice = TypeVar("Choice", SectionStart, SolutionPlacement, NumberingScheme)
+Choice = TypeVar("Choice", SectionStart, SolutionPlacement, NumberingScheme, PuzzleLayout)
 
 
 def validate_composition(
@@ -47,9 +49,14 @@ def validate_composition(
         reader, root.get("front_matter", []), f"{path}.front_matter", FRONT_MATTER_KINDS
     )
     back = _matter(reader, root.get("back_matter", []), f"{path}.back_matter", BACK_MATTER_KINDS)
-    puzzles = reader.mapping(root.get("puzzles", {}), f"{path}.puzzles", {"start", "dividers"})
+    puzzles = reader.mapping(
+        root.get("puzzles", {}), f"{path}.puzzles", {"start", "layout", "dividers"}
+    )
     puzzles_start = _choice(
         reader, puzzles.get("start", "any"), f"{path}.puzzles.start", SectionStart
+    )
+    layout = _choice(
+        reader, puzzles.get("layout", "single"), f"{path}.puzzles.layout", PuzzleLayout
     )
     dividers = (
         _dividers(reader, puzzles["dividers"], f"{path}.puzzles.dividers")
@@ -64,10 +71,17 @@ def validate_composition(
             "requires_front_matter",
             "Roman front-matter numbering requires at least one front-matter page.",
         )
+    if layout is PuzzleLayout.SPREAD and puzzles_start is SectionStart.RECTO and dividers is None:
+        reader.issue(
+            f"{path}.puzzles.start",
+            "spread_starts_verso",
+            "A spread opens on a left-hand page, so puzzles cannot start on a right-hand "
+            "page. Start puzzles on any page, or add theme dividers that start recto.",
+        )
     if reader.issues or solutions is None:
         return None, tuple(reader.issues)
     return (
-        Composition(solutions, tuple(front), puzzles_start, tuple(back), numbers, dividers),
+        Composition(solutions, tuple(front), puzzles_start, tuple(back), numbers, dividers, layout),
         (),
     )
 
@@ -204,14 +218,14 @@ def _solutions(reader: _Reader, raw: object, path: str, present: bool) -> Soluti
             )
         return SolutionPolicy(placement)
     title = _title(reader, data.get("title"), f"{path}.title")
-    per_page = data.get("per_page", 1)
+    per_page = data.get("per_page", DEFAULT_SOLUTIONS_PER_PAGE)
     if type(per_page) is not int or per_page not in SOLUTIONS_PER_PAGE:
         reader.issue(
             f"{path}.per_page",
             "choice",
-            f"Use one of: {', '.join(map(str, SOLUTIONS_PER_PAGE))}.",
+            f"Use one of: {', '.join(map(str, SOLUTIONS_PER_PAGE))} solutions a printed page.",
         )
-        per_page = 1
+        per_page = DEFAULT_SOLUTIONS_PER_PAGE
     start = _choice(reader, data.get("start", "any"), f"{path}.start", SectionStart)
     return SolutionPolicy(placement, title, per_page, start)
 

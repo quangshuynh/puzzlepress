@@ -713,6 +713,34 @@ def _live_area(r: PreflightRule, ctx: Context) -> Check:
     return Check(tuple(findings), note="Every element's painted extent is inside the live area.")
 
 
+# Readability notes the layout engine reports for a design; none blocks a build.
+DESIGN_NOTES = ("dense_solution_page", "light_text", "low_contrast_text", "heavy_ink_coverage")
+
+
+@rule(
+    "design_legibility",
+    Scope.STRUCTURAL,
+    Category.TYPOGRAPHY,
+    "Design legibility",
+    "The interior design keeps solution letters at a comfortable size (7.5 pt), "
+    "label text dark enough to read, contrast between banners and their type, and "
+    "dark tints off large areas. PuzzlePress conventions; they never block.",
+    CONTRACT,
+    severity=Severity.WARNING,
+)
+def _design_legibility(r: PreflightRule, ctx: Context) -> Check:
+    if ctx.layout is None:
+        return _skip(NO_LAYOUT)
+    notes = [w for w in ctx.layout.warnings if w.code in DESIGN_NOTES]
+    return Check(
+        tuple(
+            _finding(r, w.message, ctx, w.physical_page, region=w.region, subject=w.code)
+            for w in notes
+        ),
+        note="No cramped solutions, light labels, low-contrast banners or heavy tints.",
+    )
+
+
 # ----------------------------------------------------------------------- KDP
 
 

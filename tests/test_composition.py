@@ -133,7 +133,8 @@ def test_defaults_are_explicit_after_normalization(garden):
     assert project.composition.to_dict() == {
         "front_matter": [],
         "puzzles": {"start": "any"},
-        "solutions": {"placement": "end", "title": "Solutions", "per_page": 1, "start": "any"},
+        # Four solutions on each printed page is the default when none is stated.
+        "solutions": {"placement": "end", "title": "Solutions", "per_page": 4, "start": "any"},
         "back_matter": [],
         "page_numbers": {
             "scheme": "continuous",
@@ -272,7 +273,7 @@ def test_recto_starts_insert_only_needed_blanks(garden, front, blanks):
 def test_recto_solutions_blank_belongs_to_preceding_section(garden):
     composition = {
         "front_matter": [{"kind": "title_page"}],
-        "solutions": {"placement": "end", "title": "Solutions", "start": "recto"},
+        "solutions": {"placement": "end", "title": "Solutions", "start": "recto", "per_page": 1},
     }
     result = plan(project_with(garden, composition))
     assert [p.kind.value for p in result.pages] == [

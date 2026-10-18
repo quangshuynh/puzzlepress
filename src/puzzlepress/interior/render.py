@@ -16,7 +16,17 @@ from reportlab.pdfgen.canvas import Canvas
 
 from .. import __version__
 from .fonts import font_name
-from .model import Anchor, Face, ImageBlock, InteriorLayout, LetterGrid, Panel, Rule, TextLine
+from .model import (
+    Anchor,
+    Face,
+    ImageBlock,
+    InteriorLayout,
+    LetterGrid,
+    Panel,
+    Polygon,
+    Rule,
+    TextLine,
+)
 
 # Encoded grayscale photographs by (physical page, element role).
 EncodedImages = Mapping[tuple[int, str], tuple[bytes, tuple[int, int]]]
@@ -51,6 +61,8 @@ def render_pdf(layout: InteriorLayout, images: EncodedImages | None = None) -> b
                 _rule(canvas, element)
             elif isinstance(element, Panel):
                 _panel(canvas, element)
+            elif isinstance(element, Polygon):
+                _polygon(canvas, element)
             elif isinstance(element, ImageBlock):
                 if images is None or (page.number, element.role) not in images:
                     raise ValueError(f"No encoded image for {element.role} on page {page.number}")
@@ -86,14 +98,22 @@ def _panel(canvas: Canvas, panel: Panel) -> None:
     if panel.stroke_gray is not None:
         canvas.setStrokeGray(panel.stroke_gray)
         canvas.setLineWidth(panel.stroke_width)
-    canvas.rect(
-        box.x,
-        box.y,
-        box.width,
-        box.height,
-        stroke=int(panel.stroke_gray is not None),
-        fill=int(panel.fill_gray is not None),
-    )
+    stroke, fill = int(panel.stroke_gray is not None), int(panel.fill_gray is not None)
+    if panel.radius > 0:
+        canvas.roundRect(box.x, box.y, box.width, box.height, panel.radius, stroke, fill)
+    else:
+        canvas.rect(box.x, box.y, box.width, box.height, stroke=stroke, fill=fill)
+
+
+def _polygon(canvas: Canvas, shape: Polygon) -> None:
+    canvas.setFillGray(shape.fill_gray)
+    path = canvas.beginPath()
+    (x, y), *rest = shape.points
+    path.moveTo(x, y)
+    for x, y in rest:
+        path.lineTo(x, y)
+    path.close()
+    canvas.drawPath(path, stroke=0, fill=1)
 
 
 def _image(canvas: Canvas, block: ImageBlock, jpeg: bytes, size: tuple[int, int]) -> None:
@@ -129,7 +149,10 @@ def _grid(canvas: Canvas, grid: LetterGrid) -> None:
     canvas.setStrokeGray(0)
     canvas.setLineWidth(grid.frame_width)
     frame = grid.frame
-    canvas.rect(frame.x, frame.y, frame.width, frame.height, stroke=1, fill=0)
+    if grid.frame_radius > 0:
+        canvas.roundRect(frame.x, frame.y, frame.width, frame.height, grid.frame_radius, 1, 0)
+    else:
+        canvas.rect(frame.x, frame.y, frame.width, frame.height, stroke=1, fill=0)
     for row, letters in enumerate(grid.rows):
         for column, letter in enumerate(letters):
             emphasized = (column, row) in grid.emphasized

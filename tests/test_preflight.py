@@ -602,6 +602,7 @@ def test_rule_catalogue_is_unique_documented_and_scoped():
         assert rule.scope is Scope.KDP or rule.basis.value == "puzzlepress_contract"
         assert rule.scope is Scope.STRUCTURAL or rule.source.startswith("KDP help:")
     assert [r.code for r in RULES if r.severity is Severity.WARNING] == [
+        "design_legibility",
         "kdp_full_font_embedding",
         "kdp_no_metadata",
     ]

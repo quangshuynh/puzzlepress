@@ -10,7 +10,7 @@ GRID_PADDING = 0.35
 # Letter cap size relative to the cell before clamping to typography limits.
 LETTER_RATIO = 0.56
 # Solution templates per density: (columns, rows), filled left-to-right, top-down.
-SOLUTION_TEMPLATES = {1: (1, 1), 2: (1, 2), 4: (2, 2), 6: (2, 3)}
+SOLUTION_TEMPLATES = {1: (1, 1), 2: (1, 2), 4: (2, 2), 6: (2, 3), 8: (2, 4)}
 
 
 def page_frame(spec: PrintSpecification, physical_page: int) -> PageFrame:
@@ -64,6 +64,7 @@ def fit_grid(
     max_letter: float,
     stroke: float,
     max_cell: float | None = None,
+    letter_ratio: float = LETTER_RATIO,
 ) -> GridGeometry:
     """Largest square cells whose painted grid fits the region, centered, top-aligned.
 
@@ -77,7 +78,7 @@ def fit_grid(
     cell = min((region.width - stroke) / span_x, (region.height - stroke) / span_y)
     if max_cell is not None:
         cell = min(cell, max_cell)
-    letter = min(cell * LETTER_RATIO, max_letter)
+    letter = min(cell * letter_ratio, max_letter)
     width, height = cell * span_x, cell * span_y
     frame = Box(
         region.x + (region.width - width) / 2, region.top - stroke / 2 - height, width, height
@@ -86,9 +87,9 @@ def fit_grid(
     return GridGeometry(cell, letter, frame, frame.x + padding, frame.top - padding, stroke)
 
 
-def max_cell_for_letter(max_letter: float) -> float:
+def max_cell_for_letter(max_letter: float, letter_ratio: float = LETTER_RATIO) -> float:
     """Cell size beyond which letters stop growing; grids do not grow past it."""
-    return max_letter / LETTER_RATIO
+    return max_letter / letter_ratio
 
 
 def solution_template(group_size: int) -> int:

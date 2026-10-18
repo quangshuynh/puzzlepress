@@ -109,7 +109,7 @@ def test_resolved_design_applies_overrides_over_the_preset():
 @pytest.mark.parametrize(
     ("style", "expected"),
     [
-        ({"version": 2}, ("interior.version", "unsupported_version")),
+        ({"version": 3}, ("interior.version", "unsupported_version")),
         ({"version": 1, "preset": "gothic"}, ("interior.preset", "choice")),
         (
             {"version": 1, "puzzle_pages": {"word_size": 9}},

@@ -21,7 +21,7 @@ from ..models import Project
 from ..publication import PublicationPlan, build_publication
 from ..publication_verification import verify_publication_plan
 from .design import resolve_design, style_images, style_inputs
-from .engine import RENDERER_VERSION, layout_interior
+from .engine import RENDERER_VERSION, AnswerFit, answer_fits, layout_interior
 from .fonts import font_manifest
 from .inspection import PdfFacts, contract_issues, read_pdf_facts
 from .issues import InteriorError, LayoutIssue
@@ -295,13 +295,86 @@ def style_currency(manifest: dict[str, object], project: Project) -> str | None:
 
 
 @dataclass(frozen=True)
+class SamplePage:
+    """One rendered preview page and what it represents (`roles`)."""
+
+    physical_page: int
+    kind: str
+    folio: str | None
+    roles: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class InteriorSample:
     """A draft preview: the whole book laid out and validated, a few pages rendered."""
 
     pdf: bytes
-    pages: tuple[tuple[int, str, str | None], ...]  # (physical page, kind, folio) per PDF page.
+    pages: tuple[SamplePage, ...]  # One per PDF page, in book order.
     page_count: int
     warnings: tuple[LayoutIssue, ...]
+
+
+def answer_layouts(
+    project: Project, spec: PrintSpecification, publication: tuple[BatchReport, PublicationPlan]
+) -> tuple[AnswerFit, ...]:
+    """How every solutions-per-page choice would print this book's solution grids."""
+    report, plan = publication
+    sizes = tuple(
+        sorted(
+            {
+                (r.puzzle.config.size.width, r.puzzle.config.size.height)
+                for r in report.puzzles
+                if r.puzzle is not None
+            }
+        )
+    )
+    composition = project.composition
+    heading = composition.solutions.title if composition is not None else None
+    return answer_fits(spec, resolve_design(project.interior), sizes, heading)
+
+
+def sample_roles(layout: InteriorLayout, plan: PublicationPlan) -> dict[int, list[str]]:
+    """Representative pages by physical number: what a design preview should show.
+
+    `spread_left`/`spread_right`: the first facing pair of puzzle pages (a word
+    list and its grid in spread books); `puzzle`: the first grid page; `answers`:
+    the first solution page holding the most solutions; `answers_last`: the final
+    solution page when it holds fewer; and the first title, divider and
+    instructions pages.
+    """
+    from ..publication import PageKind
+
+    roles: dict[int, list[str]] = {}
+
+    def mark(number: int | None, role: str) -> None:
+        if number is not None:
+            roles.setdefault(number, []).append(role)
+
+    kinds = [page.kind for page in plan.pages]
+    puzzle_kinds = (PageKind.PUZZLE, PageKind.PUZZLE_WORDS)
+    for kind, role in (
+        (PageKind.TITLE_PAGE, "title"),
+        (PageKind.INSTRUCTIONS, "instructions"),
+        (PageKind.DIVIDER, "divider"),
+        (PageKind.PUZZLE, "puzzle"),
+    ):
+        mark(next((p.index for p in plan.pages if p.kind is kind), None), role)
+    for left in plan.pages:
+        index = left.index
+        if left.side.value == "verso" and left.kind in puzzle_kinds and index < len(kinds):
+            if kinds[index] is PageKind.PUZZLE:
+                mark(index, "spread_left")
+                mark(index + 1, "spread_right")
+                break
+    solutions = [p for p in plan.pages if p.kind is PageKind.SOLUTIONS]
+    if solutions:
+        most = max(len(p.solutions) for p in solutions)
+        full = next(p for p in solutions if len(p.solutions) == most)
+        mark(full.index, "answers")
+        if len(solutions[-1].solutions) < most:
+            mark(solutions[-1].index, "answers_last")
+    assert len(layout.pages) == len(plan.pages)
+    return roles
 
 
 def sample_interior(
@@ -310,7 +383,7 @@ def sample_interior(
     source_directory: Path | None = None,
     publication: tuple[BatchReport, PublicationPlan] | None = None,
 ) -> InteriorSample:
-    """Lay out every page, then render the first page of each kind a style changes.
+    """Lay out every page, then render the representative pages `sample_roles` picks.
 
     The same engine, validation and renderer as `build_interior`; only the set of
     pages drawn differs, so a style edit never renders the whole book. Raises
@@ -319,7 +392,6 @@ def sample_interior(
     """
     from dataclasses import replace
 
-    from ..publication import PageKind
     from .images import InteriorPhotos, encode_gray, load_photos
 
     report, plan = publication or build_publication(project)
@@ -333,12 +405,8 @@ def sample_interior(
     issues = validate_layout(layout, plan, report)
     if issues:
         raise InteriorError("layout_validation", issues)
-    wanted = (PageKind.TITLE_PAGE, PageKind.DIVIDER, PageKind.PUZZLE, PageKind.SOLUTIONS)
-    chosen = []
-    for kind in wanted:
-        page = next((p for p in layout.pages if p.kind == kind.value), None)
-        if page is not None:
-            chosen.append(page)
+    roles = sample_roles(layout, plan)
+    chosen = [page for page in layout.pages if page.number in roles]
     sample = replace(layout, pages=tuple(chosen))
     encoded = {
         (page.number, element.role): encode_gray(photos[element.sha256], element)
@@ -348,7 +416,10 @@ def sample_interior(
     }
     return InteriorSample(
         render_pdf(sample, encoded),
-        tuple((page.number, page.kind, page.folio) for page in chosen),
+        tuple(
+            SamplePage(page.number, page.kind, page.folio, tuple(roles[page.number]))
+            for page in chosen
+        ),
         len(layout.pages),
         layout.warnings,
     )
