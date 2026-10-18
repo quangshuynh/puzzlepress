@@ -3513,6 +3513,14 @@ summary:hover {
 .book-fields h3 {
   margin-top: 0;
 }
+.book-fields .field-pair {
+  grid-template-columns: 3fr 1fr;
+}
+@media (max-width: 600px) {
+  .book-fields .field-pair {
+    grid-template-columns: 1fr;
+  }
+}
 .puzzle-fields {
   margin-top: 0;
 }

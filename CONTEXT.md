@@ -407,6 +407,12 @@ small external-editor race remains. Drafts memory-only; no autosave/undo/merge.
 
 ## Actual local verification
 
+Book language editing, 2026-10-18 (Windows, Python 3.13): Language now sits
+beside Book title at the top of Puzzles. Python **1659 passed, 7 skipped
+(symlink permission)**; Ruff, strict mypy (120 files), pip check; tsc, ESLint,
+86 Vitest (a Composer test intermittently exceeds its 5 s timeout under full-run
+load and passes alone), build. Prettier flags only the CRLF checkout.
+
 Book title editing, 2026-10-18 (Windows, Python 3.13): the only title control
 was inside a collapsed disclosure at the end of Puzzles (about 8,500 px down on
 the 60-puzzle automotive book), and Publishing and Book pointed to an "Edit" tab
@@ -498,8 +504,9 @@ Production design and publishing polish (Windows, Python 3.13.15, Node 24.18.0):
 
 ## Limits and decisions for review
 
-Book details: Studio has no language control; `book.language` is edited in
-`book.yaml` (its `language_supported` finding still points to Puzzles).
+Book details: Language sits beside Book title at the top of Puzzles, where the
+`language_supported` finding points. Studio does not check language tags;
+Python's project validation and the Publishing rule do.
 
 Templates and rich text: templates are authored at 8.5 x 11 in and scaled; a
 project template using imported fonts works only where the same font files

@@ -39,6 +39,24 @@ function setup(fail?: string) {
         }),
         { status: 422 },
       );
+    // Stands in for Python's language tag check; the browser never checks tags itself.
+    if (path.endsWith('/validate') && body.source.book.language === 'en_US')
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: 'invalid_project',
+            message: 'Project validation failed.',
+            issues: [
+              {
+                path: 'book.language',
+                code: 'format',
+                message: 'Expected a language tag such as en or en-US.',
+              },
+            ],
+          },
+        }),
+        { status: 422 },
+      );
     if (path.endsWith('/validate') && !body.source.word_search.puzzles[0].title)
       return new Response(
         JSON.stringify({
@@ -123,6 +141,48 @@ test('a blank book title is reported beside its field by Python validation', asy
   expect(beside).toHaveTextContent('book.title: Expected a nonempty string.');
   expect(field).toHaveAccessibleDescription(/Expected a nonempty string/);
   expect(screen.queryByText('Saved and reloaded from source.')).not.toBeInTheDocument();
+});
+
+test('the language is beside the title, prepopulated, and saves only the language', async () => {
+  const calls = setup();
+  const user = userEvent.setup();
+  const field = await screen.findByRole('textbox', { name: 'Language' });
+  // Publishing's language_supported finding links here: the field must be in view.
+  expect(field).toBeVisible();
+  expect(field).toHaveValue('en');
+  expect(field.closest('.book-fields')).toContainElement(
+    screen.getByRole('textbox', { name: 'Book title' }),
+  );
+  await user.clear(field);
+  await user.type(field, 'en-GB');
+  expect(screen.getByText('Unsaved draft')).toBeVisible();
+  await user.click(screen.getByRole('button', { name: 'Save changes' }));
+  expect(await screen.findByText('Saved and reloaded from source.')).toBeVisible();
+  const sent = calls.find((c) => c.url.endsWith('/save'))!.body.source as typeof projectData.source;
+  expect(sent).toEqual({
+    ...projectData.source,
+    book: { ...projectData.source.book, language: 'en-GB' },
+  });
+  expect(screen.getByRole('textbox', { name: 'Language' })).toHaveValue('en-GB');
+  expect(screen.queryByText('Unsaved draft')).not.toBeInTheDocument();
+});
+
+test('a malformed language is reported beside its field by Python validation', async () => {
+  const calls = setup();
+  const user = userEvent.setup();
+  const field = await screen.findByRole('textbox', { name: 'Language' });
+  await user.clear(field);
+  await user.type(field, 'en_US');
+  // No browser-side tag check: nothing is flagged until Python reports it.
+  expect(field).not.toHaveAttribute('aria-invalid');
+  await user.click(screen.getByRole('button', { name: 'Validate draft' }));
+  await waitFor(() => expect(field).toHaveAttribute('aria-invalid', 'true'));
+  expect(calls.find((c) => c.url.endsWith('/validate'))).toBeDefined();
+  const beside = document.getElementById('book.language-issues')!;
+  expect(beside).toBeVisible();
+  expect(beside).toHaveTextContent('book.language: Expected a language tag such as en or en-US.');
+  expect(field).toHaveAccessibleDescription(/Expected a language tag/);
+  expect(screen.getByRole('textbox', { name: 'Book title' })).not.toHaveAttribute('aria-invalid');
 });
 
 test('a failed title save keeps the draft and never reports success', async () => {

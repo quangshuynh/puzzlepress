@@ -140,14 +140,24 @@ export function Editor({ d }: { d: Draft }) {
             {/* Publishing and Book send authors here to retitle: keep it in view on opening. */}
             <section className="book-fields" aria-labelledby="book-fields-heading">
               <h3 id="book-fields-heading">Book</h3>
-              <Field
-                label="Book title"
-                path="book.title"
-                value={draft.book.title}
-                issues={issues}
-                hint="Prints on the title page and cover and is the title KDP receives. Subtitle, author and imprint are on the title page in Book."
-                onChange={(title) => change({ ...draft, book: { ...draft.book, title } })}
-              />
+              <div className="field-pair">
+                <Field
+                  label="Book title"
+                  path="book.title"
+                  value={draft.book.title}
+                  issues={issues}
+                  hint="Prints on the title page and cover and is the title KDP receives. Subtitle, author and imprint are on the title page in Book."
+                  onChange={(title) => change({ ...draft, book: { ...draft.book, title } })}
+                />
+                <Field
+                  label="Language"
+                  path="book.language"
+                  value={draft.book.language}
+                  issues={issues}
+                  hint="A language tag such as en or en-US. KDP receives the language it names."
+                  onChange={(language) => change({ ...draft, book: { ...draft.book, language } })}
+                />
+              </div>
             </section>
             {!ws ? (
               <Empty title="No word-search content">

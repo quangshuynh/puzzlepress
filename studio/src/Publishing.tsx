@@ -335,8 +335,8 @@ function Metadata({
         <FieldFindings id="book" findings={findings} />
         <p className="small muted">
           These come from the book and print on the cover, so KDP sees the same values. Edit the
-          title at the top of <a href={`${base}/edit`}>Puzzles</a>; subtitle, author and imprint on
-          the title page in <a href={`${base}/book`}>Book</a>. The language is set in book.yaml.
+          title and language at the top of <a href={`${base}/edit`}>Puzzles</a>; subtitle, author
+          and imprint on the title page in <a href={`${base}/book`}>Book</a>.
         </p>
         <div className="field-pair">
           {text(

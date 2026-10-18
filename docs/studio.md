@@ -62,8 +62,11 @@ is no autosave. Conflicts and failures keep the draft (see below).
    the first field: the canonical `book.title` that prints on the title page and
    cover and goes to KDP. Changing it stales the interior, cover, the metadata
    and ISBN confirmations and any exported package until they are rebuilt,
-   reconfirmed and exported again. The shared project seed is under **Shared
-   seed** at the end of the form.
+   reconfirmed and exported again. **Language** beside it edits `book.language`,
+   a tag such as `en` or `en-US`. Python checks the tag, reporting problems
+   beside the field, and Publishing reports whether KDP lists the language for
+   paperbacks; changing it stales the metadata confirmation. The shared project
+   seed is under **Shared seed** at the end of the form.
 2. Find a puzzle in the navigator: search titles, IDs and themes, filter by theme
    or difficulty, or step with **Previous** and **Next**. Only the selected
    puzzle's fields are rendered, so a 60- or 100-puzzle book stays fast. Puzzles
@@ -309,8 +312,8 @@ same draft as Edit, Book and Cover.
    character count), keywords, category preferences, the explicit-content and
    reading-age answers, low-content classification, the ISBN option, AI content
    per kind and your confirmations. Title, subtitle, author, imprint and language
-   are shown read-only, linking to Puzzles (title) and Book (subtitle, author,
-   imprint). Studio has no language control; the language is set in `book.yaml`.
+   are shown read-only, linking to Puzzles (title and language) and Book
+   (subtitle, author, imprint).
 4. As you type, Python checks the draft (`POST /draft/publishing`); blocking and
    review findings appear beside their fields as text.
 5. Confirmations come from that check. Each shows **Confirmed**, **Review
