@@ -13,12 +13,34 @@ from dataclasses import dataclass, field
 
 from ..batch import BatchReport, puzzle_digest
 from ..cover_config import Crop
-from ..interior_style import Align, DividerLayout, TitleLayout
-from ..publication import PageKind, PlanPage, PublicationPlan
+from ..interior_style import (
+    Align,
+    Background,
+    Banner,
+    Corners,
+    Density,
+    DividerLayout,
+    FolioStyle,
+    Intensity,
+    Motif,
+    TitleLayout,
+    Weight,
+    WordPosition,
+)
+from ..publication import (
+    NumberStyle,
+    PageKind,
+    PageNumber,
+    PlanPage,
+    PublicationPlan,
+    PuzzleRef,
+    Section,
+)
 from ..wordsearch import WordSearch, verify_word_search
-from .design import CLASSIC, InteriorDesign
+from .design import CLASSIC, InteriorDesign, Look
 from .fonts import ASCENT, CAP_HEIGHT, DESCENT, missing_characters, text_width
 from .geometry import (
+    LETTER_RATIO,
     SOLUTION_TEMPLATES,
     GridGeometry,
     fit_grid,
@@ -39,6 +61,7 @@ from .model import (
     PageFrame,
     Panel,
     PhysicalPage,
+    Polygon,
     Rule,
     SolutionMark,
 )
@@ -72,6 +95,33 @@ DARK_PANEL = 0.45  # A panel this dark or darker takes white text.
 MIN_CONTRAST = 0.55  # Text and panel grays closer than this read poorly in print.
 HEAVY_TINT = 60  # Percent ink: a block this dark over a large area is heavy coverage.
 HEAVY_SHARE = 0.25
+# Version 2 themes (never used without a look; the classic look draws none of them).
+DENSITY = {Density.COMPACT.value: 0.75, Density.BALANCED.value: 1.0, Density.SPACIOUS.value: 1.3}
+BANNER_PAD_X = 12.0
+BANNER_PAD_Y = 7.0
+BANNER_RADIUS = 6.0
+BANNER_RULE = 2.0  # The heavy rule of a `rule` banner.
+OUTLINE_STROKE = 1.25
+PAGE_FRAME_PAD = 14.0  # Content keeps this far inside a page frame's stroke.
+PAGE_FRAME_RADIUS = 10.0
+MOTIF_HEIGHT = {
+    Intensity.SUBTLE.value: 10.0,
+    Intensity.MEDIUM.value: 16.0,
+    Intensity.BOLD.value: 22.0,
+}
+MOTIF_COUNT = {Intensity.SUBTLE.value: 3, Intensity.MEDIUM.value: 4, Intensity.BOLD.value: 5}
+MOTIF_GAP = 12.0  # Between the motif band and the page header.
+HEADER_BAND_GRAY = 0.93  # A 7% tint behind the header.
+LIGHT_TEXT = 0.5  # Text lighter than 50% black reads poorly in print.
+COMFORT_SOLUTION_LETTER = 7.5  # Below this, solution letters are legal but cramped.
+FOOTER_GAP = 8.0  # Between a puzzle's answer reference and the content above it.
+GRID_CORNER = 0.3  # Rounded grid corners: at most this share of a cell (padding is 0.35).
+# Solution letters as a share of the cell, per density. Eight a page uses compact
+# cells so small grids keep 7 pt letters; the others keep the original ratio.
+SOLUTION_LETTER_RATIO = {8: 0.68}
+THEMED_KINDS = frozenset(
+    {PageKind.PUZZLE, PageKind.PUZZLE_WORDS, PageKind.SOLUTIONS, PageKind.DIVIDER}
+)
 
 
 def plan_digest(plan: PublicationPlan) -> str:
@@ -203,9 +253,41 @@ class _Page:
     warnings: list[LayoutIssue] = field(default_factory=list)
 
     @property
-    def body(self) -> Box:
+    def look(self) -> Look | None:
+        return self.design.look
+
+    @property
+    def themed(self) -> bool:
+        """Puzzle, word-list, solution and divider pages take theme decoration."""
+        return self.design.look is not None and self.plan_page.kind in THEMED_KINDS
+
+    @property
+    def page_body(self) -> Box:
+        """The live area above the folio band."""
         content = self.frame.content
         return Box(content.x, content.y + FOLIO_BAND, content.width, content.height - FOLIO_BAND)
+
+    @property
+    def body(self) -> Box:
+        """Where content goes: inside any page frame and below any motif band."""
+        body = self.page_body
+        look = self.look
+        if look is None or not self.themed:
+            return body
+        if look.background == Background.FRAME.value:
+            inset = OUTLINE_STROKE + PAGE_FRAME_PAD
+            body = Box(
+                body.x + inset, body.y + inset, body.width - 2 * inset, body.height - 2 * inset
+            )
+        if look.motif != Motif.NONE.value:
+            reserved = MOTIF_HEIGHT[look.motif_intensity] + MOTIF_GAP
+            body = Box(body.x, body.y, body.width, body.height - reserved)
+        return body
+
+    def gap(self, value: float) -> float:
+        """A template gap at the look's spacing density (classic: unchanged)."""
+        look = self.look
+        return value if look is None else value * DENSITY[look.density]
 
     @property
     def center_x(self) -> float:
@@ -360,19 +442,25 @@ def layout_interior(
             ),
         )
     density = solution_template(largest) if largest else 1
+    unreadable = _unreadable_solutions(plan, puzzles, spec, design, density) if largest else None
+    # Spreads put each word list on its own page, facing a grid-only page.
+    spread = {p.puzzle.id for p in plan.pages if p.kind is PageKind.PUZZLE_WORDS and p.puzzle}
     renderers: dict[PageKind, Callable[[_Page], None]] = {
         PageKind.TITLE_PAGE: _title_page,
         PageKind.COPYRIGHT_PAGE: _copyright_page,
         PageKind.INSTRUCTIONS: _text_page,
         PageKind.ABOUT: _text_page,
         PageKind.NOTES: _notes_page,
-        PageKind.PUZZLE: lambda page: _puzzle_page(page, puzzles),
-        PageKind.SOLUTIONS: lambda page: _solution_page(page, puzzles, plan, density),
+        PageKind.PUZZLE: lambda page: _puzzle_page(page, puzzles, plan, spread),
+        PageKind.PUZZLE_WORDS: lambda page: _word_page(page, puzzles),
+        PageKind.SOLUTIONS: lambda page: _solution_page(
+            page, puzzles, plan, density, unreadable is not None
+        ),
         PageKind.BLANK: lambda page: None,
         PageKind.DIVIDER: _divider_page,
     }
     pages: list[PhysicalPage] = []
-    issues: list[LayoutIssue] = []
+    issues: list[LayoutIssue] = [] if unreadable is None else [unreadable]
     style_warnings: list[LayoutIssue] = []
     for position, plan_page in enumerate(plan.pages):
         page = _Page(spec, plan_page, position + 1, page_frame(spec, position + 1), design, photos)
@@ -382,6 +470,8 @@ def layout_interior(
         if renderer is None:
             page.issue("unsupported_page_type", "The renderer cannot draw this entry kind.")
         else:
+            if page.themed:
+                _decorate(page)
             renderer(page)
             if plan_page.number.displayed:
                 _folio(page)
@@ -401,6 +491,122 @@ def layout_interior(
     )
 
 
+# ------------------------------------------------------------------ answer layouts
+
+
+@dataclass(frozen=True)
+class AnswerFit:
+    """How one solutions-per-page choice prints this book's largest solution grids."""
+
+    per_page: int
+    columns: int
+    rows: int
+    letter_size: float  # The smallest solution letter on any page, in points.
+    minimum: float  # The profile's minimum solution letter size.
+    grid: tuple[int, int] | None  # The (width, height) grid that sets `letter_size`.
+
+    @property
+    def fits(self) -> bool:
+        return self.letter_size >= self.minimum - 1e-6
+
+    @property
+    def comfortable(self) -> bool:
+        return self.letter_size >= COMFORT_SOLUTION_LETTER - 1e-6
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "per_page": self.per_page,
+            "columns": self.columns,
+            "rows": self.rows,
+            "letter_size": round(self.letter_size, 2),
+            "minimum": self.minimum,
+            "grid": None if self.grid is None else list(self.grid),
+            "fits": self.fits,
+            "comfortable": self.comfortable,
+        }
+
+
+def _solution_probe(
+    spec: PrintSpecification, design: InteriorDesign, heading: str | None, index: int
+) -> _Page:
+    """A throwaway solution page, so fit checks share the renderer's exact geometry."""
+    plan_page = PlanPage(
+        index=index,
+        section=Section.SOLUTIONS,
+        kind=PageKind.SOLUTIONS,
+        number=PageNumber(index, NumberStyle.ARABIC, True),
+        heading=heading,
+    )
+    return _Page(spec, plan_page, index, page_frame(spec, index), design)
+
+
+def answer_fits(
+    spec: PrintSpecification,
+    design: InteriorDesign,
+    sizes: tuple[tuple[int, int], ...],
+    heading: str | None,
+) -> tuple[AnswerFit, ...]:
+    """Each supported density's smallest solution letter for these grid sizes.
+
+    Computed with the solution renderer's own slot geometry on a page with the
+    section heading and one without, so it agrees with what a build would draw.
+    """
+    t = spec.typography
+    found: list[AnswerFit] = []
+    for density, (columns, rows) in sorted(SOLUTION_TEMPLATES.items()):
+        letter, worst = t.solution_letter_max, None
+        probes = (_solution_probe(spec, design, heading, 1), _solution_probe(spec, design, None, 2))
+        for probe in probes:
+            slots, caption = _solution_slots(probe, density)
+            for width, height in sizes:
+                geometry = _solution_grid(probe, width, height, slots[0], caption, density)
+                if geometry.letter_size < letter - 1e-9:
+                    letter, worst = geometry.letter_size, (width, height)
+        if worst is None and sizes:
+            worst = max(sizes, key=lambda s: max(s))
+        found.append(
+            AnswerFit(density, columns, rows, max(letter, 0.0), t.solution_letter_min, worst)
+        )
+    return tuple(found)
+
+
+def _unreadable_solutions(
+    plan: PublicationPlan,
+    puzzles: dict[str, WordSearch],
+    spec: PrintSpecification,
+    design: InteriorDesign,
+    density: int,
+) -> LayoutIssue | None:
+    """The issue for a solutions-per-page choice that cannot print every grid legibly.
+
+    One clear issue naming the densest choice that fits, instead of a page of
+    per-grid failures. The author's count is never changed.
+    """
+    sizes = tuple(sorted({(p.config.size.width, p.config.size.height) for p in puzzles.values()}))
+    heading = next((p.heading for p in plan.pages if p.kind is PageKind.SOLUTIONS), None)
+    fits = {fit.per_page: fit for fit in answer_fits(spec, design, sizes, heading)}
+    chosen = fits[density]
+    if chosen.fits:
+        return None
+    viable = [n for n, fit in fits.items() if fit.fits]
+    advice = (
+        f"Choose {max(viable)} solutions a page or fewer."
+        if viable
+        else "No solutions-per-page choice fits these grids on this trim size."
+    )
+    width, height = chosen.grid or (0, 0)
+    return LayoutIssue(
+        "solution_layout_unreadable",
+        f"{density} solutions a page print {width} x {height} grids with "
+        f"{chosen.letter_size:.1f} pt letters, below the {chosen.minimum:g} pt "
+        f"minimum. {advice}",
+        kind=PageKind.SOLUTIONS.value,
+        region="composition.solutions.per_page",
+        actual=f"{chosen.letter_size:.2f} pt",
+        required=f"at least {chosen.minimum:g} pt",
+    )
+
+
 def _folio(page: _Page) -> None:
     size = page.spec.typography.folio
     content = page.frame.content
@@ -410,13 +616,41 @@ def _folio(page: _Page) -> None:
         if page.design.folio is None
         else FolioPlacement(page.design.folio)
     )
+    style = FolioStyle.PLAIN.value if page.look is None else page.look.folio_style
+    label = page.plan_page.number.label
+    inset = 0.0
+    if style == FolioStyle.OUTLINE.value:
+        # The box's stroke stays inside the live area; the number sits inside the box.
+        inset = 4.0 if placement is not FolioPlacement.CENTER else 0.0
+        baseline += OUTLINE_STROKE / 2 + 2.5
     if placement is FolioPlacement.CENTER:
         x, anchor = page.center_x, Anchor.MIDDLE
     elif page.frame.recto:
-        x, anchor = content.right, Anchor.END
+        x, anchor = content.right - inset - OUTLINE_STROKE * bool(inset), Anchor.END
     else:
-        x, anchor = content.x, Anchor.START
-    page.line("folio", page.plan_page.number.label, Face.REGULAR, size, x, baseline, anchor)
+        x, anchor = content.x + inset + OUTLINE_STROKE * bool(inset), Anchor.START
+    page.line("folio", label, Face.REGULAR, size, x, baseline, anchor)
+    if style == FolioStyle.PLAIN.value:
+        return
+    look = page.look
+    assert look is not None
+    text = page.elements[-1].bounds
+    if style == FolioStyle.RULE.value:
+        y = text.top + 4.0
+        middle = text.x + text.width / 2
+        _rule(page, "folio_rule", middle - 12, middle + 12, y, _stroke_gray(look.accent_gray))
+        return
+    box = Box(
+        text.x - 4.0,
+        content.y + OUTLINE_STROKE / 2,
+        text.width + 8.0,
+        text.top + 2.0 - (content.y + OUTLINE_STROKE / 2),
+    )
+    radius = 3.0 if look.corners == Corners.ROUNDED.value else 0.0
+    page.elements.insert(
+        len(page.elements) - 1,
+        Panel("folio_box", box, None, look.secondary_gray, OUTLINE_STROKE, radius),
+    )
 
 
 def _measure(page: _Page) -> Box:
@@ -536,9 +770,95 @@ def _copyright_page(page: _Page) -> None:
 def _heading(page: _Page, text: str) -> float:
     t = page.spec.typography
     body = page.body
+    look = page.look
+    if look is not None and look.banner != Banner.NONE.value:
+        return _banner(page, "heading", text, t.heading, Face.BOLD, Anchor.MIDDLE, look.banner)
     return page.block(
         "heading", text, Face.BOLD, t.heading, t.heading * 1.2, body, body.top, Anchor.MIDDLE
     )
+
+
+def _stroke_gray(gray: float) -> float:
+    """Accent rules print at least 40% black so thin lines stay visible."""
+    return min(gray, 0.6)
+
+
+def _banner(
+    page: _Page,
+    role: str,
+    text: str,
+    size: float,
+    face: Face,
+    anchor: Anchor,
+    style: str,
+    badge: str | None = None,
+) -> float:
+    """A heading in a solid or outlined box, or over a heavy rule; returns its bottom.
+
+    The box spans the body; text wraps inside its padding and never shrinks. A
+    solid box takes paper-white type when it is dark, and contrast is checked.
+    """
+    look = page.look
+    assert look is not None
+    body = page.body
+    radius = BANNER_RADIUS if look.corners == Corners.ROUNDED.value else 0.0
+    badge_width = 0.0
+    if badge is not None:
+        badge_width = text_width(badge, Face.BOLD, size * 0.8) + BANNER_PAD_X
+    boxed = style in (Banner.SOLID.value, Banner.OUTLINE.value)
+    pad_x = BANNER_PAD_X if boxed else 0.0
+    pad_y = BANNER_PAD_Y if boxed else 0.0
+    stroke = OUTLINE_STROKE if style == Banner.OUTLINE.value else 0.0
+    measure = Box(
+        body.x + pad_x + stroke + (badge_width if anchor is Anchor.MIDDLE else 0.0),
+        body.y,
+        body.width - 2 * (pad_x + stroke) - badge_width * (2 if anchor is Anchor.MIDDLE else 1),
+        body.height,
+    )
+    wrapped = wrap_text(text, face, size, measure.width)
+    lines = max(len(wrapped.lines), 1)
+    text_height = (lines - 1) * size * 1.2 + (ASCENT + DESCENT) * size
+    height = text_height + 2 * pad_y + 2 * stroke
+    box = Box(
+        body.x + stroke / 2, body.top - height + stroke / 2, body.width - stroke, height - stroke
+    )
+    text_gray = 0.0
+    panel: Panel | None = None
+    if style == Banner.SOLID.value:
+        panel = Panel(role + "_banner", box, look.secondary_gray, None, 0.0, radius)
+        text_gray = _text_gray(look.secondary_gray)
+    elif style == Banner.OUTLINE.value:
+        panel = Panel(role + "_banner", box, None, look.secondary_gray, OUTLINE_STROKE, radius)
+    if panel is not None:
+        page.elements.append(panel)
+    top = body.top - stroke - pad_y
+    bottom = page.block(role, text, face, size, size * 1.2, measure, top, anchor, text_gray)
+    if panel is not None and panel.fill_gray is not None:
+        _contrast(page, panel, text_gray, role)
+    if badge is not None:
+        page.line(
+            role + "_number",
+            badge,
+            Face.BOLD,
+            size * 0.8,
+            body.right - stroke - pad_x,
+            top - ASCENT * size,
+            Anchor.END,
+            text_gray,
+        )
+    if style == Banner.RULE.value:
+        y = bottom - 6.0 - BANNER_RULE / 2
+        _rule(
+            page,
+            role + "_banner",
+            body.x,
+            body.right,
+            y,
+            _stroke_gray(look.accent_gray),
+            BANNER_RULE,
+        )
+        return y - BANNER_RULE / 2
+    return body.top - height
 
 
 def _text_page(page: _Page) -> None:
@@ -582,6 +902,10 @@ class _WordTable:
     rows: int
     widest: float
     height: float
+    size: float
+    face: Face
+    leading: float
+    gap: float
 
 
 def _word_size(page: _Page) -> float:
@@ -594,11 +918,21 @@ def _grid_stroke(page: _Page) -> float:
     return page.spec.strokes.grid_frame if stroke is None else stroke
 
 
-def _word_table(page: _Page, words: tuple[str, ...]) -> _WordTable | None:
+def _word_table(
+    page: _Page,
+    words: tuple[str, ...],
+    size: float | None = None,
+    leading: float | None = None,
+) -> _WordTable | None:
     """Most columns (up to five, or the style's limit) whose uniform width fits."""
-    size = _word_size(page)
-    width = page.frame.content.width
-    widest = max(text_width(word, Face.REGULAR, size) for word in words)
+    look = page.look
+    size = _word_size(page) if size is None else size
+    face = Face.BOLD if look is not None and look.word_weight == Weight.BOLD.value else Face.REGULAR
+    if leading is None:
+        leading = WORD_LEADING if look is None else look.word_leading
+    gap = page.gap(WORD_COLUMN_GAP)
+    width = page.body.width
+    widest = max(text_width(word, face, size) for word in words)
     if widest > width:
         page.issue(
             "word_list_overflow",
@@ -610,25 +944,32 @@ def _word_table(page: _Page, words: tuple[str, ...]) -> _WordTable | None:
         return None
     limit = min(MAX_WORD_COLUMNS, page.design.word_columns)
     columns = next(
-        n
-        for n in range(min(limit, len(words)), 0, -1)
-        if n * widest + (n - 1) * WORD_COLUMN_GAP <= width
+        n for n in range(min(limit, len(words)), 0, -1) if n * widest + (n - 1) * gap <= width
     )
     rows = math.ceil(len(words) / columns)
-    height = (rows - 1) * size * WORD_LEADING + (ASCENT + DESCENT) * size
-    return _WordTable(words, columns, rows, widest, height)
+    height = (rows - 1) * size * leading + (ASCENT + DESCENT) * size
+    return _WordTable(words, columns, rows, widest, height, size, face, leading, gap)
+
+
+def _table_span(table: _WordTable) -> float:
+    return table.columns * table.widest + (table.columns - 1) * table.gap
+
+
+def _table_left(page: _Page, table: _WordTable) -> float:
+    look = page.look
+    if look is not None and look.word_align == Align.LEFT.value:
+        return page.body.x
+    return page.center_x - _table_span(table) / 2
 
 
 def _place_word_table(page: _Page, table: _WordTable, top: float) -> None:
-    """Column-major, in authoritative target order, centered as one table."""
-    size = _word_size(page)
-    span = table.columns * table.widest + (table.columns - 1) * WORD_COLUMN_GAP
-    left = page.center_x - span / 2
+    """Column-major, in authoritative target order, centered (or left) as one table."""
+    left = _table_left(page, table)
     for index, word in enumerate(table.words):
         column, row = divmod(index, table.rows)
-        x = left + column * (table.widest + WORD_COLUMN_GAP)
-        baseline = top - ASCENT * size - row * size * WORD_LEADING
-        page.line("word_list", word, Face.REGULAR, size, x, baseline)
+        x = left + column * (table.widest + table.gap)
+        baseline = top - ASCENT * table.size - row * table.size * table.leading
+        page.line("word_list", word, table.face, table.size, x, baseline)
 
 
 def _grid_letters_fit(page: _Page, geometry: GridGeometry, minimum: float, region: str) -> bool:
@@ -661,6 +1002,8 @@ def _letter_grid(
             geometry.top - (y + 0.5) * geometry.cell,
         )
 
+    look = design.look
+    rounded = look is not None and look.corners == Corners.ROUNDED.value
     return LetterGrid(
         role=role,
         rows=puzzle.grid.rows,
@@ -684,105 +1027,289 @@ def _letter_grid(
             )
             for p in placements
         ),
+        frame_radius=min(geometry.cell * GRID_CORNER, 8.0) if rounded else 0.0,
     )
 
 
-def _puzzle_page(page: _Page, puzzles: dict[str, WordSearch]) -> None:
-    ref = page.plan_page.puzzle
-    assert ref is not None
-    puzzle = puzzles[ref.id]
-    t, body, d = page.spec.typography, page.body, page.design
+def _label_gray(page: _Page, role: str) -> float:
+    """Accent-toned labels when the look asks for them, warned when too light to read."""
+    look = page.look
+    if look is None or not look.accent_labels:
+        return 0.0
+    if look.accent_gray > LIGHT_TEXT + 1e-9:
+        page.warn(
+            "light_text",
+            f"The accent prints as {_ink(look.accent_gray)}% black; {role.replace('_', ' ')} "
+            "text this light may be hard to read. Choose a darker accent.",
+            role,
+        )
+    return look.accent_gray
+
+
+def _puzzle_header(page: _Page, ref: PuzzleRef) -> float:
+    """Title (plain or in a banner), optional puzzle number, theme label and rule."""
+    t, body, d, look = page.spec.typography, page.body, page.design, page.look
     anchor = Anchor.START if d.header_align == Align.LEFT.value else Anchor.MIDDLE
     title_size = t.puzzle_title if d.puzzle_title_size is None else d.puzzle_title_size
-    bottom = page.block(
-        "puzzle_title",
-        ref.title,
-        Face.BOLD if d.puzzle_title_bold else Face.REGULAR,
-        title_size,
-        title_size * 1.2,
-        body,
-        body.top,
-        anchor,
-    )
+    face = Face.BOLD if d.puzzle_title_bold else Face.REGULAR
+    number = str(ref.ordinal) if look is not None and look.puzzle_number else None
+    start = len(page.elements)
+    if look is not None and look.title_banner:
+        style = Banner.SOLID.value if look.banner == Banner.NONE.value else look.banner
+        bottom = _banner(page, "puzzle_title", ref.title, title_size, face, anchor, style, number)
+    else:
+        measure = body
+        if number is not None:
+            reserve = text_width(number, Face.BOLD, title_size * 0.8) + BANNER_PAD_X
+            twice = anchor is Anchor.MIDDLE
+            measure = Box(
+                body.x + (reserve if twice else 0.0),
+                body.y,
+                body.width - reserve * (2 if twice else 1),
+                body.height,
+            )
+        bottom = page.block(
+            "puzzle_title", ref.title, face, title_size, title_size * 1.2, measure, body.top, anchor
+        )
+        if number is not None:
+            page.line(
+                "puzzle_title_number",
+                number,
+                Face.BOLD,
+                title_size * 0.8,
+                body.right,
+                body.top - ASCENT * title_size,
+                Anchor.END,
+                _label_gray(page, "puzzle_number"),
+            )
     if d.theme_label:
         theme_size = t.theme if d.theme_size is None else d.theme_size
         bottom = page.block(
-            "theme", ref.theme, Face.ITALIC, theme_size, theme_size * 1.3, body, bottom - 6, anchor
+            "theme",
+            ref.theme,
+            Face.ITALIC,
+            theme_size,
+            theme_size * 1.3,
+            body,
+            bottom - 6,
+            anchor,
+            _label_gray(page, "theme"),
         )
     if d.header_rule:
         rule_y = bottom - 10
-        _rule(page, "header_rule", body.x, body.right, rule_y)
+        gray = 0.0 if look is None else _stroke_gray(look.accent_gray)
+        _rule(page, "header_rule", body.x, body.right, rule_y, gray)
         bottom = rule_y - page.spec.strokes.rule / 2
-    region_top = bottom - HEADING_GAP
+    if look is not None and page.themed and look.background == Background.HEADER_BAND.value:
+        bottom -= 6.0
+        band = Box(body.x, bottom, body.width, body.top - bottom)
+        page.elements.insert(start, Panel("header_band", band, HEADER_BAND_GRAY))
+    return bottom
+
+
+def _answer_reference(page: _Page, plan: PublicationPlan) -> float:
+    """The authored "solution on page N" line at the foot of the body; returns its top."""
+    body, look = page.body, page.look
+    target = page.plan_page.solution_page
+    if look is None or look.answer_reference is None or target is None:
+        return body.y
+    size = (
+        page.spec.typography.caption
+        if page.design.caption_size is None
+        else (page.design.caption_size)
+    )
+    text = look.answer_reference.replace("{page}", plan.pages[target - 1].number.label)
+    width = text_width(text, Face.ITALIC, size)
+    if width > body.width:
+        page.issue(
+            "text_overflow",
+            "The answer reference is wider than the page.",
+            region="answer_reference",
+            actual=f"{width:.2f} pt",
+            required=f"at most {body.width:.2f} pt",
+        )
+        return body.y
+    left = page.design.header_align == Align.LEFT.value
+    page.line(
+        "answer_reference",
+        text,
+        Face.ITALIC,
+        size,
+        body.x if left else page.center_x,
+        body.y + DESCENT * size,
+        Anchor.START if left else Anchor.MIDDLE,
+        LABEL_GRAY,
+    )
+    return body.y + (ASCENT + DESCENT) * size + page.gap(FOOTER_GAP)
+
+
+def _fit_puzzle_grid(page: _Page, puzzle: WordSearch, region: Box) -> GridGeometry:
+    t, look = page.spec.typography, page.look
+    ratio = LETTER_RATIO if look is None else look.letter_ratio
+    if look is not None and look.grid_width < 100:
+        width = region.width * look.grid_width / 100
+        region = Box(region.x + (region.width - width) / 2, region.y, width, region.height)
+    return fit_grid(
+        puzzle.config.size.width,
+        puzzle.config.size.height,
+        region,
+        t.grid_letter_max,
+        _grid_stroke(page),
+        max_cell_for_letter(t.grid_letter_max, ratio),
+        ratio,
+    )
+
+
+def _puzzle_page(
+    page: _Page, puzzles: dict[str, WordSearch], plan: PublicationPlan, spread: set[str]
+) -> None:
+    ref = page.plan_page.puzzle
+    assert ref is not None
+    puzzle = puzzles[ref.id]
+    body, d, look = page.body, page.design, page.look
+    region_top = _puzzle_header(page, ref) - page.gap(HEADING_GAP)
     if page.issues:
+        return
+    floor = _answer_reference(page, plan)
+    available = region_top - floor
+    if ref.id in spread:
+        # A spread's grid page: the grid alone, centred in the space below the header.
+        geometry = _fit_puzzle_grid(page, puzzle, Box(body.x, floor, body.width, available))
+        if not _grid_letters_fit(
+            page, geometry, page.spec.typography.grid_letter_min, "puzzle_grid"
+        ):
+            return
+        geometry = geometry.moved(-(available - geometry.bounds.height) / 2)
+        page.elements.append(_letter_grid("puzzle_grid", puzzle, geometry, page.spec, False, d))
         return
     table = _word_table(page, tuple(target.display for target in puzzle.targets))
     if table is None:
         return
-    available = region_top - body.y
-    grid_height = available - table.height - WORD_GAP
+    gap = page.gap(WORD_GAP)
+    grid_height = available - table.height - gap
     if grid_height <= 0:
         page.issue(
             "word_list_overflow",
             "The word list leaves no room for the grid.",
             region="word_list",
             actual=f"{table.height:.2f} pt tall",
-            required=f"less than {available - WORD_GAP:.2f} pt",
+            required=f"less than {available - gap:.2f} pt",
         )
         return
-    grid_region = Box(body.x, region_top - grid_height, body.width, grid_height)
-    geometry = fit_grid(
-        puzzle.config.size.width,
-        puzzle.config.size.height,
-        grid_region,
-        t.grid_letter_max,
-        _grid_stroke(page),
-        max_cell_for_letter(t.grid_letter_max),
+    above = look is not None and look.word_position == WordPosition.ABOVE.value
+    grid_top = region_top - (table.height + gap if above else 0.0)
+    geometry = _fit_puzzle_grid(
+        page, puzzle, Box(body.x, grid_top - grid_height, body.width, grid_height)
     )
-    if not _grid_letters_fit(page, geometry, t.grid_letter_min, "puzzle_grid"):
+    if not _grid_letters_fit(page, geometry, page.spec.typography.grid_letter_min, "puzzle_grid"):
         return
     # Center the painted grid and word list together in the space below the header.
-    block = geometry.bounds.height + WORD_GAP + table.height
-    geometry = geometry.moved(-(available - block) / 2)
-    page.elements.append(_letter_grid("puzzle_grid", puzzle, geometry, page.spec, marks=False))
+    block = geometry.bounds.height + gap + table.height
+    shift = (available - block) / 2
+    geometry = geometry.moved(-shift)
+    page.elements.append(_letter_grid("puzzle_grid", puzzle, geometry, page.spec, False, d))
+    rule_gray = 0.0 if look is None else _stroke_gray(look.accent_gray)
+    span = _table_span(table)
+    left = _table_left(page, table)
+    if above:
+        if d.word_rule:
+            _rule(page, "word_rule", left, left + span, geometry.bounds.top + gap / 2, rule_gray)
+        _place_word_table(page, table, region_top - shift)
+        return
     if d.word_rule:
-        span = table.columns * table.widest + (table.columns - 1) * WORD_COLUMN_GAP
-        _rule(
-            page,
-            "word_rule",
-            page.center_x - span / 2,
-            page.center_x + span / 2,
-            geometry.bounds.y - WORD_GAP / 2,
+        _rule(page, "word_rule", left, left + span, geometry.bounds.y - gap / 2, rule_gray)
+    _place_word_table(page, table, geometry.bounds.y - gap)
+
+
+def _word_page(page: _Page, puzzles: dict[str, WordSearch]) -> None:
+    """A spread's left-hand page: the header and a large word list, centred."""
+    ref = page.plan_page.puzzle
+    assert ref is not None
+    puzzle = puzzles[ref.id]
+    region_top = _puzzle_header(page, ref) - page.gap(HEADING_GAP)
+    if page.issues:
+        return
+    look = page.look
+    leading = max(WORD_LEADING if look is None else look.word_leading, 1.8)
+    size = min(_word_size(page) * 1.3, 20.0)
+    table = _word_table(page, tuple(t.display for t in puzzle.targets), size, leading)
+    if table is None:
+        return
+    available = region_top - page.body.y
+    if table.height > available:
+        page.issue(
+            "word_list_overflow",
+            "The word list does not fit its page.",
+            region="word_list",
+            actual=f"{table.height:.2f} pt tall",
+            required=f"at most {available:.2f} pt",
         )
-    _place_word_table(page, table, geometry.bounds.y - WORD_GAP)
+        return
+    _place_word_table(page, table, region_top - (available - table.height) / 2)
+
+
+def _solution_slots(page: _Page, density: int) -> tuple[tuple[Box, ...], float]:
+    """The page's solution slots (below any section heading) and its caption size."""
+    body = page.body
+    top = body.top
+    if page.plan_page.heading:
+        top = _heading(page, page.plan_page.heading) - page.gap(HEADING_GAP) + 6
+    region = Box(body.x, body.y, body.width, top - body.y)
+    slots = solution_slots(density, region, page.gap(SOLUTION_GAP_X), page.gap(SOLUTION_GAP_Y))
+    d = page.design
+    caption = page.spec.typography.caption if d.caption_size is None else d.caption_size
+    return slots, caption
+
+
+def _solution_grid(
+    page: _Page, width: int, height: int, slot: Box, caption: float, density: int
+) -> GridGeometry:
+    t = page.spec.typography
+    caption_height = (ASCENT + DESCENT) * caption
+    region = Box(slot.x, slot.y, slot.width, slot.height - caption_height - CAPTION_GAP)
+    ratio = SOLUTION_LETTER_RATIO.get(density, LETTER_RATIO)
+    return fit_grid(
+        width,
+        height,
+        region,
+        t.solution_letter_max,
+        _grid_stroke(page),
+        max_cell_for_letter(t.solution_letter_max, ratio),
+        ratio,
+    )
 
 
 def _solution_page(
-    page: _Page, puzzles: dict[str, WordSearch], plan: PublicationPlan, density: int
+    page: _Page,
+    puzzles: dict[str, WordSearch],
+    plan: PublicationPlan,
+    density: int,
+    reported: bool = False,
 ) -> None:
-    t, body = page.spec.typography, page.body
-    top = body.top
-    if page.plan_page.heading:
-        top = _heading(page, page.plan_page.heading) - HEADING_GAP + 6
-    region = Box(body.x, body.y, body.width, top - body.y)
-    slots = solution_slots(density, region, SOLUTION_GAP_X, SOLUTION_GAP_Y)
-    d = page.design
-    caption = t.caption if d.caption_size is None else d.caption_size
-    caption_height = (ASCENT + DESCENT) * caption
+    """`reported`: an unreadable density is already one issue; grids too small say no more."""
+    t = page.spec.typography
+    slots, caption = _solution_slots(page, density)
+    d, look = page.design, page.look
+    cramped = False
     for slot, item in zip(slots, page.plan_page.solutions, strict=False):
         puzzle = puzzles[item.puzzle.id]
-        grid_region = Box(slot.x, slot.y, slot.width, slot.height - caption_height - CAPTION_GAP)
-        geometry = fit_grid(
-            puzzle.config.size.width,
-            puzzle.config.size.height,
-            grid_region,
-            t.solution_letter_max,
-            _grid_stroke(page),
-            max_cell_for_letter(t.solution_letter_max),
-        )
+        size = puzzle.config.size
+        geometry = _solution_grid(page, size.width, size.height, slot, caption, density)
+        if reported and geometry.letter_size < t.solution_letter_min - 1e-6:
+            continue
         if not _grid_letters_fit(page, geometry, t.solution_letter_min, "solution_grid"):
             continue
+        if geometry.letter_size < COMFORT_SOLUTION_LETTER - 1e-6 and not cramped:
+            cramped = True
+            page.warn(
+                "dense_solution_page",
+                f"Solution letters print at {geometry.letter_size:.1f} pt: legal, but cramped "
+                f"below {COMFORT_SOLUTION_LETTER:g} pt. Fewer solutions a page read more easily.",
+                "solution_grid",
+            )
         label = plan.pages[item.puzzle_page - 1].number.label
+        if look is not None and look.page_label is not None:
+            label = look.page_label.replace("{page}", label)
         title_width = text_width(item.puzzle.title, Face.BOLD, caption)
         label_width = text_width(label, Face.REGULAR, caption)
         combined = title_width + CAPTION_GAP + label_width
@@ -814,12 +1341,103 @@ def _solution_page(
         )
 
 
+def _decorate(page: _Page) -> None:
+    """A themed page's frame and motif, drawn first so content paints over nothing."""
+    look = page.look
+    assert look is not None
+    base = page.page_body
+    inner = base
+    rounded = look.corners == Corners.ROUNDED.value
+    if look.background == Background.FRAME.value:
+        page.elements.append(
+            Panel(
+                "page_frame",
+                base.expanded(-OUTLINE_STROKE / 2),
+                None,
+                look.secondary_gray,
+                OUTLINE_STROKE,
+                PAGE_FRAME_RADIUS if rounded else 0.0,
+            )
+        )
+        inset = OUTLINE_STROKE + PAGE_FRAME_PAD
+        inner = base.expanded(-inset)
+    if look.motif != Motif.NONE.value:
+        height = MOTIF_HEIGHT[look.motif_intensity]
+        _motif(page, Box(inner.x, inner.top - height, inner.width, height))
+
+
+def _motif(page: _Page, band: Box) -> None:
+    """Angled stripes or chevrons at the outer corner, a hairline toward the gutter."""
+    look = page.look
+    assert look is not None
+    count = MOTIF_COUNT[look.motif_intensity]
+    h = band.height
+    width, gap, slant = h * 0.55, h * 0.45, h * 0.7
+    span = count * width + (count - 1) * gap + slant
+    outward = page.frame.recto  # Recto pages point right, versos left: a mirrored spread.
+    cluster = Box(band.right - span if outward else band.x, band.y, span, h)
+    tone = look.accent_gray
+    if look.motif_intensity == Intensity.SUBTLE.value:
+        tone = 1 - (1 - tone) * 0.6
+    for index in range(count):
+        gray = (
+            look.secondary_gray
+            if look.motif_intensity == Intensity.BOLD.value and index % 2
+            else tone
+        )
+        x = cluster.x + index * (width + gap)
+        y0, y1 = band.y, band.top
+        points: tuple[tuple[float, float], ...]
+        if look.motif == Motif.STRIPES.value:
+            if outward:
+                points = ((x, y0), (x + width, y0), (x + width + slant, y1), (x + slant, y1))
+            else:
+                points = ((x + slant, y0), (x + width + slant, y0), (x + width, y1), (x, y1))
+        else:
+            thick, mid, tip = width * 0.55, (y0 + y1) / 2, width + slant * 0.5
+            if outward:
+                points = (
+                    (x, y1),
+                    (x + thick, y1),
+                    (x + tip, mid),
+                    (x + thick, y0),
+                    (x, y0),
+                    (x + tip - thick, mid),
+                )
+            else:
+                right = x + tip
+                points = (
+                    (right, y1),
+                    (right - thick, y1),
+                    (right - tip, mid),
+                    (right - thick, y0),
+                    (right, y0),
+                    (right - tip + thick, mid),
+                )
+        page.elements.append(Polygon("motif", points, gray, cluster))
+    y = band.y + h / 2
+    if outward:
+        _rule(page, "motif_rule", band.x, cluster.x - gap, y, _stroke_gray(tone))
+    else:
+        _rule(page, "motif_rule", cluster.right + gap, band.right, y, _stroke_gray(tone))
+
+
 # ------------------------------------------------------------------ styled pages
 
 
-def _rule(page: _Page, role: str, x1: float, x2: float, y: float) -> None:
-    width = page.spec.strokes.rule
-    page.elements.append(Rule(role, x1, y, x2, y, width, Box(x1, y - width / 2, x2 - x1, width)))
+def _rule(
+    page: _Page,
+    role: str,
+    x1: float,
+    x2: float,
+    y: float,
+    gray: float = 0.0,
+    width: float | None = None,
+) -> None:
+    width = page.spec.strokes.rule if width is None else width
+    page.elements.append(
+        Rule(role, x1, y, x2, y, width, Box(x1, y - width / 2, x2 - x1, width), gray)
+    )
 
 
 def _ink(gray: float) -> int:

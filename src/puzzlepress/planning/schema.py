@@ -12,6 +12,7 @@ import datetime
 import re
 from typing import TypeVar, cast
 
+from ..composition import SOLUTIONS_PER_PAGE
 from ..content_validation import _Reader
 from ..errors import ValidationIssue
 from ..wordsearch import Direction, TargetEntry, WordSearchError, normalize_targets
@@ -66,7 +67,6 @@ PROFILE_ID = re.compile(r"[a-z0-9][a-z0-9.-]{0,63}")  # e.g. paperback-8.5x11
 DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
 AMOUNT = re.compile(r"\d{1,9}(?:\.\d{1,4})?")
 CURRENCY = re.compile(r"[A-Z]{3}")
-SOLUTIONS_PER_PAGE = (1, 2, 4, 6)
 DIRECTIONS = {direction_name(d): d for d in Direction}
 
 Choice = TypeVar(
@@ -321,7 +321,9 @@ def _structure(r: _Plan, root: dict[str, object]) -> Structure:
     per_page = data.get("solutions_per_page")
     if per_page is not None and (type(per_page) is not int or per_page not in SOLUTIONS_PER_PAGE):
         r.issue(
-            f"{path}.solutions_per_page", "choice", "Use 1, 2, 4 or 6 solutions a page, or null."
+            f"{path}.solutions_per_page",
+            "choice",
+            "Use 1, 2, 4, 6 or 8 solutions a page, or null.",
         )
         per_page = None
     return Structure(

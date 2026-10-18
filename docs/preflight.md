@@ -111,6 +111,7 @@ Formatting Issues" and "Print Options".
 | `blank_pages` | Plan blanks have no text or painting. |
 | `folios_printed` | Every displayed page number is in the page text. |
 | `content_in_live_area` | Every element's painted extent lies inside the profile's live area. |
+| `design_legibility` | Warning only: solution letters below 7.5 pt (`dense_solution_page`), accent labels lighter than 50% black (`light_text`), banner or panel type with too little contrast (`low_contrast_text`), and dark tints over large areas (`heavy_ink_coverage`), as the verified layout reports them. PuzzlePress conventions; never blocks. |
 
 ### KDP
 
@@ -171,7 +172,8 @@ styled photograph's used source pixels over its printed size, against 300 DPI.
    the ruleset belongs to inspection, not authored semantics.
 4. Add boundary tests for the new value (`tests/test_preflight.py`).
 
-Ruleset history. **v3**: interior styles may print grayscale photographs, so
+Ruleset history. **v4**: adds the warning `design_legibility` for interior design
+readability notes; no other verdict changes. **v3**: interior styles may print grayscale photographs, so
 `raster_images` attributes each image to the layout instead of refusing all images,
 and `kdp_image_resolution` measures effective DPI from the layout (previously any
 image failed both as unverified). Books without styled photographs get the same

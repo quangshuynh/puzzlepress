@@ -14,16 +14,18 @@ from pathlib import Path
 
 from puzzlepress.batch import BatchReport
 from puzzlepress.book_cli import describe
+from puzzlepress.composition import SolutionPlacement
 from puzzlepress.identity import build_identity
 from puzzlepress.interior import DEFAULT_PROFILE, InteriorError, build_interior, write_interior
 from puzzlepress.interior.build import (
+    answer_layouts,
     check_output_directory,
     sample_interior,
     write_preflight_report,
 )
 from puzzlepress.interior.design import resolve_design
 from puzzlepress.interior.model import Box, InteriorLayout
-from puzzlepress.interior.spec import PROFILES
+from puzzlepress.interior.spec import PROFILES, PrintSpecification
 from puzzlepress.models import Project
 from puzzlepress.preflight import (
     RULESET_VERSION,
@@ -37,7 +39,7 @@ from puzzlepress.preflight import (
 from puzzlepress.preflight.context import parse_manifest
 from puzzlepress.preflight.rules import ink_bounds, kdp_safe_area
 from puzzlepress.project import resolve_output_directory
-from puzzlepress.publication import PublicationPlan, build_publication
+from puzzlepress.publication import PageKind, PublicationPlan, build_publication
 
 from .editing import DraftStore
 from .preview import SCALES, PageOutOfRange, PageRasterizer, PreviewUnavailable
@@ -211,8 +213,10 @@ class PrintService:
     def draft(self, key: str, source_data: object) -> dict[str, object]:
         """Render sample pages of the unsaved draft's interior in memory (no files).
 
-        The whole book is laid out and validated; only the first title page,
-        divider, puzzle and solution page are drawn, so style edits stay quick.
+        The whole book is laid out and validated; only representative pages (a
+        spread, a puzzle page, a full and a final answer page, a divider, the title
+        page) are drawn, so design edits stay quick. Every response carries how each
+        solutions-per-page choice would print this book's grids.
         """
         project = self.drafts.validate(key, source_data)
         if project.composition is None:
@@ -224,18 +228,22 @@ class PrintService:
             spec = PROFILES[profile or DEFAULT_PROFILE]
             identity = build_identity(project)
             publication = self._publications.get(identity)
+            answers: dict[str, object] | None = None
             try:
                 if publication is None:
                     publication = build_publication(project)
                     self._publications[identity] = publication
                     while len(self._publications) > 2:
                         self._publications.popitem(last=False)
+                answers = _answers(project, spec, publication)
                 sample = sample_interior(project, spec, source, publication)
             except InteriorError as error:
                 return {
                     "success": False,
                     "stage": error.stage,
                     "diagnostics": [issue.to_dict() for issue in error.issues],
+                    "answers": answers,
+                    "design": resolve_design(project.interior).to_dict(),
                 }
         digest = hashlib.sha256(sample.pdf).hexdigest()
         if digest not in self._drafts:
@@ -249,9 +257,16 @@ class PrintService:
             "pdf_sha256": digest,
             "page_count": sample.page_count,
             "pages": [
-                {"index": index + 1, "physical_page": number, "kind": kind, "folio": folio}
-                for index, (number, kind, folio) in enumerate(sample.pages)
+                {
+                    "index": index + 1,
+                    "physical_page": page.physical_page,
+                    "kind": page.kind,
+                    "folio": page.folio,
+                    "roles": list(page.roles),
+                }
+                for index, page in enumerate(sample.pages)
             ],
+            "answers": answers,
             "design": resolve_design(project.interior).to_dict(),
             "warnings": [issue.to_dict() for issue in sample.warnings],
         }
@@ -293,6 +308,24 @@ class PrintService:
             raise StudioError(
                 503, "preview_unavailable", "Install the studio extra (pypdfium2) for previews."
             ) from error
+
+
+def _answers(
+    project: Project, spec: PrintSpecification, publication: tuple[BatchReport, PublicationPlan]
+) -> dict[str, object] | None:
+    """Answer pagination of the draft and the fit of every per-page choice, from Python."""
+    composition = project.composition
+    if composition is None or composition.solutions.placement is not SolutionPlacement.END:
+        return None
+    _, plan = publication
+    pages = [p for p in plan.pages if p.kind is PageKind.SOLUTIONS]
+    return {
+        "per_page": composition.solutions.per_page,
+        "pages": len(pages),
+        "last_page_solutions": len(pages[-1].solutions) if pages else 0,
+        "first_page": pages[0].index if pages else None,
+        "choices": [fit.to_dict() for fit in answer_layouts(project, spec, publication)],
+    }
 
 
 def _built_profile(manifest: bytes | None) -> str | None:

@@ -2,9 +2,52 @@
 
 ## Completed scope
 
-Cover templates, rich text and Studio fixes (Interval 12.3) on branch
-`feat/cover-templates-rich-text` from main `a2b3688`; pushed, not merged; no PR,
-tag, release or deployment. No Interval 13 work. Guide:
+Interior design studio on branch `feat/interior-design-studio` from main
+`dafaba2`; committed, not pushed; no PR, tag, release or deployment. Guide:
+docs/interior-design.md.
+
+- Answers: `composition.solutions.per_page` 1|2|4|6|8 per printed page, **4 when
+  omitted** (was 1; books that omitted it repaginate and report stale). Template 8
+  is 2x4 with letters 68% of the cell (others 56%, unchanged). A density below the
+  7 pt solution minimum fails once as `solution_layout_unreadable`, naming the
+  densest choice that fits; the count is never changed. `answer_fits` /
+  `answer_layouts` measure every choice with the renderer's own slot geometry.
+  `dense_solution_page` warns below 7.5 pt.
+- Spreads: `composition.puzzles.layout` single|spread (only `spread` is written).
+  Spread = `puzzle_words` verso facing the `puzzle` grid recto; blank
+  `spread_verso_start` aligns it; cross-references name the grid page; recto
+  puzzle start needs dividers (`spread_starts_verso`). Verified by
+  `publication_verification` (`_check_spreads`); statistics count both pages.
+- Interior style version 2: `theme` (classic, racing_orange, classic_garage,
+  editorial_minimal, high_contrast, ink_saver) and `layout` (classic, bold_header,
+  clean_minimal, large_readability) instead of `preset`; `colors` {accent,
+  secondary} #rrggbb printed as Rec. 601 gray; look overrides `banner`, `corners`,
+  `background`, `motif`, `motif_intensity`, `density`, `folio_style`; puzzle
+  pages add `word_position`, `word_align`, `word_weight`, `letter_scale`,
+  `grid_width`, `puzzle_number`, `answer_reference` (authored text with one
+  `{page}`); solution pages add `page_label`. Resolved into `InteriorDesign.look`
+  (`look_version` 1), absent for version 1 and no style, so those identities hold.
+  Version 2 classic+classic renders the same bytes as no style.
+- Renderer: rounded `Panel`s and grid frames, filled `Polygon` motifs in a band on
+  the outer side, page frame, header band, banners (section headings, and puzzle
+  titles with bold_header), folio rule/outline. Validation adds
+  `decoration_overlap`, `frame_crosses_content`; stroked panels over grids fail.
+  DeviceGray only. Renderer version unchanged (existing output identical).
+- Preflight ruleset 4: warning `design_legibility` (dense solutions, `light_text`,
+  `low_contrast_text`, `heavy_ink_coverage`). Package identity includes the
+  ruleset version, so packages exported before report stale.
+- Design files (`interior_design_file`): `puzzlepress-interior-design` v1 JSON,
+  <=64 KB, interior section only (no photos, book details or composition);
+  import keeps the draft's photos and validates with the book schema.
+- Studio Interior: tabs Page layout, Answer layout (choices with Python's letter
+  size and Fits/Cramped/Too small, answer page counts), Theme (catalogue from
+  `GET /api/interior/designs`, accents with printed gray, treatments, design file
+  export/import), Title & dividers; preview by role (spread, puzzle, answers, last
+  answers, divider, instructions, title); "What saving changes" note; resets per
+  section and whole design. Book (Composer) no longer edits per_page; it links here.
+
+Earlier: cover templates, rich text and Studio fixes (Interval 12.3), branch
+`feat/cover-templates-rich-text`, merged to main as PR #9. Guide:
 docs/cover-templates-rich-text.md.
 
 - Templates (`cover_template`, `cover_template_store`, `cover/templates/*.json`):
@@ -110,7 +153,7 @@ identities (compared against main).
   manifest, only writer), `issues`, `model`. CLI imports it lazily.
 - Preflight in `preflight/`: `model` (Rule, Finding, Measure, RuleResult,
   PreflightReport, versions), `context` (artifact reading, manifest parsing,
-  Context), `rules` (catalogue, 40 rules), `engine` (`preflight_interior`).
+  Context), `rules` (catalogue, 41 rules), `engine` (`preflight_interior`).
   `interior.inspection.read_pdf_facts` is the single pypdf fact layer shared by
   the post-build check and preflight. `interior.build` stays the only writer
   (adds `write_preflight_report`, `interior_identity`, `toolchain`).
@@ -149,7 +192,8 @@ identities (compared against main).
 - Layout (renderer 2): one PhysicalPage per plan entry; elements TextLine/Rule/
   LetterGrid (with SolutionMark capsules); 24 pt folio band. Element `bounds` are
   painted extents; grids fit by frame plus half stroke. Solution template from plan's
-  largest group: 1, 2 stacked, 2x2, 2x3. Puzzle letters 9-20 pt, solutions 7-14.
+  largest group: 1, 2 stacked, 2x2, 2x3, 2x4 (compact cells). Puzzle letters 9-20
+  pt, solutions 7-14.
 - Failures are `InteriorError(stage, LayoutIssue...)` with page, physical page,
   kind, subject, region, actual/required. Overflow, tiny grids, unbreakable words,
   missing glyphs, digest mismatch, incomplete plan, foreign report, unknown kind,
@@ -181,7 +225,7 @@ identities (compared against main).
   images), blank runs
   4/10, even folios on verso, descriptive metadata (warning). Margins measured
   from element ink bounds. Structural `content_in_live_area` checks painted extents
-  against the profile live area. Ruleset 2; identities unaffected by rulesets.
+  against the profile live area. Ruleset 4; identities unaffected by rulesets.
 - composition-demo: structurally valid, NOT KDP ready (only error
   `kdp_minimum_page_count`, warning `kdp_full_font_embedding`). 16-puzzle
   variant (29 pages) is ready (tested).
@@ -346,8 +390,9 @@ identities (compared against main).
 
 - Optional top-level `composition` (requires `word_search`): `front_matter`
   (title_page, copyright_page{text}, instructions{title,text}; each once; title
-  page first), `puzzles.start` any|recto, required `solutions` {placement end|omit;
-  with end: title, per_page 1|2|4|6, start any|recto}, `back_matter` (about{title,
+  page first), `puzzles.start` any|recto, `puzzles.layout` single|spread, required
+  `solutions` {placement end|omit; with end: title, per_page 1|2|4(default)|6|8,
+  start any|recto}, `back_matter` (about{title,
   text}, notes{title}), `page_numbers` {scheme continuous|roman_front_matter,
   show_front_matter false, show_solutions true, show_back_matter true}.
 - Titles 1..200 single-line; body 1..2,000 plain text with line breaks. No default
@@ -406,6 +451,35 @@ reload. Canonical YAML loses comments/formatting. One Studio process per library
 small external-editor race remains. Drafts memory-only; no autosave/undo/merge.
 
 ## Actual local verification
+
+Interior design studio, 2026-10-18 (Windows, Python 3.13):
+
+- Python: **1742 passed, 7 skipped (symlink permission)**, scratch `--basetemp`,
+  `-p no:cacheprovider`; the 319 interior, preflight, composition and Studio API
+  tests rerun after the last theme-table change. Ruff lint and format, strict mypy
+  (122 files), pip check, `git diff --check`. AGENTS CLI commands exit as on main
+  (`publish validate`/`inspect` exit 1 on publishing-demo on both).
+- Frontend: tsc, ESLint, 89 Vitest, build. Prettier passes with `--end-of-line
+  auto`; without it, only the CRLF checkout is flagged. Playwright **33/34**
+  (Chromium): new `interior.spec.ts` (answer layout, theme, layout, Python
+  validation beside the field, save, reload, real build, design export/import,
+  axe, 1440/1024/768/390 without overflow) and the updated polish and composer
+  specs pass; the `templates.spec.ts` rich text test fails as recorded on main.
+- Compatibility (main via `git archive` vs this branch): composition-demo,
+  cover-demo, publishing-demo, a version 1 styled cover-demo with dividers, and a
+  disposable copy of the automotive book as authored all give identical PDF
+  digests and interior identities.
+- Visual: rendered and inspected every theme, every layout, a spread, 8 a page
+  with a partial last page, and the automotive copy's pages.
+- External book: a disposable copy of puzzlepress-books `books/automotive`
+  (author's uncommitted edits included) with `per_page: 4` and Racing Orange /
+  Bold Header, puzzle numbers, answer references and caption labels: 95 -> 80
+  pages (30 -> 15 answer pages, 13/15/17 grids, no readability warnings), 4.3 s
+  build, interior preflight structurally valid and KDP ready (only the existing
+  `kdp_full_font_embedding` warning), cover rebuilt with spine 0.1802 in for 80
+  pages. Its instructions text still says solutions are "two to a page": the
+  author must edit it. The books repository's book.yaml digest and status were
+  unchanged.
 
 Book language editing, 2026-10-18 (Windows, Python 3.13): Language now sits
 beside Book title at the top of Puzzles. Python **1659 passed, 7 skipped
@@ -503,6 +577,14 @@ Production design and publishing polish (Windows, Python 3.13.15, Node 24.18.0):
   status and 15 recorded file digests were identical before and after.
 
 ## Limits and decisions for review
+
+Interior design: the omitted `per_page` default changed from 1 to 4, which
+repaginates any book that omitted it (all demos and the automotive book state 2,
+so none changed). Themes print in gray on the black-ink profiles; there is one
+font family, no free positioning, one arrangement per count, no difficulty label,
+and dividers for themes only. 8 a page fits grids up to about 11 x 11. Planning
+accepts 8 but does not model spreads. The reference screenshots named in the brief
+were not attached, so the themes follow its written description only.
 
 Book details: Language sits beside Book title at the top of Puzzles, where the
 `language_supported` finding points. Studio does not check language tags;

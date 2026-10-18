@@ -225,10 +225,17 @@ def test_small_and_large_grids_paint_inside_puzzle_and_solution_regions(size):
 
 
 def test_grids_too_large_for_minimum_letters_still_fail_rather_than_shrink():
-    # 22 x 22 is the largest 2-per-page solution grid, as under renderer 1.
+    # 22 x 22 is the largest 2-per-page solution grid, as under renderer 1. The
+    # failure is one actionable issue naming the densest choice that fits.
     report, plan = _square_grids(24)
     error = failure(plan, report)
-    assert {(i.code, i.region) for i in error.issues} == {("grid_too_small", "solution_grid")}
+    (issue,) = error.issues
+    assert (issue.code, issue.region) == (
+        "solution_layout_unreadable",
+        "composition.solutions.per_page",
+    )
+    assert "2 solutions a page print 24 x 24 grids" in issue.message
+    assert "Choose 1 solutions a page or fewer." in issue.message
 
 
 def test_puzzle_grid_geometry_is_identical_on_recto_and_verso_except_shift(demo):
@@ -344,7 +351,7 @@ def test_unsupported_and_reordered_entries_fail(demo):
     codes = [i.code for i in failure(replace(plan, pages=tuple(swapped)), report).issues]
     assert codes.count("plan_order") == 2
     seven = list(plan.pages)
-    seven[8] = replace(seven[8], solutions=seven[8].solutions * 4)
+    seven[8] = replace(seven[8], solutions=seven[8].solutions * 5)
     issues = failure(replace(plan, pages=tuple(seven)), report).issues
     assert [i.code for i in issues] == ["unsupported_solution_density"]
 
@@ -399,11 +406,13 @@ def test_grid_too_small_fails_without_regrouping_solutions():
     issues = failure(plan, report).issues
     assert {(i.code, i.kind, i.region) for i in issues} == {
         ("grid_too_small", "puzzle", "puzzle_grid"),
-        ("grid_too_small", "solutions", "solution_grid"),
+        ("solution_layout_unreadable", "solutions", "composition.solutions.per_page"),
     }
     puzzle_issue = next(i for i in issues if i.kind == "puzzle")
     assert puzzle_issue.subject == "p1" and puzzle_issue.required == "at least 9 pt"
-    assert len([i for i in issues if i.kind == "solutions"]) == 6
+    # One issue for the density, not one per grid; the count is never changed.
+    (density,) = [i for i in issues if i.kind == "solutions"]
+    assert "6 solutions a page print 40 x 40 grids" in density.message
 
 
 def test_word_list_overflow_is_reported():

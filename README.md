@@ -113,6 +113,10 @@ diagnostics (overflow, digest mismatch, invalid profile) and writes nothing. `py
 - Review quality findings, screening completeness, reuse and similarity reports.
 - Compose the book: front matter, puzzle order, solutions, back matter and page numbers.
 - Preview the verified publication plan: every logical page, its side and its number.
+- Design the interior: puzzle-page layouts (one page or a word-list spread), four
+  solutions per printed page by default (1, 2, 4, 6 or 8), themes with accents,
+  banners, frames and decoration printed in black ink, previewed from Python's PDF
+  ([interior design](docs/interior-design.md)).
 - Build the interior on white or cream paper, then proof real rendered pages:
   thumbnails, spreads, zoom, margin overlays, and preflight findings linked to pages.
 - Design the cover from your own photograph: crop by drag, slider or keyboard, type
@@ -238,7 +242,8 @@ HTTP as decimal strings. Source and disposable build directories stay disjoint.
 
 Contracts: [book planning](docs/book-planning.md), [project format](docs/project-format.md), [word-search engine](docs/word-search.md),
 [batch and quality](docs/batch-quality.md), [book composition](docs/book-composition.md),
-[print interior](docs/print-interior.md), [preflight and preview](docs/preflight.md),
+[print interior](docs/print-interior.md), [interior design](docs/interior-design.md),
+[preflight and preview](docs/preflight.md),
 [paperback cover](docs/cover.md), [KDP publishing package](docs/publishing.md),
 [Studio architecture](docs/studio.md).
 Contribution rules: [AGENTS.md](AGENTS.md). Current handoff: [CONTEXT.md](CONTEXT.md).

@@ -72,7 +72,12 @@ test('compose, preview, save, reload and recover from invalid and stale drafts',
     'In the Rock Pool',
     'Over the Dunes',
   ]);
-  await page.getByLabel('Solutions per logical page').selectOption('4');
+  // Solutions per page moved to Interior design; Book states it and links there.
+  await expect(page.getByText(/2 solutions on each printed page/)).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Interior design' })).toHaveAttribute(
+    'href',
+    '/books/composer-demo/interior#answers',
+  );
   await page.getByRole('radio', { name: /^Roman front matter/ }).check();
   await page.getByRole('radio', { name: /^Continuous/ }).check();
   await order.scrollIntoViewIfNeeded();
@@ -86,7 +91,7 @@ test('compose, preview, save, reload and recover from invalid and stale drafts',
   const secondResponse = page.waitForResponse((r) => r.url().endsWith('/draft/plan'));
   await page.getByRole('button', { name: 'Preview plan' }).click();
   expect(await (await secondResponse).json()).toEqual(first);
-  expect(first.plan.statistics.solution_pages).toBe(1);
+  expect(first.plan.statistics.solution_pages).toBe(2);
   expect(first.plan.pages.filter((p) => p.puzzle).map((p) => p.puzzle!.id)).toEqual([
     'harbour',
     'shoreline',
@@ -109,7 +114,7 @@ test('compose, preview, save, reload and recover from invalid and stale drafts',
   await expect(order.locator('strong').first()).toHaveText('By the Harbour');
   await expect(planRows(page).nth(4)).toHaveText('Puzzle 1: By the Harbour');
   const saved = await (await request.get(api)).json();
-  expect(saved.source.composition.solutions.per_page).toBe(4);
+  expect(saved.source.composition.solutions.per_page).toBe(2);
   expect(saved.source.composition.page_numbers.scheme).toBe('continuous');
   expect(saved.source.word_search.puzzles.map((p: { id: string }) => p.id)).toEqual([
     'harbour',

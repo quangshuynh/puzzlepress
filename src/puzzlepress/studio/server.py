@@ -21,6 +21,7 @@ from puzzlepress.errors import ProjectError
 
 from .assets import AssetService
 from .covering import CoverService
+from .designing import DesignService
 from .editing import DraftStore
 from .planning import PlanningInvalid, PlanningService
 from .printing import PrintService
@@ -58,6 +59,14 @@ class InteriorBuildRequest(BuildRequest):
 
 class ExportRequest(BuildRequest):
     archive: bool = False
+
+
+class DesignExportRequest(DraftRequest):
+    name: str
+
+
+class DesignImportRequest(DraftRequest):
+    text: str
 
 
 class PlanningSaveRequest(DraftRequest):
@@ -161,6 +170,7 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
     service = StudioService(ProjectStore(books.resolve()))
     drafts = DraftStore(service.store)
     printing = PrintService(service, drafts=drafts)
+    designs = DesignService(drafts)
     covers = CoverService(service, drafts)
     templates = TemplateService(covers)
     publishing = PublishingService(service, drafts)
@@ -283,6 +293,23 @@ def create_app(books: Path, frontend: Path) -> FastAPI:
     @app.post("/api/projects/{key}/draft/interior")
     def draft_interior(key: str, body: DraftRequest) -> dict[str, object]:
         return printing.draft(key, body.source)
+
+    @app.get("/api/interior/designs")
+    def interior_designs() -> dict[str, object]:
+        return designs.catalogue()
+
+    @app.post("/api/projects/{key}/draft/interior/export")
+    def export_interior_design(key: str, body: DesignExportRequest) -> Response:
+        filename, data = designs.export(key, body.source, body.name)
+        return Response(
+            data,
+            media_type="application/json",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+
+    @app.post("/api/projects/{key}/draft/interior/import")
+    def import_interior_design(key: str, body: DesignImportRequest) -> dict[str, object]:
+        return designs.import_file(key, body.source, body.text)
 
     @app.get("/api/projects/{key}/draft/interior/pages/{index}")
     def draft_interior_page(key: str, index: int, size: str, pdf: str) -> Response:

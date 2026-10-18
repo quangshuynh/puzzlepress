@@ -8,7 +8,7 @@ from collections.abc import Callable
 from dataclasses import asdict, dataclass
 
 from .batch import BatchReport, derive_puzzle_seed, puzzle_digest
-from .composition import NumberingScheme, SectionStart, SolutionPlacement
+from .composition import NumberingScheme, PuzzleLayout, SectionStart, SolutionPlacement
 from .errors import ValidationIssue
 from .identity import build_identity
 from .models import Project
@@ -16,6 +16,7 @@ from .publication import (
     BLANK_REASON,
     DIVIDER_BLANK_REASON,
     PLAN_VERSION,
+    SPREAD_BLANK_REASON,
     NumberStyle,
     PageKind,
     PlanPage,
@@ -27,6 +28,7 @@ from .publication import (
 
 _Fail = Callable[[str, str, str], None]
 _ORDER = (Section.FRONT_MATTER, Section.PUZZLES, Section.SOLUTIONS, Section.BACK_MATTER)
+_PUZZLE_KINDS = {PageKind.PUZZLE, PageKind.PUZZLE_WORDS}
 _MATTER = {
     PageKind.TITLE_PAGE,
     PageKind.COPYRIGHT_PAGE,
@@ -82,7 +84,7 @@ def verify_publication_plan(
             _check_blank(page, position, pages, composition.puzzles_start, project, fail)
         if page.kind is not PageKind.SOLUTIONS and (page.solutions or page.heading):
             fail(f"{path}.solutions", "solutions", "Only solution pages list solutions.")
-        if (page.kind is PageKind.PUZZLE) != (page.puzzle is not None):
+        if (page.kind in _PUZZLE_KINDS) != (page.puzzle is not None):
             fail(f"{path}.puzzle", "puzzle", "Exactly puzzle pages reference a puzzle.")
         if (page.kind in _MATTER) != (page.matter is not None):
             fail(f"{path}.matter", "matter", "Exactly matter pages carry matter content.")
@@ -90,6 +92,7 @@ def verify_publication_plan(
             fail(f"{path}.divider", "divider", "Exactly divider pages carry divider content.")
         expected_section = {
             PageKind.PUZZLE: Section.PUZZLES,
+            PageKind.PUZZLE_WORDS: Section.PUZZLES,
             PageKind.SOLUTIONS: Section.SOLUTIONS,
             PageKind.DIVIDER: Section.PUZZLES,
         }.get(page.kind)
@@ -151,6 +154,7 @@ def verify_publication_plan(
         if section_pages[0].side is not Side.RECTO:
             fail("pages", "recto", "Puzzles must start on a recto page.")
     _check_dividers(pages, project, fail)
+    _check_spreads(pages, project, fail)
 
     _check_solutions(pages, refs, project, fail)
     _check_numbers(pages, project, fail)
@@ -167,7 +171,7 @@ def verify_publication_plan(
     if (
         stats.logical_pages != len(pages)
         or stats.puzzles != len(content.puzzles)
-        or stats.puzzle_pages != len(puzzle_pages)
+        or stats.puzzle_pages != sum(p.kind in _PUZZLE_KINDS for p in pages)
         or stats.solutions != (len(content.puzzles) if solutions_end else 0)
         or stats.blank_pages != sum(p.kind is PageKind.BLANK for p in pages)
         or stats.front_matter_pages != len(composition.front_matter)
@@ -191,6 +195,18 @@ def _check_blank(
     composition = project.composition
     assert composition is not None
     following = pages[position + 1] if position + 1 < len(pages) else None
+    if page.blank_reason == SPREAD_BLANK_REASON:
+        if (
+            composition.puzzle_layout is not PuzzleLayout.SPREAD
+            or following is None
+            or following.kind is not PageKind.PUZZLE_WORDS
+            or page.section is not Section.PUZZLES
+            or page.blank_before is not Section.PUZZLES
+            or page.side is not Side.RECTO
+            or (position > 0 and pages[position - 1].kind is PageKind.BLANK)
+        ):
+            fail(path, "blank", "Blank page is not justified by a spread's left-hand start.")
+        return
     if page.blank_reason == DIVIDER_BLANK_REASON:
         dividers = composition.dividers
         if (
@@ -327,6 +343,32 @@ def _check_dividers(pages: tuple[PlanPage, ...], project: Project, fail: _Fail) 
             fail(path, "divider", "A divider must directly precede its theme's first puzzle.")
         if dividers.start is SectionStart.RECTO and page.side is not Side.RECTO:
             fail(path, "recto", "Dividers must start on a recto page.")
+
+
+def _check_spreads(pages: tuple[PlanPage, ...], project: Project, fail: _Fail) -> None:
+    """Spreads: each puzzle's word list on a left page directly facing its grid."""
+    composition = project.composition
+    assert composition is not None
+    words = [p for p in pages if p.kind is PageKind.PUZZLE_WORDS]
+    if composition.puzzle_layout is not PuzzleLayout.SPREAD:
+        if words:
+            fail("pages", "spread", "Single-page puzzles have no separate word-list pages.")
+        return
+    grids = [p for p in pages if p.kind is PageKind.PUZZLE]
+    if [w.puzzle for w in words] != [g.puzzle for g in grids]:
+        fail("pages", "spread", "Every puzzle needs exactly one word-list page.")
+        return
+    for page in words:
+        path = f"pages.{page.index - 1}"
+        following = pages[page.index] if page.index < len(pages) else None
+        if (
+            page.side is not Side.VERSO
+            or following is None
+            or following.kind is not PageKind.PUZZLE
+            or following.puzzle != page.puzzle
+            or page.solution_page != following.solution_page
+        ):
+            fail(path, "spread", "A word-list page must face its own grid page.")
 
 
 def publication_payload(

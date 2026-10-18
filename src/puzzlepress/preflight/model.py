@@ -17,7 +17,9 @@ RULESET_ID = "puzzlepress-kdp-paperback"
 # `kdp_no_printer_marks` judges only the area beyond the trim.
 # 3: styled photographs: `raster_images` accepts the layout's own images and
 # `kdp_image_resolution` measures their effective DPI from the verified layout.
-RULESET_VERSION = 3
+# 4: `design_legibility` warns about cramped solution letters, light accent text,
+# low-contrast banners and heavy ink the verified layout reports.
+RULESET_VERSION = 4
 KDP_RULES_CHECKED = "2026-10-07"
 
 

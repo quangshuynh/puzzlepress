@@ -12,7 +12,17 @@ from ..batch import BatchReport
 from ..publication import PageKind, PublicationPlan
 from .engine import page_count_checks
 from .issues import LayoutIssue
-from .model import Box, Element, InteriorLayout, LetterGrid, Panel, PhysicalPage, Rule, TextLine
+from .model import (
+    Box,
+    Element,
+    InteriorLayout,
+    LetterGrid,
+    Panel,
+    PhysicalPage,
+    Polygon,
+    Rule,
+    TextLine,
+)
 from .spec import KDP
 
 # Containment tolerance in points (far below any visible distance).
@@ -39,6 +49,9 @@ def validate_layout(
     puzzles = {r.id: r.puzzle for r in report.puzzles if r.puzzle is not None}
     trim = Box(0.0, 0.0, spec.trim.width, spec.trim.height)
     margins = spec.margins
+    spread = {
+        p.puzzle.id for p in plan.pages if p.kind is PageKind.PUZZLE_WORDS and p.puzzle is not None
+    }
 
     for position, (page, entry) in enumerate(zip(layout.pages, plan.pages, strict=True)):
 
@@ -77,17 +90,20 @@ def validate_layout(
         if entry.kind is PageKind.BLANK and page.elements:
             fail("blank_not_blank", "Intentional blank pages must carry no marks.")
         grids = [e for e in page.elements if isinstance(e, LetterGrid)]
-        if entry.kind is PageKind.PUZZLE:
+        if entry.kind in (PageKind.PUZZLE, PageKind.PUZZLE_WORDS):
             assert entry.puzzle is not None
             puzzle = puzzles.get(entry.puzzle.id)
             words = [
                 e.text for e in page.elements if isinstance(e, TextLine) and e.role == "word_list"
             ]
+            # A spread splits one puzzle: the word list on its own page, the grid facing it.
+            has_words = entry.kind is PageKind.PUZZLE_WORDS or entry.puzzle.id not in spread
+            has_grid = entry.kind is PageKind.PUZZLE
             if (
                 puzzle is None
-                or [g.rows for g in grids] != [puzzle.grid.rows]
+                or [g.rows for g in grids] != ([puzzle.grid.rows] if has_grid else [])
                 or any(g.marks or g.emphasized for g in grids)
-                or words != [t.display for t in puzzle.targets]
+                or words != ([t.display for t in puzzle.targets] if has_words else [])
             ):
                 fail("puzzle_content", "Puzzle grid or word list differs from generation.")
         elif entry.kind is PageKind.SOLUTIONS:
@@ -104,14 +120,36 @@ def validate_layout(
         for element in page.elements:
             for code, message in _element_checks(element, content):
                 fail(code, message)
-        # Panels are background: text may sit on them, but no grid may.
+        # Panels are background: text may sit on them, but no grid may. Decoration
+        # (polygons) keeps to its own reserved box, clear of every content element.
         panels = [e for e in page.elements if isinstance(e, Panel)]
-        boxes = [_bounds(e) for e in page.elements if not isinstance(e, Panel)]
+        shapes = [e for e in page.elements if isinstance(e, Polygon)]
+        drawn = [e for e in page.elements if not isinstance(e, Panel | Polygon)]
+        boxes = [_bounds(e) for e in drawn]
         if any(a.overlaps(b, EPSILON) for a, b in combinations(boxes, 2)):
             fail("element_collision", "Layout elements overlap.")
-        if any(p.bounds.overlaps(g.bounds, EPSILON) for p in panels for g in grids):
+        if any(_covers(p, g.bounds) for p in panels for g in grids):
             fail("panel_over_grid", "A tinted panel or frame overlaps a puzzle grid.")
+        if any(_crosses(p, e.bounds) for p in panels for e in drawn):
+            fail("frame_crosses_content", "A frame or banner outline crosses content.")
+        if any(s.bounds.overlaps(b, EPSILON) for s in shapes for b in boxes):
+            fail("decoration_overlap", "Decoration overlaps text, a grid or a photograph.")
     return tuple(issues)
+
+
+def _covers(panel: Panel, box: Box) -> bool:
+    """A filled panel under `box`, or an outline whose stroke crosses it."""
+    if panel.fill_gray is not None:
+        return panel.bounds.overlaps(box, EPSILON)
+    return _crosses(panel, box)
+
+
+def _crosses(panel: Panel, box: Box) -> bool:
+    """True when a panel's stroke ring passes through `box` (inside or outside is fine)."""
+    if panel.stroke_gray is None or not panel.bounds.overlaps(box, EPSILON):
+        return False
+    inner = panel.box.expanded(-panel.stroke_width / 2 - panel.radius * (1 - 0.7071))
+    return not inner.contains(box, EPSILON)
 
 
 def _bounds(element: Element) -> Box:

@@ -145,13 +145,86 @@ def test_asset_requests_never_take_filesystem_paths(studio):
 # ------------------------------------------------------------------ interior drafts
 
 
+def source_per_page(source):
+    return source["composition"]["solutions"].get("per_page", 4)
+
+
+def test_interior_design_catalogue_export_and_import(studio):
+    client, source = studio
+    catalogue = client.get("/api/interior/designs").json()
+    assert [t["id"] for t in catalogue["themes"]][:2] == ["classic", "racing_orange"]
+    assert {layout["id"] for layout in catalogue["layouts"]} >= {"classic", "bold_header"}
+    project = detail(client)["source"]
+    design = {"version": 2, "theme": "racing_orange", "layout": "bold_header"}
+    styled = {**project, "interior": design}
+    result = client.post("/api/projects/book/draft/interior", json={"source": styled}).json()
+    assert result["success"] and result["design"]["look"]["theme"] == "racing_orange"
+    exported = client.post(
+        "/api/projects/book/draft/interior/export",
+        json={"source": styled, "name": "Automotive Racing"},
+    )
+    assert exported.status_code == 200
+    assert "automotive-racing.puzzlepress-design.json" in exported.headers["content-disposition"]
+    imported = client.post(
+        "/api/projects/book/draft/interior/import",
+        json={"source": project, "text": exported.text},
+    ).json()
+    assert imported == {"success": True, "name": "Automotive Racing", "interior": design}
+    refused = client.post(
+        "/api/projects/book/draft/interior/import", json={"source": project, "text": "{}"}
+    ).json()
+    assert not refused["success"] and refused["issues"][0]["code"] == "format"
+    no_style = client.post(
+        "/api/projects/book/draft/interior/export", json={"source": project, "name": "X"}
+    )
+    assert no_style.status_code == 422
+    assert detail(client)["source"] == project  # Nothing is saved by any of these.
+
+
+def test_interior_draft_reports_unreadable_answer_layouts(studio):
+    client, _ = studio
+    project = detail(client)["source"]
+    project["composition"]["solutions"]["per_page"] = 4
+    for profile in project["word_search"]["profiles"]:
+        profile["width"] = profile["height"] = 26
+    result = client.post("/api/projects/book/draft/interior", json={"source": project}).json()
+    assert not result["success"]
+    (issue,) = result["diagnostics"]
+    assert issue["code"] == "solution_layout_unreadable" and "Choose 1 " in issue["message"]
+    fits = {c["per_page"]: c for c in result["answers"]["choices"]}
+    assert not fits[4]["fits"] and fits[1]["fits"] and fits[1]["grid"] == [26, 26]
+    assert result["answers"]["per_page"] == 4  # The author's choice is reported, not changed.
+
+
+def test_saved_design_persists_and_keeps_other_sections(studio):
+    client, source = studio
+    project = detail(client)["source"]
+    styled = {
+        **project,
+        "interior": {"version": 2, "theme": "ink_saver", "layout": "clean_minimal"},
+    }
+    styled["composition"]["solutions"]["per_page"] = 4
+    save(client, styled)
+    reloaded = detail(client)["source"]
+    assert reloaded["interior"] == styled["interior"]
+    assert reloaded["composition"]["solutions"]["per_page"] == 4
+    for key in ("book", "word_search", "cover"):
+        assert reloaded[key] == project[key]
+    assert "theme: ink_saver" in (source / "book.yaml").read_text(encoding="utf-8")
+
+
 def test_interior_draft_renders_sample_pages_without_writing(studio):
     client, source = studio
     project = detail(client)["source"]
     styled = {**project, "interior": {"version": 1, "preset": "high_contrast"}}
     result = client.post("/api/projects/book/draft/interior", json={"source": styled}).json()
     assert result["success"] and result["design"]["preset"] == "high_contrast"
-    assert [p["kind"] for p in result["pages"]] == ["title_page", "puzzle", "solutions"]
+    kinds = {p["kind"] for p in result["pages"]}
+    assert {"title_page", "puzzle", "solutions"} <= kinds
+    roles = {role for p in result["pages"] for role in p["roles"]}
+    assert {"title", "puzzle", "answers"} <= roles
+    assert result["answers"]["per_page"] == source_per_page(project)
+    assert {c["per_page"] for c in result["answers"]["choices"]} == {1, 2, 4, 6, 8}
     image = client.get(
         "/api/projects/book/draft/interior/pages/1",
         params={"size": "thumb", "pdf": result["pdf_sha256"]},

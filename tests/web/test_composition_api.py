@@ -174,7 +174,9 @@ def test_legacy_project_can_explicitly_add_composition(setup):
     assert body["identity"] != data["identity"]
     assert body["source"]["composition"]["page_numbers"]["scheme"] == "continuous"
     plan = post(client, "plan", body["source"], key="legacy").json()["plan"]
-    assert [p["kind"] for p in plan["pages"]] == ["puzzle", "puzzle", "solutions", "solutions"]
+    # Omitted, solutions are four to a printed page: both fit on one.
+    assert body["source"]["composition"]["solutions"]["per_page"] == 4
+    assert [p["kind"] for p in plan["pages"]] == ["puzzle", "puzzle", "solutions"]
 
 
 @pytest.mark.parametrize("key", ["..", "..%2Fbook", "a%5Cb", "%2e%2e"])

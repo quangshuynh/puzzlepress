@@ -14,6 +14,7 @@ from .composition import (
     MatterItem,
     MatterKind,
     NumberingScheme,
+    PuzzleLayout,
     SectionStart,
     SolutionPlacement,
 )
@@ -25,6 +26,8 @@ from .validation import validate_project
 PLAN_VERSION = 1
 BLANK_REASON = "section_recto_start"
 DIVIDER_BLANK_REASON = "divider_recto_start"
+# A spread's word list must be a left-hand page; a blank right-hand page aligns it.
+SPREAD_BLANK_REASON = "spread_verso_start"
 
 
 class Section(StrEnum):
@@ -41,6 +44,7 @@ class PageKind(StrEnum):
     ABOUT = "about"
     NOTES = "notes"
     PUZZLE = "puzzle"
+    PUZZLE_WORDS = "puzzle_words"  # A spread's word-list page, facing its grid page.
     SOLUTIONS = "solutions"
     BLANK = "blank"
     DIVIDER = "divider"  # A theme divider (composition.puzzles.dividers).
@@ -243,7 +247,7 @@ def plan_statistics(pages: tuple[PlanPage, ...]) -> PlanStatistics:
         solution_pages=count(Section.SOLUTIONS),
         back_matter_pages=count(Section.BACK_MATTER),
         blank_pages=sum(p.kind is PageKind.BLANK for p in pages),
-        puzzles=sum(p.puzzle is not None for p in pages),
+        puzzles=sum(p.kind is PageKind.PUZZLE for p in pages),
         solutions=sum(len(p.solutions) for p in pages),
         first_puzzle_page=first(PageKind.PUZZLE),
         first_solution_page=first(PageKind.SOLUTIONS),
@@ -402,6 +406,17 @@ def plan_publication(project: Project, report: BatchReport) -> PublicationPlan:
             )
             slots.append(_Slot(Section.PUZZLES, PageKind.DIVIDER, divider=divider_page))
         previous_theme = definition.theme
+        if composition.puzzle_layout is PuzzleLayout.SPREAD:
+            if len(slots) % 2 == 0:  # The word list would fall on a right-hand page.
+                slots.append(
+                    _Slot(
+                        Section.PUZZLES,
+                        PageKind.BLANK,
+                        blank_before=Section.PUZZLES,
+                        blank_reason=SPREAD_BLANK_REASON,
+                    )
+                )
+            slots.append(_Slot(Section.PUZZLES, PageKind.PUZZLE_WORDS, puzzle=ref))
         slots.append(_Slot(Section.PUZZLES, PageKind.PUZZLE, puzzle=ref))
         puzzle_pages[ref.id] = len(slots)
     solution_pages: dict[str, int] = {}

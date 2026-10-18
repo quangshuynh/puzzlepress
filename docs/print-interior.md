@@ -28,8 +28,11 @@ Code lives in `puzzlepress.interior`: `spec` (profiles, units, KDP constraints),
 `render` (ReportLab), `inspection` (pypdf) and `build` (pipeline and writer).
 `build_interior(project, spec, source_directory=None)` is pure (the directory
 is read only for styled photographs); `write_interior` is the only writer.
-`sample_interior` lays out every page but renders only the first page of each
-kind a style changes, for Studio previews.
+`sample_interior` lays out every page but renders only representative pages
+(`sample_roles`: a facing puzzle pair, a puzzle page, a full and the final
+answer page, a divider, instructions, the title page), for Studio previews;
+`answer_layouts` reports how every solutions-per-page choice prints the book's
+grids, using the solution renderer's own geometry.
 
 ## Interior styles
 
@@ -45,6 +48,19 @@ grayscale by Python (`interior/images.py`). Without a style the engine uses the
 classic constants and renders byte-identical PDFs; with one, the manifest records
 the resolved design as its `style` input, so the interior identity changes while
 the build identity, plan and grids do not.
+
+Version 2 styles add a theme, a page layout and look overrides, resolved into a
+`Look` inside the same design (`look_version` 1; absent for version 1 and no
+style, so those identities hold). Themed puzzle, word-list, solution and divider
+pages may carry a page frame (stroked `Panel`), a motif band of filled `Polygon`
+elements on the outer side, banners (filled or stroked `Panel`s with optional
+rounded corners) and rounded grid frames. Validation also refuses
+`decoration_overlap`, `frame_crosses_content` and stroked or filled panels over
+grids. Solution templates: 1 (1 x 1), 2 (1 x 2), 4 (2 x 2), 6 (2 x 3) and 8 (2 x
+4, letters 68% of the cell; the others 56%), one per book from the plan's
+largest group. A density whose letters fall below the profile minimum fails once
+as `solution_layout_unreadable`, naming the densest choice that fits. See
+[interior design](interior-design.md).
 
 ## Print specification
 
@@ -175,7 +191,8 @@ Codes include `unsupported_profile`, `unsupported_trim_size`,
 `invalid_page_geometry`, `font_too_small`, `line_weight_too_small`,
 `incomplete_plan`, `missing_puzzle`, `identity_mismatch`, `digest_mismatch`,
 `solution_invalid`, `plan_order`, `unsupported_page_type`,
-`unsupported_solution_density`, `text_overflow`, `word_list_overflow`,
+`unsupported_solution_density`, `solution_layout_unreadable`, `text_overflow`,
+`word_list_overflow`, `decoration_overlap`, `frame_crosses_content`,
 `grid_too_small`, `unsupported_character`, `page_count_unsupported`, `font_invalid`,
 PDF inspection codes (`pdf_*`, `font_not_embedded`) and output codes.
 

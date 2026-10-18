@@ -207,9 +207,9 @@ def test_solution_templates_tile_the_region_in_reading_order(density, shape):
 
 
 def test_solution_template_never_shrinks_a_planned_group():
-    assert [solution_template(n) for n in range(1, 7)] == [1, 2, 4, 4, 6, 6]
+    assert [solution_template(n) for n in range(1, 9)] == [1, 2, 4, 4, 6, 6, 8, 8]
     with pytest.raises(ValueError):
-        solution_template(7)
+        solution_template(9)
 
 
 def test_wrapping_keeps_authored_breaks_and_rejects_unbreakable_words():

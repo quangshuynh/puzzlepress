@@ -118,6 +118,7 @@ class LetterGrid:
     emphasized_face: Face = Face.BOLD
     muted_gray: float = 0.0  # Gray for letters outside `emphasized` when marks exist.
     marks: tuple[SolutionMark, ...] = ()
+    frame_radius: float = 0.0  # Rounded frame corners; never more than the cell padding.
 
     @property
     def columns(self) -> int:
@@ -149,6 +150,7 @@ class Panel:
     fill_gray: float | None  # None: no fill. 1.0 is paper white.
     stroke_gray: float | None = None
     stroke_width: float = 0.0
+    radius: float = 0.0  # Rounded corners.
 
     @property
     def bounds(self) -> Box:
@@ -178,7 +180,21 @@ class ImageBlock:
         return self.box
 
 
-Element = TextLine | Rule | LetterGrid | Panel | ImageBlock
+@dataclass(frozen=True)
+class Polygon:
+    """A filled decorative shape (DeviceGray, opaque) in its own reserved box.
+
+    Decoration never touches text, grids or photographs: `bounds` is the box the
+    engine reserved for it, and layout validation keeps every other element out.
+    """
+
+    role: str
+    points: tuple[tuple[float, float], ...]
+    fill_gray: float
+    bounds: Box
+
+
+Element = TextLine | Rule | LetterGrid | Panel | ImageBlock | Polygon
 
 
 @dataclass(frozen=True)
