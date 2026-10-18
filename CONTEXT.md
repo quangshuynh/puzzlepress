@@ -3,7 +3,7 @@
 ## Completed scope
 
 Interior design studio on branch `feat/interior-design-studio` from main
-`dafaba2`; uncommitted, not pushed; no PR, tag, release or deployment. Guide:
+`dafaba2`; committed, not pushed; no PR, tag, release or deployment. Guide:
 docs/interior-design.md.
 
 - Answers: `composition.solutions.per_page` 1|2|4|6|8 per printed page, **4 when
