@@ -217,7 +217,7 @@ function MatterList({
                 <>
                   <p className="small">
                     Uses the book’s metadata. Title: <strong>{draft.book.title}</strong>{' '}
-                    <span className="muted">(edit it in Edit › Book title & shared seed)</span>
+                    <span className="muted">(edit it at the top of Puzzles)</span>
                   </p>
                   <div className="field-pair">
                     {book('subtitle', 'Subtitle (optional)')}
@@ -493,7 +493,7 @@ function PlanView({ result, projectKey }: { result: PlanResult; projectKey: stri
       <p className="small muted">
         Quality review is separate: {generation.quality_findings}{' '}
         {generation.quality_findings === 1 ? 'finding' : 'findings'}. Inspect them with Preview
-        draft in Edit.
+        draft in Puzzles.
       </p>
       <div className="table-scroll">
         <table className="plan-table">
@@ -582,7 +582,7 @@ export function Composer({ d }: { d: Draft }) {
       {!ws ? (
         <Empty title="Add puzzles before composing a book">
           This project has no word-search puzzle definitions. A book plan arranges existing puzzles,
-          so add them in Edit first.
+          so add them in Puzzles first.
         </Empty>
       ) : !composition ? (
         <Empty title="This project has no book composition yet">

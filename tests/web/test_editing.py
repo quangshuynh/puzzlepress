@@ -74,6 +74,32 @@ def test_save_canonicalizes_then_reloads_exact_authoritative_state(setup):
     assert source.read_bytes() == before
 
 
+def test_book_title_saves_alone_and_survives_reload(setup, garden):
+    client, source, detail = setup
+    detail["source"]["book"]["title"] = "  Garden Word Search Puzzle Book for Adults  "
+    response = post(setup, "save")
+    assert response.status_code == 200
+    reloaded = client.get("/api/projects/draft").json()
+    assert reloaded == response.json()
+    assert reloaded["source"]["book"]["title"] == "Garden Word Search Puzzle Book for Adults"
+    # Only the title changed: every other book detail and section is as authored.
+    saved = load_project(source).project.to_dict()
+    authored = garden.to_dict()
+    assert saved["book"].pop("title") != authored["book"].pop("title")
+    assert saved == authored
+
+
+@pytest.mark.parametrize("title", ["", "   ", None])
+def test_blank_book_title_is_rejected_at_its_field_without_writes(setup, title):
+    _, source, detail = setup
+    before = source.read_bytes()
+    detail["source"]["book"]["title"] = title
+    response = post(setup, "save")
+    assert response.status_code == 422
+    assert [i["path"] for i in response.json()["error"]["issues"]] == ["book.title"]
+    assert source.read_bytes() == before
+
+
 @pytest.mark.parametrize("operation", ["validate", "preview", "save"])
 @pytest.mark.parametrize("fault", ["duplicate", "character", "reference", "output", "unknown"])
 def test_invalid_drafts_rejected_without_writes(setup, operation, fault):

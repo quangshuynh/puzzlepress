@@ -120,6 +120,35 @@ test('confirmations save through the shared draft and block export until saved',
   expect(saved.rights).toBeNull();
 });
 
+test('the book details title links to its editable field and reflects the saved title', async () => {
+  const calls = setup();
+  await screen.findByText('AI content disclosure is not yet declared.');
+  const user = userEvent.setup();
+  const details = screen.getByRole('region', { name: 'Book details' });
+  expect(within(details).getByText('Harbour Light Word Searches')).toBeVisible();
+  await user.click(within(details).getByRole('link', { name: 'Puzzles' }));
+  expect(screen.getByRole('link', { name: /Puzzles/, current: 'page' })).toBeVisible();
+  const field = screen.getByRole('textbox', { name: 'Book title' });
+  expect(field).toBeVisible();
+  expect(field).toHaveValue('Harbour Light Word Searches');
+  await user.clear(field);
+  await user.type(field, 'Harbour Light Word Search Puzzle Book for Adults');
+  await user.click(screen.getByRole('button', { name: 'Save changes' }));
+  expect(await screen.findByText('Saved and reloaded from source.')).toBeVisible();
+  const save = calls.find((c) => c.url.endsWith('/draft/save'))!;
+  const book = (save.body.source as typeof project.source).book;
+  expect(book).toEqual({
+    ...project.source.book,
+    title: 'Harbour Light Word Search Puzzle Book for Adults',
+  });
+  await user.click(screen.getByRole('link', { name: 'Publishing' }));
+  const after = await screen.findByRole('region', { name: 'Book details' });
+  expect(within(after).getByText('Harbour Light Word Search Puzzle Book for Adults')).toBeVisible();
+  // Readiness is fetched again for the saved revision, never trusted from before.
+  const fetched = calls.filter((c) => c.url.endsWith('/publishing'));
+  expect(fetched.length).toBeGreaterThan(1);
+});
+
 function withConfirmation(state: 'confirmed' | 'stale' | 'legacy', upgrade = false) {
   const check = structuredClone(draftCheck) as unknown as PublishingDraftCheck;
   const metadata = check.metadata.confirmations.find((c) => c.name === 'metadata')!;
