@@ -29,10 +29,11 @@ composition:
         Find each listed word hidden in the grid.
   puzzles:
     start: recto           # any (default) | recto
+    layout: single         # single (default) | spread: word list facing its grid
   solutions:               # required
     placement: end         # end | omit
     title: Solutions       # required with end
-    per_page: 2            # 1 (default) | 2 | 4 | 6, only with end
+    per_page: 2            # 1 | 2 | 4 (default) | 6 | 8 per printed page, only with end
     start: recto           # any (default) | recto, only with end
   back_matter:             # 0..2 pages, in this order
     - kind: notes
@@ -95,12 +96,18 @@ changes a grid. Excluding a puzzle from a book is not supported.
 Every plan entry is one **logical page** in reading order. Page 1 is a recto
 (right-hand) page; odd pages are recto, even pages verso.
 
-- Each matter item is one page. Each puzzle is one page, a domain rule for word
-  search books (a grid and its word list).
-- Solutions are grouped `per_page` to a logical page, in puzzle order. Grouping
-  is semantic: which solutions share a page. Their arrangement, scale and
-  position on paper belong to the renderer, which must reject a density it cannot
-  fit rather than regroup it.
+- Each matter item is one page. Each puzzle is one page (a grid and its word
+  list), or with `puzzles.layout: spread` two: a `puzzle_words` page on a verso
+  facing its `puzzle` grid page on the recto. A word list that would fall on a
+  recto is preceded by one blank with reason `spread_verso_start`. Cross-references
+  name the grid page. `puzzles.start: recto` with a spread needs theme dividers
+  (`spread_starts_verso`). `single` is never written, so existing identities hold.
+- Solutions are grouped `per_page` to a printed page, in puzzle order (four when
+  omitted; it was one before interior design version 2, so a book that omitted it
+  repaginates). Grouping is semantic: which solutions share a page. Their
+  arrangement, scale and position on paper belong to the renderer, which must
+  reject a density it cannot fit rather than regroup it
+  ([interior design](interior-design.md#solutions-per-page)).
 - `start: recto` makes a section begin on a recto page. If the next page would be
   verso, one explicit blank page is inserted with reason `section_recto_start`
   and the section it precedes. It belongs to the preceding section. Blanks are

@@ -157,18 +157,21 @@ keyboard and avoid accidental moves.
 
 ## Interior design
 
-Choose **Interior** to style the printed interior ([production
-design](production-design-polish.md#interior-styles)). It edits the optional
-`interior` section and the theme dividers in the shared draft. **Add an interior
-style** starts from the classic preset; presets (Classic, Editorial, Modern, High
-contrast) are radio buttons, and every override shows **Preset** until you set
-it. Sections: title page (layout, tint, size, alignment, rule, photograph), puzzle
-pages, solution pages and theme dividers (each theme's title, text, optional quote
-and attribution, and photograph). Turning dividers on says that the page count
-changes and the cover must be rebuilt. **Sample pages** are PDFium rasters of the
-first page of each kind that Python rendered from the draft (`POST
-/draft/interior`); no full-book render runs per edit. **Remove the style
-section** returns to the original interior.
+Choose **Interior** to design the printed interior ([interior
+design](interior-design.md)). Tabs **Page layout**, **Answer layout**, **Theme**
+and **Title & dividers** edit the shared draft: `composition.puzzles.layout`,
+`composition.solutions.per_page` (moved here from Book, which now links to it),
+the theme dividers and the optional `interior` section. **Add an interior
+design** starts version 2 at the Classic theme and layout; version 1 styles keep
+their preset controls and offer an explicit **Convert to version 2**. Answer
+layout lists each per-page choice with Python's letter size and Fits, Cramped or
+Too small for the book's grids. Theme lists Python's themes with swatches and
+what each accent prints as, treatments, **Reset to the theme**, and design file
+export and import. The preview shows PDFium rasters of the pages Python rendered
+from the draft (`POST /draft/interior`) by role: puzzle spread, puzzle page,
+answer page, last answer page, divider, instructions, title page. A note says
+what saving changes (interior stale, page count and spine, package). **Reset the
+whole design to defaults** removes the section from the draft.
 
 ## Print proof
 
@@ -468,7 +471,10 @@ produce identical YAML bytes. No YAML dependency or schema change was added.
 | `POST /api/projects/{key}/cover/build` | `{revision}`; builds saved source, writes `cover.pdf`, `cover.json`, `cover-preflight.json` |
 | `POST /api/projects/{key}/draft/cover/convert` | `{source}`; the version 3 form of a version 1/2 cover with its preview and identity check; writes nothing |
 | `POST /api/projects/{key}/draft/cover/presets` | `{source}`; named design presets for this cover; writes nothing |
-| `POST /api/projects/{key}/draft/interior` | `{source}`; sample pages of the draft's styled interior, page count and issues; writes nothing |
+| `POST /api/projects/{key}/draft/interior` | `{source}`; representative pages of the draft's interior with their `roles`, page count, resolved design, warnings and `answers` (per page, answer pages, last page count, every choice's fit); on a layout failure the diagnostics and `answers`; writes nothing |
+| `GET /api/interior/designs` | Built-in themes and page layouts with what each sets (Python's catalogue) |
+| `POST /api/projects/{key}/draft/interior/export` | `{source, name}`; the draft's design as a `puzzlepress-interior-design` JSON attachment, without photographs |
+| `POST /api/projects/{key}/draft/interior/import` | `{source, text}`; validates a design file and returns `{success, name, interior}` for the draft (keeping its photographs) or `{success: false, issues}`; writes nothing |
 | `GET /api/projects/{key}/draft/interior/pages/{n}` | `?size=&pdf=<sha256>`; PNG of a draft sample page |
 | `POST /api/projects/{key}/assets/list` | `{source?}`; photos and fonts with their uses in the saved source and draft, and the trash |
 | `POST /api/projects/{key}/assets/trash` | `{path, sha256, revision, source?}`; moves an unused asset to the trash (409 `asset_in_use` with `uses`, `asset_changed`, `source_changed`) |
